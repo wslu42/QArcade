@@ -3,7 +3,7 @@ A table-top arcade machine for quantum game developers, including open-sourcing 
 
 # Introducing QArcade: A coding friendly platform for quantum game developers
 
-Looking back into the history especially 1970’s when computer hardware is still quite limited, arcade game developers already started the development of machine-level programming and prepared of themselves as future coders even if the hardware were still limited. In the meanwhile, game-driven breakthrough on the hardware, such as the Super FX 3D acceleration chip in Nintendo super-NES home console, also demonstrated the possibilities where new hardware technologies could be inspired by the game developers.
+Looking back into the history especially 1970’s, arcade game developers already started the development of machine-level programming and prepared of themselves as future coders even if the hardware were still limited. In the meanwhile, game-driven breakthrough on the hardware, such as the Super FX 3D acceleration chip in Nintendo super-NES home console, also demonstrated the possibilities where new hardware technologies could be inspired by the game developers.
 
   It is a privilege to explore the new quantum computational space during the NISQ era with qiskit. In this project, we hope to contribute to quantum education by leveraging the experience of classical arcades in the 70’s, the QArcade. By building a coding friendly platform for quantum game developers, we hope QArcade can assist education and inspire the next generation quantum workforce.
  
