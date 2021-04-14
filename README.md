@@ -9,7 +9,7 @@ Looking back into the history especially 1970’s when computer hardware is stil
  
 # A short survey of current quantum game developement environment
 
-  Several approaches are currently available for quantum developers. One typical approach is writing the game code in python modules pygame and qiskit, and then convert the game into executables with modules such as pyinstaller. The drawback of this approach is the executable usually inherited massive unused modules such as matplotlibs from qiskit, which makes the executables easily over few hundred MB and difficult to share the game online. 
+  Several approaches are currently available for quantum game developers. One typical approach is writing the game code in python modules pygame and qiskit, and then convert the game into executables with modules such as pyinstaller. The drawback of this approach is the executable usually inherited massive unused modules such as matplotlibs from qiskit, which makes the executables easily over few hundred MB and difficult to share the game online. 
   
   The second approach is writing the game body in professional game development engine such as Unity or Gadget, and then provide quantum simulation results from qiskit through python module Flask. This approach requires experience in setting up interface between python and localhost, which post a serious challenge for most quantum game enthusiasts we encountered, including ourselves, with limited Java or serve setup experience. 
   
