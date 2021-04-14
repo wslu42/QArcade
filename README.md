@@ -7,7 +7,7 @@ Looking back into the history especially 1970’s, arcade game developers alread
 
   It is a privilege to explore the new quantum computational space during the NISQ era with qiskit. In this project, we hope to contribute to quantum education by leveraging the experience of classical arcades in the 70’s, the QArcade. By building a coding friendly platform for quantum game developers, QArcade, we hope we can assist education and inspire the next generation quantum workforce.
  
-# A short survey of current quantum game developement environment
+# A short survey of current quantum game developement environment using qiskit
 
   Several approaches are currently available for quantum game developers. One typical approach is writing the game code in python modules pygame and qiskit, and then convert the game into executables with modules such as pyinstaller. The drawback of this approach is the executable usually inherited massive unused modules such as matplotlibs from qiskit, which makes the executables easily over few hundred MB and difficult to share the game online. 
   
