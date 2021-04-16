@@ -15,6 +15,8 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   
   A third approach is to develop a quantum game in the native coding environment with quantum simulator backend codes, micro-qiskit. This approach enables a simple yet concise style to learn quantum computing via coding and is in particular favorable for general educators such as high school teachers, since no heavy-lifting interfacing setups between python and external kernels are required.
   
+  We believe the root of a prospered game community is an efficicent exchange between the players and the developers. By introducing QArcade, we hope to lower the technical threshold for the creative quantum enthusiasts and provide shorter turn-around time to realize a quantum game, which stimulates the quantum game developement in the NISQ era.
+  
 # The deliverables
 
   We would like to use micro-qiskit in pico8 with a combination of raspberry pi as our platform, and the final deliverable will be a table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics. We will be delivering four quantum games developed in six weeks, and we will build and assemble the arcade with the aid of a 3D printer in parallel.
