@@ -9,7 +9,7 @@ A table-top arcade machine for quantum game developers, including open-sourcing 
 - FetainerTW @ 嘉義中學
 - iR/Voi @ 交通大學
 - Haley @ UEIS
-- Leo, YUCHAO, Willy @ 精誠高中
+- Leo, YuChao, Willy @ 精誠高中
 
 # Introducing QArcade: A coding friendly platform for quantum game developers
 
