@@ -28,6 +28,6 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   
  After successful demonstration of QArcade, we would like to invite local high school teachers and students to participate our pico 8 developemnt tutorial and also quantum game jams over the summer. We hope to encourage the K-12 quantum education through learning and programming quantum games.
   
-# Collaborations
+# Collaborations WANTED!
 
   Currently we are collaborating with students and teachers coming from four Taiwan local high schools/colleges to train and learn programming quantum games. If you are interested please join us by sending an email to Vince (wslu42@gmail.com)!
