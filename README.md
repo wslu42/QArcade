@@ -1,8 +1,15 @@
 # QArcade
 A table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics.
 
-# Introducing QArcade: A coding friendly platform for quantum game developers
-
+# Contributors
+Elton @ 建國中學
+Vincent @ IBM Research
+Chris @ 成功高中
+asd taiwan @ 桃園
+FetainerTW @ 嘉義中學
+iR/Voi @ 交通大學
+Haley @ UEIS
+Leo, YUCHAO, Willy @ 精誠高中
 
 # Introducing QArcade: A coding friendly platform for quantum game developers
 
