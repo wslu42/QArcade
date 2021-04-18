@@ -1,0 +1,16 @@
+function _init()
+ x,y=24,24
+end
+
+function _update()
+ if(btn(⬅️)) x-=2
+ if(btn(➡️)) x+=2
+ if(btn(⬆️)) y-=2
+ if(btn(⬇️)) y+=2
+ 
+end
+
+function _draw()
+ cls()
+ spr(0,x,y)
+end
