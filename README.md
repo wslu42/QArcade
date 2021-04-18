@@ -12,7 +12,7 @@ A table-top arcade machine for quantum game developers, including open-sourcing 
 - Leo, YuChao, Willy @ 精誠高中
 
 # 量子街機
-我們是一群台灣南北，地球東西的台灣人，在學習量子資訊的路上偶然相遇，相濡以沫。有感於自身學習量子電路之困頓經驗，希望藉由開發量子遊戲，降低國內中小學量子較育的興趣、技術、乃至經費門檻。量子電腦中關鍵的兩個概念：疊加(superposition)與纏結(entanglement)，對古典程式設計來說是全新的元素，我們期望藉由量子模擬模組Quantum Simulator與Raspberry pi微處理器的結合，提供開源教學素材，讓中小學教師、同學、乃至創客們也能享受使用量子電腦帶來的編程樂趣，進而與我們一起學習量子電腦及量子硬體。
+我們是一群台灣南北，地球東西的台灣人，在學習量子資訊的路上偶然相遇，相濡以沫。有感於自身學習量子電路之困頓經驗，希望藉由開發量子遊戲，降低國內中小學在量子教育上的興趣門檻、技術門檻、乃至經費門檻。量子電腦中關鍵的兩個概念：疊加(superposition)與纏結(entanglement)，對古典程式設計來說是全新的元素，我們期望藉由量子模擬模組Quantum Simulator與Raspberry pi微處理器的結合，提供開源教學素材，讓中小學教師、同學、乃至創客們也能享受使用量子電腦帶來的編程樂趣，進而與我們一起學習量子電腦及量子硬體。
 如果您有興趣，請與文森Vincent聯絡(wslu42@gmail.com)！
 
 **本計畫前半部以[學生量子電腦交流會(SQCS)](https://discord.gg/KjWMRewQB2)名義同步投稿至Qiskit Hackathon Europe**
