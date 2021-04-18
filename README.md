@@ -8,7 +8,7 @@ A table-top arcade machine for quantum game developers, including open-sourcing 
 - asd taiwan @ 桃園
 - FetainerTW @ 嘉義中學
 - iR/Voi @ 交通大學
-- Haley @ UEIS
+- Haley @ UEIS (United Education International School)
 - Leo, YuChao, Willy @ 精誠高中
 
 # Introducing QArcade: A coding friendly platform for quantum game developers
