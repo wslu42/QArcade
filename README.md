@@ -30,4 +30,4 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   
 # Collaborations WANTED!
 
-  Currently we are collaborating with students and teachers coming from four Taiwan local high schools/colleges to train and learn programming quantum games. If you are interested please join us by sending an email to Vince (wslu42@gmail.com)!
+  Currently we are collaborating with students and teachers coming from four Taiwan local high schools/colleges to train and learn programming quantum games. If you are interested please join us by sending an email to Vincent (wslu42@gmail.com)!
