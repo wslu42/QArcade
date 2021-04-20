@@ -4,7 +4,7 @@ A table-top arcade machine for quantum game developers, including open-sourcing 
 # Contributors
 - Elton @ 建國中學
 - Vincent @ IBM Research
-- Chris @ 成功高中
+- Yu-Chen Hung @ 成功高中 CGSH
 - asd taiwan @ 桃園
 - FetainerTW @ 嘉義中學
 - iR/Voi @ 交通大學
@@ -31,7 +31,7 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   
   A third approach is to develop a quantum game in the native coding environment with quantum simulator backend codes, micro-qiskit. This approach enables a simple yet concise style to learn quantum computing via coding and is in particular favorable for general educators such as high school teachers, since no heavy-lifting interfacing setups between python and external kernels are required.
   
-  We believe that the root of a prospered game community is an efficicent experience exchange between the players and the developers. By introducing QArcade, we hope to lower the technical threshold for the creative quantum enthusiasts and provide the developers a shorter turn-around time to realize a quantum game, which stimulates the inspirations for future quantum workforce during the NISQ era.
+  We believe that the root of a prospered game community is a real-time idea exchange between the players and the developers. By introducing QArcade, we hope to lower the technical threshold for the creative quantum enthusiasts and provide the developers a shorter turn-around time to realize a quantum game, which stimulates and inspires future quantum workforce during the NISQ era.
   
 # The deliverables
 
