@@ -29,14 +29,15 @@ In this project, we hope to contribute to quantum education by leveraging the ex
 - Arcade case
   1. Materials: 5 MDF boards, size: 11" x 14" x 0.5", vinyl wraps for aesthetics people.
   2. Tools: Saw, driller, spade bit 1", drilling bit 3/8"
-  3. Building the Arcade case by cutting the MDF boards with this design: https://www.slideshare.net/WenSenLu1/qarcade-layout
+  3. Building the Arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
   4. (building tutorial TBA)
 - ELectronics:
   1. Material: 10" LCD monitor with control board, Arcade DIY parts including 5-key joystick + arcade buttons + USB encorder board, USB keyboard and USB mouse, USB speaker, raspberry pi model 4B with power supply, micro SD cards 32GB, micro SD card reader.
-  2. Tools: A laptop to prepare raspbian os micro SD, WiFi or LAN access to your raspberry pi.
+  2. Tools: A laptop to prepare raspbian os micro SD, WiFi or LAN access to your raspberry pi for ssh communications.
 - Softwares:
-  1. [Raspberry pi imager](https://www.raspberrypi.org/software/)
-  2. 
+  1. [Raspberry pi imager v1.6](https://www.raspberrypi.org/software/) to prepare raspbian OS
+  2. Raspberry Pi OS (32 bit)]. A port of Debian with the Raspberry Pi Desktop, released date 2021-03-04 (or Retrop-Pie 4.7.1 (RPI 4/400) works as well)
+  3. [PICO-8 fantasy console](https://www.lexaloffle.com/pico-8.php). Need $15 to purchase.
 
  
 # A short survey of current quantum game developement environment with Qiskit
