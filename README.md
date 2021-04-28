@@ -69,7 +69,7 @@ In this project, we hope to contribute to quantum education by leveraging the ex
      - WiFi or LAN access to your raspberry pi for ssh communications
 - Softwares:
   1. [Raspberry pi imager v1.6](https://www.raspberrypi.org/software/) to prepare raspbian OS
-  2. Raspberry Pi OS (32 bit)]. A port of Debian with the Raspberry Pi Desktop, released date 2021-03-04 (or Retrop-Pie 4.7.1 (RPI 4/400) works as well)
+  2. Raspberry Pi OS (32 bit). A port of Debian with the Raspberry Pi Desktop, released date 2021-03-04 (or Retrop-Pie 4.7.1 (RPI 4/400) works as well)
   3. [PICO-8 fantasy console](https://www.lexaloffle.com/pico-8.php). Need $15 to purchase.
 
 # Collaborations WANTED!
