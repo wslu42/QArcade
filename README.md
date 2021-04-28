@@ -41,13 +41,13 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   
  Four quantum games are currently planned, and we hope to demonstrate two of them in two weeks. A complete set of physical arcade machine and four to five quantum games will be delivered at the beginning of June, 2021.
   
- After successful demonstration of QArcade, we would like to invite local high school teachers and students to participate our pico 8 developemnt tutorial and also quantum game jams over the summer. We hope to encourage the K-12 quantum education through learning and programming quantum games.
+ After successful demonstration of QArcade, we would like to invite local high school teachers and students to participate our PICO-8 developemnt tutorial and also quantum game jams over the summer. We hope to encourage the K-12 quantum education through learning and programming quantum games.
   
 # Requirements
 - Arcade case
   1. Materials
       - 5 MDF boards, size: 11" x 14" x 0.5"
-      - vinyl wraps for aesthetics people.
+      - Vinyl wraps for aesthetics people.
   2. Tools
       - Saw
       - Driller
@@ -68,7 +68,7 @@ In this project, we hope to contribute to quantum education by leveraging the ex
      - A laptop to prepare raspbian os micro SD
      - WiFi or LAN access to your raspberry pi for ssh communications
 - Softwares:
-  1. [Raspberry pi imager v1.6](https://www.raspberrypi.org/software/) to prepare raspbian OS
+  1. [Raspberry Pi imager v1.6](https://www.raspberrypi.org/software/) to prepare raspbian OS
   2. Raspberry Pi OS (32 bit). A port of Debian with the Raspberry Pi Desktop, released date 2021-03-04 (or Retrop-Pie 4.7.1 (RPI 4/400) works as well)
   3. [PICO-8 fantasy console](https://www.lexaloffle.com/pico-8.php). Need $15 to purchase.
 
