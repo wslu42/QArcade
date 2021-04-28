@@ -1,6 +1,6 @@
 ![logo_QArcade_new_light](https://user-images.githubusercontent.com/29524895/116025019-8032b000-a61d-11eb-9128-deb792fcc031.png)
 
-# QArcade
+## QArcade
 A table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics.
 
 ## Contributors
