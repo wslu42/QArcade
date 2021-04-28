@@ -45,10 +45,12 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   
 # Requirements
 - Arcade case
-  1. Materials: 5 MDF boards, size: 11" x 14" x 0.5", vinyl wraps for aesthetics people.
-  2. Tools: Saw, driller, spade bit 1", drilling bit 3/8"
-  3. Building the Arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
-  4. (building tutorial TBA)
+  1. Materials: 
+    - 5 MDF boards, size: 11" x 14" x 0.5"
+    - vinyl wraps for aesthetics people.
+  3. Tools: Saw, driller, spade bit 1", drilling bit 3/8"
+  4. Building the Arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
+  5. (building tutorial TBA)
 - Electronics:
   1. Material: 10" LCD monitor with control board, Arcade DIY parts including 5-key joystick + arcade buttons + USB encorder board, USB keyboard and USB mouse, USB speaker, raspberry pi model 4B with power supply, micro SD cards 32GB, micro SD card reader.
   2. Tools: A laptop to prepare raspbian os micro SD, WiFi or LAN access to your raspberry pi for ssh communications.
