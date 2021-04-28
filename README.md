@@ -27,7 +27,7 @@ In this project, we hope to contribute to quantum education by leveraging the ex
 
 # Requirements
 - Hardware
-- 1. Building the Arcade case: https://www.slideshare.net/WenSenLu1/qarcade-layout
+  1. Building the Arcade case: https://www.slideshare.net/WenSenLu1/qarcade-layout
 - Software
 
  
