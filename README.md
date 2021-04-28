@@ -62,7 +62,7 @@ In this project, we hope to contribute to quantum education by leveraging the ex
      - USB keyboard and USB mouse
      - USB speaker
      - Raspberry pi model 4B with power supply
-     - Micro SD cards 32GB
+     - Micro SD card 32GB
      - Micro SD card reader.
   2. Tools
      - A laptop to prepare raspbian os micro SD
