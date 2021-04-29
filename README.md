@@ -77,7 +77,8 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   2. Raspberry Pi OS (32 bit). A port of Debian with the Raspberry Pi Desktop, released date 2021-03-04 (or Retrop-Pie 4.7.1 (RPI 4/400) works as well)
   3. [PICO-8 fantasy console](https://www.lexaloffle.com/pico-8.php). Need $15 to purchase.
 
-# Building the QArcade machine
+# Tutorials for setting up a QArcade
+## Building a physical arcade machine
   1. Building the arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
   2. (tutorial for building QArcade TBA)
   3. Prepare rasbian OS onto the micro SD card by using Raspberry Pi imager.
@@ -86,7 +87,7 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   6. Download the PICO-8 linux version and run the executable.
   7. (tutorial for setting up key mapping for pico-8 TBA)
 
-# Let's get some walks in PICO-8
+## Let's get some walks in PICO-8
   1. Write our first game in PICO-8
   2. What is micro-qiskit
   3. Hello world Quantum
