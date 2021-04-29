@@ -2,14 +2,13 @@
 
 ![logo_QArcade_new_light](https://user-images.githubusercontent.com/29524895/116025019-8032b000-a61d-11eb-9128-deb792fcc031.png)
 
-# Proposal presentations
+# QArcade
 
-- Presentation recording: https://youtu.be/jsbgksutqb0
-
-- Presentation slides: https://www2.slideshare.net/WenSenLu1/120425-euq-hack-qarcadeproposal
-
-## QArcade
 A table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics.
+
+# Proposal presentations
+- Presentation recording: https://youtu.be/jsbgksutqb0
+- Presentation slides: https://www2.slideshare.net/WenSenLu1/120425-euq-hack-qarcadeproposal
 
 ## Contributors
 - Elton @ 建國中學
