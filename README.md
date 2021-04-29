@@ -6,7 +6,7 @@
 
 A table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics.
 
-# Proposal presentations
+## Proposal presentations
 - Presentation recording: https://youtu.be/jsbgksutqb0
 - Presentation slides: https://www2.slideshare.net/WenSenLu1/120425-euq-hack-qarcadeproposal
 
