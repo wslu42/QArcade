@@ -41,7 +41,13 @@ In this project, we hope to contribute to quantum education by leveraging the ex
   A third approach is to develop a quantum game in the native coding environment with quantum simulator backend codes, micro-qiskit. This approach enables a simple yet concise style to learn quantum computing via coding and is in particular favorable for general educators such as high school teachers, since no heavy-lifting interfacing setups between python and external kernels are required.
   
   We believe that the root of a prospered game community is a real-time idea exchange between the players and the developers. By introducing QArcade, we hope to lower the technical threshold for the creative quantum enthusiasts and provide the developers a shorter turn-around time to realize a quantum game, which stimulates and inspires future quantum workforce during the NISQ era.
+
+## Our motivation
+
+  The motivation of this project is to help quantum enthusiastic building a classical machine hosting quantum development environment. It could be game development platform such as PICO-8 with micro-qiskit or full-fledged Python3 environment with Thonny which allows developers to access the full power of qiskit. 
   
+  Indeed, for mature users such as graduate student with physics or computer science background it is perhaps more straightforward for them to use qiskit on their laptops for some serious quantum simulations, while this project is aiming at K-12 students and educators who has rather limited experience regarding quantum physics and/or programming. For these audiences PICO-8 and micro-qiskit offer a simple yet concise platform for the to concentrate on their creativity to navigate the quantum ideas such as superposition and entanglement.  
+
 ## The deliverables
 
   We would like to use micro-qiskit in pico8 with a combination of raspberry pi as our platform, and the final deliverable will be a table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics. We will be delivering four quantum games developed in six weeks, and we will build and assemble the arcade with the aid of a 3D printer in parallel.
@@ -49,50 +55,6 @@ In this project, we hope to contribute to quantum education by leveraging the ex
  Four quantum games are currently planned, and we hope to demonstrate two of them in two weeks. A complete set of physical arcade machine and four to five quantum games will be delivered at the beginning of June, 2021.
   
  After successful demonstration of QArcade, we would like to invite local high school teachers and students to participate our PICO-8 developemnt tutorial and also quantum game jams over the summer. We hope to encourage the K-12 quantum education through learning and programming quantum games.
-  
-# Requirements
-- Arcade case
-  1. Materials
-      - 5 MDF boards, size: 11" x 14" x 0.5"
-      - Vinyl wraps for aesthetics people.
-  2. Tools
-      - Saw
-      - Driller
-      - Spade bit 1"
-      - Drilling bit 3/8"
-- Electronics:
-  1. Material
-     - 10" LCD monitor with control board
-     - Arcade DIY parts including 5-key joystick + arcade buttons + USB encorder board
-     - USB keyboard and USB mouse
-     - USB speaker
-     - Raspberry pi model 4B with power supply
-     - Micro SD card 32GB
-     - Micro SD card reader.
-  2. Tools
-     - A laptop to prepare raspbian OS micro SD
-     - WiFi or LAN access to your raspberry pi for ssh communications
-- Softwares:
-  1. [Raspberry Pi imager v1.6](https://www.raspberrypi.org/software/) to prepare raspbian OS
-  2. Raspberry Pi OS (32 bit). A port of Debian with the Raspberry Pi Desktop, released date 2021-03-04 (or Retrop-Pie 4.7.1 (RPI 4/400) works as well)
-  3. [PICO-8 fantasy console](https://www.lexaloffle.com/pico-8.php). Need $15 to purchase.
-
-# Tutorials for setting up an QArcade
-## Building a physical arcade machine
-  1. Building the arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
-  2. (tutorial for building QArcade TBA)
-  3. Prepare rasbian OS onto the micro SD card by using Raspberry Pi imager.
-  4. Wiring up the parts and boot into raspbian OS.
-  5. The advantage of using the standard raspbian OS over other platform such as retropie was a more up-to-date driver supports and a more intuivite desktop envoronment. Make sure everything functiong well including the monitor, sound, keyboard, and mouse.
-  6. Download the PICO-8 linux version and run the executable.
-  7. (tutorial for setting up key mapping for pico-8 TBA)
-
-## Let's get some walks in PICO-8
-  1. Write our first game in PICO-8
-  2. What is micro-qiskit
-  3. Hello world Quantum
-  4. The circuit composer and gate-base logic for a universal quantum computer
-  5. More ideas to use quantum computation when developing games
 
 # Collaborations WANTED!
   Currently we are collaborating with students and teachers coming from four Taiwan local high schools/colleges to train and learn programming quantum games. If you are interested please join us by sending an email to Vincent (wslu42@gmail.com)!
