@@ -6,6 +6,6 @@ We have been asked lot of similar questions, and let me try to address each of t
 
 1. There are plenty of arcade machine tutorials showing us how to build an tabletop arcade machine, so why do we want to build our own?
 
-Well 
+>> Well 
 
 # The components of a tabletop Arcade machine
