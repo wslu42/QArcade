@@ -1,6 +1,6 @@
 # Tutorials for setting up an QArcade
 
-How to build a case which hosts our arcade machine
+How to build a case which hosts our arcade machine and make it up and running
 
 ## Building a physical arcade machine
   1. Building the arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
