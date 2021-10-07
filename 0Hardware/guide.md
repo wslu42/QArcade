@@ -2,7 +2,7 @@
 
 ## Building a physical arcade machine
   1. Building the arcade case by cutting the MDF boards [with this design](https://www.slideshare.net/WenSenLu1/qarcade-layout)
-  2. (optional: build anchoring parts with a 3D printer) 
+  2. (optional) build anchoring parts with a 3D printer 
   3. Putting together the arcade case
   4. Prepare rasbian OS (Debian distribution) onto the micro SD card by using Raspberry Pi imager.
   5. Wiring up the parts and boot into raspbian OS.
@@ -13,6 +13,7 @@
   2. Setting up coding environment with [Sublime Text editor](https://tecadmin.net/install-sublime-text-editor-debian/) and [the PICO-8 package](https://packagecontrol.io/packages/PICO-8)
   3. Download the PICO-8 linux version and setup to run the executable
   4. Setting up joystick controller key mapping for PICO-8
+  5. (optional) [boot into PICO-8 directly](https://magpi.raspberrypi.org/articles/pico-8-raspberry-pi-starter-guide)
 
 ## Let's get some walks in PICO-8
   1. Write our first game in PICO-8
