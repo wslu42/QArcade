@@ -9,7 +9,7 @@
 ## Setting up coding environment for PICO-8 in QArcade
   1. Make sure everything functiong well including the monitor, sound, keyboard, and mouse in Debian OS.
   2. [Update the fresh Debian environment](https://itsfoss.com/apt-get-linux-guide/)
-  3. Setting up coding environment with Sublime Text 3 editor and [the PICO-8 package](https://packagecontrol.io/packages/PICO-8)
+  3. Setting up coding environment with [Sublime Text editor](https://tecadmin.net/install-sublime-text-editor-debian/) and [the PICO-8 package](https://packagecontrol.io/packages/PICO-8)
   4. Download the PICO-8 linux version and setup to run the executable
   5. Setting up joystick controller key mapping for PICO-8
 
