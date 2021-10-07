@@ -7,10 +7,10 @@
 A table-top arcade machine for quantum game developers, including open-sourcing the entire tutorials from coding to arcade schematics.
 
 ## Proposal presentations
-- [Pitching the idea](https://youtu.be/jsbgksutqb0)
+- [Pitching the idea](https://youtu.be/jsbgksutqb0) @2021/04/25
 - [Presentation slides](https://www2.slideshare.net/WenSenLu1/120425-euq-hack-qarcadeproposal)
-- [The half-built arcade](https://youtu.be/MFyIC066VZI)
-- [The full-built arcade](https://youtu.be/LawvnygNNcw)
+- [The half-built arcade](https://youtu.be/MFyIC066VZI) @2021/05/04
+- [The full-built arcade](https://youtu.be/LawvnygNNcw) @2021/10/01
 
 ## Contributors
 - Elton @ 建國中學
