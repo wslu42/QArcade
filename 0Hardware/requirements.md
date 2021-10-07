@@ -1,5 +1,5 @@
   
-# Requirements
+# list of parts
 - Arcade case
   1. Materials
       - 5 MDF boards, size: 11" x 14" x 0.5"
