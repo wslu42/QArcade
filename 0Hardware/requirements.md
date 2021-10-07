@@ -9,6 +9,7 @@
       - Driller
       - Spade bit 1"
       - Drilling bit 3/8"
+      - (optional) parts from a 3D printer for better case-anchoring
 - Electronics:
   1. Material
      - 10" LCD monitor with control board
