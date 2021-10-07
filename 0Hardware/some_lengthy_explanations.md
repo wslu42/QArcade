@@ -1,4 +1,4 @@
-In this readme file, we will be looking into how to build a case which hosts our arcade machine. 
+I am trying to provide some reason of my several decisions when building the QArcade, in case anyone is interested in improving it he/she might found this useful.
 
 # Why do we choose an arcade to be our platform
 
