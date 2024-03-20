@@ -17,7 +17,7 @@
       - Cabinet back x1
       - Joystick panel x1
       - Screen panel assembly
-        - 
+      
 - Electronics:
   1. Material
      - 10" LCD monitor with control board
