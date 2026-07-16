@@ -49,10 +49,50 @@ qilin-game-framework/
 │   └── release.py
 ├── tests/
 ├── previews/
+├── RENDER_PNG.bat
+├── WATCH_PREVIEW.bat
+├── preview_viewer.html
 └── release/
 ```
 
-## Fast preview loop
+## One-click Windows preview
+
+On Windows, no agent is needed to render a PNG.
+
+### Render once
+
+Double-click:
+
+```text
+RENDER_PNG.bat
+```
+
+It will:
+
+1. create a local `.venv` on first use;
+2. install Pillow on first use;
+3. render `previews/current.png`;
+4. also save `previews/current_128x128.png` and metadata;
+5. open the rendered PNG.
+
+The first run is slower because it creates the environment and caches the P8SCII font. Later runs avoid that setup.
+
+### Live preview while editing
+
+Double-click:
+
+```text
+WATCH_PREVIEW.bat
+```
+
+This opens `preview_viewer.html` and keeps the renderer in memory. Each time
+`framework/qilin_game_framework.p8` is saved, the PNG is regenerated. The
+browser viewer checks for the new PNG automatically, so no manual reopen is
+needed.
+
+Close the command window or press `Ctrl+C` to stop watching.
+
+## Command-line preview loop
 
 Install once:
 
@@ -70,8 +110,9 @@ python tools/render_preview.py framework/qilin_game_framework.p8 \
 Persistent watch mode:
 
 ```bash
-python tools/watch_preview.py framework/qilin_game_framework.p8 \
-  -o previews/current.png
+python tools/render_preview.py framework/qilin_game_framework.p8 \
+  -o previews/current.png \
+  --watch
 ```
 
 Watch mode loads Python, Pillow, and the P8SCII font once. It then rerenders only when the cartridge content hash changes.
