@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Fast one-shot or persistent preview CLI for Qilin cartridges.
+
+Normal previewing creates only preview artifacts. It never packages a release.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import sys
+import tempfile
+import time
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
+
+from PIL import Image
+
+from render_core import (
+    DEFAULT_FONT_URL,
+    RENDERER_VERSION,
+    GateSpec,
+    Pico8BitmapFont,
+    PreviewError,
+    PreviewState,
+    default_cache_dir,
+    load_font_header,
+    parse_font_map,
+    parse_gate_spec,
+    render_source,
+)
+
+
+def parse_counts(raw: str | None) -> dict[str, int] | None:
+    if raw is None:
+        return None
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise argparse.ArgumentTypeError(f"Invalid counts JSON: {exc}") from exc
+    if not isinstance(value, dict):
+        raise argparse.ArgumentTypeError("Counts must be a JSON object.")
+    result: dict[str, int] = {}
+    for key, count in value.items():
+        if not isinstance(key, str) or not isinstance(count, int) or count < 0:
+            raise argparse.ArgumentTypeError(
+                "Counts keys must be strings and values non-negative integers."
+            )
+        result[key] = count
+    return result
+
+
+def infer_project_root(source: Path) -> Path:
+    source = source.resolve()
+    if source.parent.name == "framework":
+        return source.parent.parent
+    return Path.cwd().resolve()
+
+
+def stable_json(value: Any) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+
+def compute_fingerprint(
+    source_bytes: bytes,
+    font_header: str,
+    state: PreviewState,
+    *,
+    scale: int,
+) -> str:
+    digest = hashlib.sha256()
+    digest.update(source_bytes)
+    digest.update(hashlib.sha256(font_header.encode("utf-8")).digest())
+    digest.update(RENDERER_VERSION.encode("ascii"))
+    digest.update(stable_json({
+        "level_number": state.level_number,
+        "cursor_visual_q": state.cursor_visual_q,
+        "gates": [asdict(gate) for gate in state.gates],
+        "counts": state.counts,
+        "feedback": state.feedback,
+        "scale": scale,
+    }))
+    return digest.hexdigest()
+
+
+def load_cache(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {"version": 1, "entries": {}}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"version": 1, "entries": {}}
+    if not isinstance(value, dict) or not isinstance(value.get("entries"), dict):
+        return {"version": 1, "entries": {}}
+    return value
+
+
+def save_cache(path: Path, cache: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(cache, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    os.replace(temporary, path)
+
+
+def save_image_atomic(image: Image.Image, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        suffix=path.suffix or ".png",
+        dir=path.parent,
+        delete=False,
+    ) as handle:
+        temporary = Path(handle.name)
+    try:
+        image.save(temporary)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def save_json_atomic(value: dict[str, Any], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(value, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    os.replace(temporary, path)
+
+
+class RenderSession:
+    """Persistent session that loads the font once and reuses glyph caches."""
+
+    def __init__(
+        self,
+        
