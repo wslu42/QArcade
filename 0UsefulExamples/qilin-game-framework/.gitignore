@@ -1,0 +1,13 @@
+# Qilin preview runtime cache
+.qilin-cache/
+
+# Generated previews and releases
+previews/*.png
+previews/*.json
+release/*.zip
+release/*.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
