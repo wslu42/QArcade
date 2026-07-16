@@ -1,0 +1,101 @@
+ _setdefault(core, "qubit_selector", {})
+    qubit_selector.setdefault("x", 0)
+    qubit_selector.setdefault("y", 0)
+
+    grid_width = (num_qubits - 1) * int(grid["col_pitch"]) + int(grid["cell_w"])
+    grid_height = (circuit_depth - 1) * int(grid["row_pitch"]) + int(grid["cell_h"])
+    required_core_w = max(
+        int(grid.get("x", 0)) + grid_width,
+        int(depth_index.get("x", 0)) + 8,
+        int(depth_flow.get("x", 0)) + 4,
+    )
+    required_core_h = max(
+        int(grid.get("y", 0)) + grid_height + int(grid["wire_bottom_overhang"]),
+        int(qubit_index.get("y", 0)) + 6,
+        int(qubit_selector.get("y", 0)) + 6,
+    )
+    core["w"] = max(int(core.get("w", 0)), required_core_w)
+    core["h"] = max(int(core.get("h", 0)), required_core_h)
+
+    key_map = _setdefault(controller, "key_map", {})
+    key_map.setdefault("x", 0)
+    key_map.setdefault("y", 0)
+    key_map.setdefault("items", [])
+    key_map.setdefault("w", 0)
+    key_map.setdefault("h", 0)
+
+    mission = _setdefault(layout, "mission", {})
+    mission.setdefault("x", 0)
+    mission.setdefault("y", 0)
+    for name in ("title", "instruction", "feedback"):
+        child = _setdefault(mission, name, {})
+        child.setdefault("x", 0)
+        child.setdefault("y", 0)
+        child.setdefault("w", int(mission.get("w", 0)))
+        child.setdefault("h", 6)
+    mission_extent_w, mission_extent_h = _child_extent(
+        mission, "title", "instruction", "feedback"
+    )
+    mission["w"] = max(int(mission.get("w", 0)), mission_extent_w)
+    mission["h"] = max(int(mission.get("h", 0)), mission_extent_h)
+
+    response = _setdefault(layout, "response", {})
+    response.setdefault("x", 0)
+    response.setdefault("y", 0)
+    response.setdefault("w", 128)
+    response.setdefault("h", 128 - int(response["y"]))
+
+    legend = _setdefault(response, "legend", {})
+    legend.setdefault("x", 0)
+    legend.setdefault("y", 0)
+    legend.setdefault("w", int(response["w"]))
+    legend.setdefault("h", 6)
+    target = _setdefault(legend, "target", {})
+    target.setdefault("box_x", 3)
+    target.setdefault("text_x", 10)
+    measured = _setdefault(legend, "measured", {})
+    measured.setdefault("box_x", 53)
+    measured.setdefault("text_x", 60)
+
+    canvas = _setdefault(response, "canvas", {})
+    canvas.setdefault("x", 0)
+    canvas.setdefault("y", 0)
+    canvas.setdefault("w", int(response["w"]))
+    canvas.setdefault("h", 17)
+    canvas.setdefault("base_y", int(canvas["h"]) - 1)
+    canvas.setdefault("first_state_x", 0)
+    canvas.setdefault("state_pitch", 16)
+    canvas.setdefault("bar_w", 9)
+    canvas.setdefault("measured_inset_x", 2)
+    canvas.setdefault("measured_w", 5)
+
+    state_index = _setdefault(response, "state_index", {})
+    state_index.setdefault("x", 0)
+    state_index.setdefault("y", 0)
+    state_index.setdefault("w", int(response["w"]))
+    state_index.setdefault("h", 6)
+    state_index.setdefault("state_pitch", int(canvas["state_pitch"]))
+    # v49 declares x=1 but subtracts 1 at draw time. Normalize the effective
+    # screen origin to zero so the renderer never needs contradictory math.
+    if re.search(r"state_index\.state_pitch\s*-\s*1", source):
+        state_index["x"] = int(state_index.get("x", 0)) - 1
+
+    return layout
+
+
+def parse_project(source: str) -> dict[str, Any]:
+    num_qubits = parse_scalar(source, "num_qubits", 3)
+    circuit_depth = parse_scalar(source, "circuit_depth", 4)
+    raw_layout = parse_lua_table(source, "layout")
+    return {
+        "num_qubits": num_qubits,
+        "circuit_depth": circuit_depth,
+        "states": parse_lua_table(source, "states"),
+        "levels": parse_lua_table(source, "levels"),
+        "layout": normalize_layout(
+            raw_layout,
+            source,
+            num_qubits=num_qubits,
+            circuit_depth=circuit_depth,
+        ),
+    }
