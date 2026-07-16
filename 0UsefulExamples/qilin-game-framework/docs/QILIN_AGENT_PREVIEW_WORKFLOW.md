@@ -416,4 +416,16 @@ The repository implementation is split into:
 ```text
 tools/layout_parser.py   safe arithmetic parser + schema normalization
 tools/render_core.py     pure in-memory P8SCII rendering
-t
+tools/render_preview.py  one-shot CLI, cache, and --watch mode
+tools/watch_preview.py   watch-mode convenience entry point
+tools/release.py         explicit release packaging only
+```
+
+The active framework cartridge is:
+
+```text
+framework/qilin_game_framework.p8
+```
+
+Do not use `reference/qilin.p8` as the preview source unless explicitly
+reviewing the original game.
