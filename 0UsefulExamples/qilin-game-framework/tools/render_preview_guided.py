@@ -11,16 +11,18 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 import render_preview
 from render_core import PICO8_PALETTE
 from render_core import render_source as render_source_without_guides
 
 
-GUIDED_RENDERER_VERSION = "3.2.0-output-guides"
+GUIDED_RENDERER_VERSION = "3.3.0-output-guides-labels"
 GUIDE_COLOR_INDEX = 13
 OUTPUT_LINE_WIDTH = 1
+LABEL_PADDING_X = 3
+LABEL_PADDING_Y = 2
 
 
 def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
@@ -82,23 +84,24 @@ def _draw_output_box(
     width: int,
     height: int,
     scale: int,
-) -> None:
+) -> tuple[int, int, int, int] | None:
     """Draw a one-output-pixel rectangle around a native-space block."""
     if width <= 0 or height <= 0:
-        return
+        return None
 
     left = max(0, x * scale)
     top = max(0, y * scale)
     right = min(image.width - 1, (x + width) * scale - 1)
     bottom = min(image.height - 1, (y + height) * scale - 1)
     if left > right or top > bottom:
-        return
+        return None
 
-    draw.rectangle(
-        (left, top, right, bottom),
-        outline=PICO8_PALETTE[GUIDE_COLOR_INDEX],
-        width=OUTPUT_LINE_WIDTH,
-    )
+    color = PICO8_PALETTE[GUIDE_COLOR_INDEX]
+    draw.line((left, top, right, top), fill=color, width=OUTPUT_LINE_WIDTH)
+    draw.line((left, bottom, right, bottom), fill=color, width=OUTPUT_LINE_WIDTH)
+    draw.line((left, top, left, bottom), fill=color, width=OUTPUT_LINE_WIDTH)
+    draw.line((right, top, right, bottom), fill=color, width=OUTPUT_LINE_WIDTH)
+    return left, top, right, bottom
 
 
 def _add_output_layout_guides(
@@ -109,8 +112,10 @@ def _add_output_layout_guides(
 ) -> list[dict[str, int | str]]:
     blocks = _layout_blocks(layout)
     draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()
+    text_color = PICO8_PALETTE[GUIDE_COLOR_INDEX]
     for block in blocks:
-        _draw_output_box(
+        box = _draw_output_box(
             draw,
             image,
             x=int(block["x"]),
@@ -119,6 +124,12 @@ def _add_output_layout_guides(
             height=int(block["h"]),
             scale=scale,
         )
+        if box is None:
+            continue
+        left, top, right, bottom = box
+        label_x = min(max(left + LABEL_PADDING_X, 0), max(right - 1, 0))
+        label_y = min(max(top + LABEL_PADDING_Y, 0), max(bottom - 1, 0))
+        draw.text((label_x, label_y), str(block["name"]), fill=text_color, font=font)
     return blocks
 
 
@@ -152,8 +163,6 @@ class GuidedRenderSession(render_preview.RenderSession):
             self.state,
         )
 
-        # Always use a separate object so the native output remains guide-free,
-        # including when --scale 1 is selected.
         scaled = (
             native.copy()
             if self.scale == 1
@@ -175,6 +184,7 @@ class GuidedRenderSession(render_preview.RenderSession):
         metadata["renderer_version"] = GUIDED_RENDERER_VERSION
         metadata["layout_guides"] = {
             "enabled": True,
+            "labels_enabled": True,
             "draw_stage": "after_scaling",
             "output_line_width": OUTPUT_LINE_WIDTH,
             "output_scale": self.scale,
@@ -204,8 +214,6 @@ class GuidedRenderSession(render_preview.RenderSession):
 
 
 def main() -> int:
-    # create_session() resolves these names from render_preview at runtime.
-    # The version change invalidates the previous guided-preview cache.
     render_preview.RENDERER_VERSION = GUIDED_RENDERER_VERSION
     render_preview.RenderSession = GuidedRenderSession
     return render_preview.main()
