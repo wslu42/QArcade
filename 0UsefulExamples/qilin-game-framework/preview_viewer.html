@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Qilin Live Preview</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, sans-serif;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #111;
+      color: #ddd;
+    }
+    main {
+      display: grid;
+      gap: 0.75rem;
+      justify-items: center;
+      padding: 1rem;
+    }
+    img {
+      width: min(90vmin, 1024px);
+      height: min(90vmin, 1024px);
+      object-fit: contain;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background: #000;
+      border: 1px solid #444;
+    }
+    #status {
+      min-height: 1.5em;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img id="preview" alt="Qilin PICO-8 preview">
+    <div id="status">Waiting for previews/current.png…</div>
+  </main>
+  <script>
+    const image = document.getElementById('preview');
+    const status = document.getElementById('status');
+    let lastLoadedAt = 0;
+
+    function refresh() {
+      const next = new Image();
+      const stamp = Date.now();
+      next.onload = () => {
+        image.src = next.src;
+        lastLoadedAt = stamp;
+        status.textContent = `Updated ${new Date(stamp).toLocaleTimeString()}`;
+      };
+      next.onerror = () => {
+        if (!lastLoadedAt) {
+          status.textContent = 'Waiting for previews/current.png…';
+        }
+      };
+      next.src = `previews/current.png?t=${stamp}`;
+    }
+
+    refresh();
+    setInterval(refresh, 300);
+  </script>
+</body>
+</html>
