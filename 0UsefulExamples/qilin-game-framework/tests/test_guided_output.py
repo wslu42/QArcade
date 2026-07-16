@@ -82,7 +82,7 @@ class GuidedOutputTest(unittest.TestCase):
 
             with Image.open(scaled_path) as scaled:
                 self.assertEqual(
-                    scaled.getpixel((native_x * 8, native_y * 8)),
+                    scaled.getpixel((native_x * 8, native_y * 8))[:3],
                     GUIDE_RGB,
                 )
             with Image.open(native_path) as native, Image.open(
@@ -95,6 +95,9 @@ class GuidedOutputTest(unittest.TestCase):
             self.assertEqual(guides["output_line_width"], 1)
             self.assertEqual(guides["output_scale"], 8)
             self.assertEqual(guides["effective_native_line_width"], 0.125)
+            self.assertEqual(guides["label_scale"], 4)
+            self.assertEqual(guides["label_names"]["mission_area"], "mission")
+            self.assertEqual(guides["mission_left_line_width"], 2)
             self.assertFalse(guides["native_preview_contains_guides"])
 
 
