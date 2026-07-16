@@ -1,0 +1,100 @@
+        x: int,
+        y: int,
+        color: tuple[int, int, int],
+    ) -> int:
+        pixels = image.load()
+        cursor_x = x
+        for code, advance in self.tokenize(text):
+            glyph = self.glyph(code)
+            for gy in range(6):
+                for gx in range(advance):
+                    if glyph[gy][gx]:
+                        px = cursor_x + gx
+                        py = y + gy
+                        if 0 <= px < image.width and 0 <= py < image.height:
+                            pixels[px, py] = color
+            cursor_x += advance
+        return cursor_x
+
+
+class PicoCanvas:
+    def __init__(self, font: Pico8BitmapFont):
+        self.image = Image.new("RGB", (SCREEN_W, SCREEN_H), PICO8_PALETTE[0])
+        self.draw_api = ImageDraw.Draw(self.image)
+        self.font = font
+
+    @staticmethod
+    def color(index: int) -> tuple[int, int, int]:
+        return PICO8_PALETTE[index % 16]
+
+    def line(self, x1: int, y1: int, x2: int, y2: int, color: int) -> None:
+        self.draw_api.line((x1, y1, x2, y2), fill=self.color(color))
+
+    def rect(self, x1: int, y1: int, x2: int, y2: int, color: int) -> None:
+        self.draw_api.rectangle((x1, y1, x2, y2), outline=self.color(color))
+
+    def rectfill(self, x1: int, y1: int, x2: int, y2: int, color: int) -> None:
+        self.draw_api.rectangle((x1, y1, x2, y2), fill=self.color(color))
+
+    def circ(self, x: int, y: int, radius: int, color: int) -> None:
+        self.draw_api.ellipse(
+            (x - radius, y - radius, x + radius, y + radius),
+            outline=self.color(color),
+        )
+
+    def circfill(self, x: int, y: int, radius: int, color: int) -> None:
+        self.draw_api.ellipse(
+            (x - radius, y - radius, x + radius, y + radius),
+            fill=self.color(color),
+            outline=self.color(color),
+        )
+
+    def text(self, value: str, x: int, y: int, color: int) -> None:
+        self.font.draw(self.image, value, x, y, self.color(color))
+
+    def centered_text(self, value: str, x: int, y: int, width: int, color: int) -> None:
+        text_x = x + max(0, (width - self.font.width(value)) // 2)
+        self.text(value, text_x, y, color)
+
+
+def parse_gate_spec(spec: str) -> GateSpec:
+    parts = spec.lower().split(":")
+    if len(parts) not in {3, 4}:
+        raise PreviewError("Gate must be qN:dN:x, qN:dN:h, or qN:dN:cx:qM.")
+    try:
+        visual_q = int(parts[0].removeprefix("q"))
+        depth = int(parts[1].removeprefix("d"))
+    except ValueError as exc:
+        raise PreviewError(f"Invalid gate specification: {spec}") from exc
+    gate_type = parts[2]
+    target = None
+    if gate_type == "cx":
+        if len(parts) != 4:
+            raise PreviewError("CX requires a target qN.")
+        try:
+            target = int(parts[3].removeprefix("q"))
+        except ValueError as exc:
+            raise PreviewError(f"Invalid CX target: {spec}") from exc
+    elif gate_type not in {"x", "h"}:
+        raise PreviewError(f"Unsupported gate type: {gate_type}")
+    return GateSpec(visual_q, depth, gate_type, target)
+
+
+def _draw_target_plus(
+    canvas: PicoCanvas,
+    x: int,
+    y: int,
+    grid: dict[str, Any],
+    color: int,
+) -> None:
+    center_x = x + int(grid["cell_w"]) // 2
+    center_y = y + int(grid["cell_h"]) // 2
+    radius = int(grid["target_radius"])
+    canvas.circ(center_x, center_y, radius, color)
+    canvas.line(center_x - radius, center_y, center_x + radius, center_y, color)
+    canvas.line(center_x, center_y - radius, center_x, center_y + radius, color)
+
+
+def render_source(
+    source: str,
+    font: Pico8BitmapFont,
