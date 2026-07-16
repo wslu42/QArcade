@@ -18,11 +18,21 @@ from render_core import PICO8_PALETTE
 from render_core import render_source as render_source_without_guides
 
 
-GUIDED_RENDERER_VERSION = "3.3.0-output-guides-labels"
+GUIDED_RENDERER_VERSION = "3.5.0-short-labels-x4-mission-edge"
 GUIDE_COLOR_INDEX = 13
 OUTPUT_LINE_WIDTH = 1
+MISSION_LEFT_LINE_WIDTH = 2
 LABEL_PADDING_X = 3
 LABEL_PADDING_Y = 2
+LABEL_SCALE = 4
+
+DISPLAY_NAMES = {
+    "controller_operation_feedback": "feedback",
+    "controller_core_group": "controller",
+    "key_map_group": "key map",
+    "mission_area": "mission",
+    "quantum_response_area": "response",
+}
 
 
 def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
@@ -104,6 +114,35 @@ def _draw_output_box(
     return left, top, right, bottom
 
 
+def _draw_scaled_label(
+    image: Image.Image,
+    *,
+    x: int,
+    y: int,
+    text: str,
+    color: tuple[int, int, int],
+) -> None:
+    if not text:
+        return
+    base_font = ImageFont.load_default()
+    bbox = base_font.getbbox(text)
+    width = max(1, bbox[2] - bbox[0])
+    height = max(1, bbox[3] - bbox[1])
+    label = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    label_draw = ImageDraw.Draw(label)
+    label_draw.text((-bbox[0], -bbox[1]), text, fill=color + (255,), font=base_font)
+    label = label.resize(
+        (width * LABEL_SCALE, height * LABEL_SCALE),
+        Image.Resampling.NEAREST,
+    )
+    max_x = max(0, image.width - label.width)
+    max_y = max(0, image.height - label.height)
+    image.alpha_composite(
+        label,
+        (min(max(x, 0), max_x), min(max(y, 0), max_y)),
+    )
+
+
 def _add_output_layout_guides(
     image: Image.Image,
     layout: dict[str, Any],
@@ -111,8 +150,9 @@ def _add_output_layout_guides(
     scale: int,
 ) -> list[dict[str, int | str]]:
     blocks = _layout_blocks(layout)
+    if image.mode != "RGBA":
+        raise ValueError("Guide rendering expects an RGBA image")
     draw = ImageDraw.Draw(image)
-    font = ImageFont.load_default()
     text_color = PICO8_PALETTE[GUIDE_COLOR_INDEX]
     for block in blocks:
         box = _draw_output_box(
@@ -127,9 +167,21 @@ def _add_output_layout_guides(
         if box is None:
             continue
         left, top, right, bottom = box
-        label_x = min(max(left + LABEL_PADDING_X, 0), max(right - 1, 0))
-        label_y = min(max(top + LABEL_PADDING_Y, 0), max(bottom - 1, 0))
-        draw.text((label_x, label_y), str(block["name"]), fill=text_color, font=font)
+        if str(block["name"]) == "mission_area":
+            draw.line(
+                (left, top, left, bottom),
+                fill=text_color,
+                width=MISSION_LEFT_LINE_WIDTH,
+            )
+        label_x = left + LABEL_PADDING_X
+        label_y = top + LABEL_PADDING_Y
+        _draw_scaled_label(
+            image,
+            x=label_x,
+            y=label_y,
+            text=DISPLAY_NAMES.get(str(block["name"]), str(block["name"])),
+            color=text_color,
+        )
     return blocks
 
 
@@ -170,7 +222,7 @@ class GuidedRenderSession(render_preview.RenderSession):
                 (native.width * self.scale, native.height * self.scale),
                 Image.Resampling.NEAREST,
             )
-        )
+        ).convert("RGBA")
         blocks = _add_output_layout_guides(
             scaled,
             metadata["normalized_layout"],
@@ -185,6 +237,9 @@ class GuidedRenderSession(render_preview.RenderSession):
         metadata["layout_guides"] = {
             "enabled": True,
             "labels_enabled": True,
+            "label_scale": LABEL_SCALE,
+            "label_names": DISPLAY_NAMES,
+            "mission_left_line_width": MISSION_LEFT_LINE_WIDTH,
             "draw_stage": "after_scaling",
             "output_line_width": OUTPUT_LINE_WIDTH,
             "output_scale": self.scale,
