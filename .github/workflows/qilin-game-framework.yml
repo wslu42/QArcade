@@ -7,6 +7,7 @@ on:
     paths:
       - '0UsefulExamples/qilin-game-framework/**'
       - '.github/qilin-framework-parts/**'
+      - '.github/qilin-framework-fix/**'
       - '.github/workflows/qilin-game-framework.yml'
       - '!0UsefulExamples/qilin-game-framework/reference/qilin.p8'
 
@@ -31,6 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           parts='.github/qilin-framework-parts'
+          fix='.github/qilin-framework-fix'
           root='0UsefulExamples/qilin-game-framework'
 
           assemble() {
@@ -71,6 +73,15 @@ jobs:
             rm -rf "$parts"
           fi
 
+          if [ -d "$fix" ]; then
+            fix_parts=("$fix"/render_core.py.part*)
+            if [ -e "${fix_parts[0]}" ]; then
+              cat "${fix_parts[@]}" > "$root/tools/render_core.py"
+              echo "Reassembled exact tools/render_core.py from line parts"
+            fi
+            rm -rf "$fix"
+          fi
+
           mkdir -p "$root/previews" "$root/release" "$root/reference"
           : > "$root/previews/.gitkeep"
           : > "$root/release/.gitkeep"
@@ -101,6 +112,7 @@ jobs:
           set -euo pipefail
           git add \
             .github/qilin-framework-parts \
+            .github/qilin-framework-fix \
             0UsefulExamples/qilin-game-framework
 
           if git diff --cached --quiet; then
