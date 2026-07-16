@@ -28,6 +28,7 @@ class GuidedOutputTest(unittest.TestCase):
             font = temp / "pico_font.h"
             scaled_path = temp / "current.png"
             native_path = temp / "current_128x128.png"
+            baseline_native_path = temp / "baseline_128x128.png"
             metadata_path = temp / "current.json"
             cache_path = temp / "cache.json"
             make_font_header(font)
@@ -52,6 +53,27 @@ class GuidedOutputTest(unittest.TestCase):
             ]
             subprocess.run(command, check=True, text=True, capture_output=True)
 
+            baseline_command = [
+                sys.executable,
+                str(ROOT / "tools" / "render_preview.py"),
+                str(ROOT / "framework" / "qilin_game_framework.p8"),
+                "-o",
+                str(baseline_native_path),
+                "--scale",
+                "1",
+                "--font-header",
+                str(font),
+                "--cache-file",
+                str(temp / "baseline-cache.json"),
+                "--no-font-download",
+            ]
+            subprocess.run(
+                baseline_command,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
             guides = metadata["layout_guides"]
             first = guides["blocks"][0]
@@ -63,11 +85,12 @@ class GuidedOutputTest(unittest.TestCase):
                     scaled.getpixel((native_x * 8, native_y * 8)),
                     GUIDE_RGB,
                 )
-            with Image.open(native_path) as native:
-                self.assertNotEqual(
-                    native.getpixel((native_x, native_y)),
-                    GUIDE_RGB,
-                )
+            with Image.open(native_path) as native, Image.open(
+                baseline_native_path
+            ) as baseline_native:
+                self.assertEqual(native.mode, baseline_native.mode)
+                self.assertEqual(native.size, baseline_native.size)
+                self.assertEqual(native.tobytes(), baseline_native.tobytes())
 
             self.assertEqual(guides["output_line_width"], 1)
             self.assertEqual(guides["output_scale"], 8)
