@@ -10,12 +10,12 @@ if not exist "previews" mkdir "previews"
 start "" "%CD%\preview_viewer.html"
 
 echo.
-echo Qilin live preview is running.
+echo Qilin live preview is running with layout guide lines.
 echo Save framework\qilin_game_framework.p8 to update the PNG.
 echo Close this window or press Ctrl+C to stop watching.
 echo.
 
-".venv\Scripts\python.exe" tools\render_preview.py ^
+".venv\Scripts\python.exe" tools\render_preview_guided.py ^
   framework\qilin_game_framework.p8 ^
   -o previews\current.png ^
   --native-output previews\current_128x128.png ^
