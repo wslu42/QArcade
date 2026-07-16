@@ -6,46 +6,109 @@ on:
     branches: [main]
     paths:
       - '0UsefulExamples/qilin-game-framework/**'
+      - '.github/qilin-framework-parts/**'
       - '.github/workflows/qilin-game-framework.yml'
       - '!0UsefulExamples/qilin-game-framework/reference/qilin.p8'
 
 permissions:
   contents: write
 
+concurrency:
+  group: qilin-game-framework-main
+  cancel-in-progress: true
+
 jobs:
-  sync-original-reference:
+  assemble-validate-and-sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Fetch original Qilin cartridge
+          fetch-depth: 0
+
+      - name: Assemble staged framework sources
+        shell: bash
         run: |
-          mkdir -p 0UsefulExamples/qilin-game-framework/reference
+          set -euo pipefail
+          parts='.github/qilin-framework-parts'
+          root='0UsefulExamples/qilin-game-framework'
+
+          assemble() {
+            local stem="$1"
+            local destination="$2"
+            local matches=("$parts/$stem".part*)
+            if [ ! -e "${matches[0]}" ]; then
+              echo "No staged parts for $destination"
+              return
+            fi
+            mkdir -p "$(dirname "$destination")"
+            cat "${matches[@]}" > "$destination"
+            echo "Assembled $destination from ${#matches[@]} part(s)"
+          }
+
+          if [ -d "$parts" ]; then
+            assemble \
+              '0UsefulExamples__qilin-game-framework__framework__qilin_game_framework.p8' \
+              "$root/framework/qilin_game_framework.p8"
+            assemble \
+              '0UsefulExamples__qilin-game-framework__docs__QILIN_AGENT_PREVIEW_WORKFLOW.md' \
+              "$root/docs/QILIN_AGENT_PREVIEW_WORKFLOW.md"
+            assemble \
+              '0UsefulExamples__qilin-game-framework__tools__layout_parser.py' \
+              "$root/tools/layout_parser.py"
+            assemble \
+              '0UsefulExamples__qilin-game-framework__tools__render_core.py' \
+              "$root/tools/render_core.py"
+            assemble \
+              '0UsefulExamples__qilin-game-framework__tools__render_preview.py' \
+              "$root/tools/render_preview.py"
+
+            if [ -f "$root/framework/qilin_game_framework.p8" ]; then
+              tail -n +4 "$root/framework/qilin_game_framework.p8" \
+                > "$root/framework/qilin_quantum_router_v49_user_adjusted_layout.lua"
+            fi
+
+            rm -rf "$parts"
+          fi
+
+          mkdir -p "$root/previews" "$root/release" "$root/reference"
+          : > "$root/previews/.gitkeep"
+          : > "$root/release/.gitkeep"
+
+      - name: Fetch original Qilin reference
+        shell: bash
+        run: |
+          set -euo pipefail
           curl -fsSL \
             https://raw.githubusercontent.com/wslu42/qilin/main/qilin.p8 \
             -o 0UsefulExamples/qilin-game-framework/reference/qilin.p8
-      - name: Commit reference if changed
-        run: |
-          if git diff --quiet -- 0UsefulExamples/qilin-game-framework/reference/qilin.p8; then
-            echo 'Original Qilin reference already current.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add 0UsefulExamples/qilin-game-framework/reference/qilin.p8
-          git commit -m 'Sync original Qilin reference [skip ci]'
-          git push
 
-  validate-framework:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: 0UsefulExamples/qilin-game-framework
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install -r requirements.txt
-      - run: python -m unittest discover -s tests -v
+
+      - name: Install preview dependencies
+        working-directory: 0UsefulExamples/qilin-game-framework
+        run: python -m pip install -r requirements.txt
+
+      - name: Validate framework
+        working-directory: 0UsefulExamples/qilin-game-framework
+        run: python -m unittest discover -s tests -v
+
+      - name: Commit assembled framework and reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add \
+            .github/qilin-framework-parts \
+            0UsefulExamples/qilin-game-framework
+
+          if git diff --cached --quiet; then
+            echo 'Framework tree is already current.'
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Assemble Qilin game framework [skip ci]'
+          git push origin main
