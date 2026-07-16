@@ -1,0 +1,419 @@
+# QILIN_AGENT_PREVIEW_WORKFLOW.md
+
+## Purpose
+
+This document defines the preview workflow for Qilin-based cartridges.
+
+Its goal is to let an agent and a game designer co-work effectively by producing **fast visual previews** of the current cartridge state without requiring manual PICO-8 inspection for every change.
+
+The expected artifact is a **PNG preview**.
+
+---
+
+## Core Principle
+
+Preview generation is a **first-class framework capability**.
+
+It is not an optional convenience feature.
+
+The preview workflow is part of the normal design loop:
+
+```text
+edit cartridge
+→ generate preview
+→ inspect layout
+→ revise
+→ regenerate preview
+```
+
+---
+
+## PICO-8 Truth
+
+All preview generation must follow **PICO-8 truth**.
+
+### That means:
+
+1. The target display is `128 × 128`.
+2. Pixel layout should remain aligned to the PICO-8 pixel grid.
+3. The default PICO-8 palette should be used unless the project explicitly changes it.
+4. The preview should respect PICO-8-style text appearance as closely as practical.
+5. The preview should follow PICO-8 button glyph conventions and character-map intent when possible.
+6. If the preview differs from live PICO-8 behavior, **PICO-8 wins**.
+
+---
+
+## Recommended Deliverables
+
+A Qilin-based project should ideally provide:
+
+```text
+docs/QILIN_LAYOUT_CONTRACT.md
+docs/QILIN_AGENT_PREVIEW_WORKFLOW.md
+docs/QILIN_GAME_DESIGNER_GUIDE.md
+tools/render_preview.py
+examples/preview_blank.png
+examples/preview_after_edit.png
+examples/preview_after_run.png
+```
+
+This document describes the behavior expected from the preview system.
+
+---
+
+# 1. Inputs
+
+The preview workflow should accept:
+
+## Required input
+- a `.p8` cartridge or bundled `.lua` source
+
+## Optional inputs
+- which game state to render:
+  - blank / initial state
+  - after gate insertion
+  - after run
+  - custom level
+  - custom counts
+  - custom cursor position
+  - custom feedback state
+- output scale
+- output file path
+
+---
+
+# 2. Outputs
+
+The workflow should normally produce at least one PNG.
+
+## Required output
+- `preview.png`
+
+## Optional outputs
+- `preview_blank.png`
+- `preview_after_edit.png`
+- `preview_after_run.png`
+- `layout_audit.md`
+- `layout_audit.json`
+
+---
+
+# 3. Preferred Rendering Order
+
+## Priority 1 — Native PICO-8 render
+
+If a usable PICO-8 runtime is available, the preview workflow should prefer actual PICO-8 rendering.
+
+This is the ideal route because it most faithfully preserves:
+- font
+- glyphs
+- spacing
+- palette
+- button characters
+- sprite/text behavior
+
+If this route is possible, it should be considered the best preview path.
+
+---
+
+## Priority 2 — Layout-faithful fallback renderer
+
+If native PICO-8 rendering is not available, the workflow should use a fallback renderer.
+
+The fallback renderer must be:
+
+- **layout-aware**
+- **PICO-8-inspired**
+- **contract-driven**
+- **documented as fallback output**
+
+The fallback renderer does **not** need to be pixel-perfect, but it must be faithful enough for design review.
+
+It should preserve:
+- Area structure
+- Cluster placement
+- Pixel alignment
+- Color intent
+- Text hierarchy
+- Control legend meaning
+
+---
+
+# Exact P8SCII Font Integration
+
+The supplied Python renderer uses a PICO-8-compatible bitmap font map rather
+than a generic desktop font.
+
+It does not bundle font bytes. By default it:
+
+1. downloads `src/gen/pico_font.h` from Retro8 at runtime;
+2. caches the file under the user's cache directory;
+3. parses the 128×80 one-bit font bitmap;
+4. renders ordinary glyphs at 4×6 and graphical symbols at 8×6;
+5. maps the six Unicode controller symbols to their P8SCII codes.
+
+For offline or reproducible rendering, provide a local header:
+
+```bash
+python tools/render_preview.py game.p8 \
+  --font-header /path/to/pico_font.h \
+  --no-font-download \
+  -o preview.png
+```
+
+The font source is an external runtime dependency and must not be silently
+copied into a distributable project.
+
+## Standard renderer command
+
+```bash
+python tools/render_preview.py game.p8 \
+  -o preview.png \
+  --native-output preview_128x128.png \
+  --metadata-output preview.json
+```
+
+The scaled image uses nearest-neighbor resampling. The native image remains
+exactly 128×128.
+
+## Useful state options
+
+```bash
+# choose a level and selected visual qubit
+python tools/render_preview.py game.p8 --level 2 --cursor-q 3
+
+# add gates
+python tools/render_preview.py game.p8 \
+  --gate q1:d1:h \
+  --gate q1:d2:cx:q2
+
+# render measured counts
+python tools/render_preview.py game.p8 \
+  --counts '{"000":8,"111":8}'
+```
+
+
+# 4. Fallback Renderer Requirements
+
+A fallback preview renderer should do the following.
+
+## 4.1 Parse current source
+It should read the current `.lua` or `.p8` file.
+
+At minimum it should identify:
+- layout contract
+- game state needed for screen drawing
+- currently loaded level or default level
+- controller state (cursor, gates, fresh/blocked feedback if applicable)
+- response state
+
+## 4.2 Follow the layout contract
+It should render using the official contract from:
+
+> `QILIN_LAYOUT_CONTRACT.md`
+
+Specifically:
+- Area origin + cluster origin + local offset
+- `w/h` interpreted as true dimensions
+- rectangles using `x..x+w-1`, `y..y+h-1`
+
+## 4.3 Use PICO-8 palette
+Use the PICO-8 palette unless the cartridge explicitly overrides it.
+
+## 4.4 Respect PICO-8 font intent
+If the exact font is unavailable:
+- use a monospaced or pixel-style substitute;
+- preserve spacing conservatively;
+- document that a substitute font is being used.
+
+## 4.5 Respect PICO-8 character-map intent
+The preview should try to preserve:
+- button glyphs
+- arrows
+- special display symbols
+- lowercase source convention with PICO-8-like visual display
+
+If an exact glyph is not available, the fallback should use a documented substitute such as:
+
+```text
+🅾️⬆️ x  →  O+UP x
+⬇️ clr  →  DN clr
+❎ run  →  X run
+```
+
+The meaning must remain clear.
+
+## 4.6 Preserve important visual semantics
+Examples:
+- highlighted current qubit
+- blocked feedback color
+- fresh gate feedback color
+- target vs measured response colors
+- empty vs occupied controller cells
+
+## 4.7 Make state explicit
+The renderer should clearly state or encode what it rendered:
+- blank state
+- edited state
+- post-run state
+- custom state
+
+---
+
+# 5. Suggested Skill Behavior
+
+If this workflow is implemented as an agent skill or playbook, the skill behavior should be:
+
+## Skill name
+`qilin-preview`
+
+## Goal
+Generate a PNG preview of the current Qilin-based cartridge so a designer can inspect layout and UI quickly.
+
+## Standard behavior
+1. Read current cartridge or Lua source.
+2. Extract or confirm the layout contract.
+3. Determine which state to render.
+4. Render the gameplay screen.
+5. Save the PNG.
+6. Optionally validate layout bounds.
+7. Return the output path and a concise summary.
+
+## Success criteria
+A run is successful if:
+- the PNG file exists;
+- the main Areas are visible;
+- cluster positions match the layout contract;
+- the result is useful for UI review.
+
+---
+
+# 6. Validation Checklist
+
+Every preview generation should validate the following when practical.
+
+## Geometry
+- Controller Area elements appear in the expected positions.
+- Mission Area appears in the expected positions.
+- Quantum Response Area remains a rectangular region.
+- child clusters remain within their parent bounds where applicable.
+
+## Content
+- Qubit labels are visible.
+- Depth labels are visible.
+- Key Map items are visible.
+- Mission text is visible.
+- Response legend is visible.
+- Response Canvas is visible.
+- State Index is visible if enabled.
+
+## PICO-8 truth
+- colors match or closely approximate the intended PICO-8 palette;
+- text scale and spacing remain pixel-grid friendly;
+- button glyph meaning remains intact.
+
+## Traceability
+- the preview run should note whether it used:
+  - native PICO-8 rendering, or
+  - fallback rendering.
+
+---
+
+# 7. When to Regenerate a Preview
+
+A new preview should be generated after any meaningful change to:
+- area positions
+- cluster positions
+- sizing
+- game text placement
+- controller interaction visuals
+- response visuals
+- glyph substitutions
+- palette decisions
+- educational content display
+
+In practice:
+
+> any non-trivial UI or gameplay change should trigger a new preview.
+
+---
+
+# 8. Recommended Preview Variants
+
+For a Qilin-based educational game, the most useful minimum set is:
+
+## 8.1 Blank / initial state
+Shows the default screen before editing.
+
+## 8.2 Edited state
+Shows the controller after one or more gate insertions.
+
+## 8.3 After-run state
+Shows the response after measurement or simulation results are available.
+
+This 3-image set is usually enough for most early UI iteration.
+
+---
+
+# 9. Agent Prompt Template
+
+A future agent can be given the following operating prompt:
+
+```text
+You are working on a Qilin-based educational game.
+
+Follow:
+- docs/QILIN_LAYOUT_CONTRACT.md
+- docs/QILIN_AGENT_PREVIEW_WORKFLOW.md
+- docs/QILIN_GAME_DESIGNER_GUIDE.md
+
+After every non-trivial UI or gameplay change:
+1. update the cartridge or Lua source
+2. generate at least one PNG preview
+3. state whether the preview used native PICO-8 or fallback rendering
+4. report any layout contract violations
+5. summarize what changed
+
+When generating previews, follow PICO-8 truth:
+- 128x128 screen
+- PICO-8 palette
+- PICO-8-style text/glyph behavior when possible
+- PICO-8 remains the final source of truth
+```
+
+---
+
+# 10. Practical Recommendation
+
+The best practical setup is:
+
+- **documentation + reusable preview script + example outputs**
+
+A markdown-only handoff is better than nothing, but not ideal.
+
+The preferred co-work bundle is:
+
+1. layout contract
+2. preview workflow spec
+3. designer guide
+4. reusable preview renderer
+5. example PNGs
+
+---
+
+## Final Rule
+
+If a fallback preview and actual PICO-8 output disagree:
+
+> **treat the preview as advisory and PICO-8 as authoritative.**
+
+---
+
+# Framework v49 performance implementation
+
+The repository implementation is split into:
+
+```text
+tools/layout_parser.py   safe arithmetic parser + schema normalization
+tools/render_core.py     pure in-memory P8SCII rendering
+t
