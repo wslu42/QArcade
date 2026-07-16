@@ -146,7 +146,6 @@ class Pico8BitmapFont:
     def __init__(self, font_map: list[int]):
         self.font_map = font_map
         self._glyph_cache: dict[int, tuple[tuple[bool, ...], ...]] = {}
-
         self._token_cache: dict[str, tuple[tuple[int, int], ...]] = {}
 
     def glyph(self, code: int) -> tuple[tuple[bool, ...], ...]:
@@ -381,7 +380,7 @@ def render_project(
         if visual_q == cursor_visual_q:
             canvas.text(
                 "^",
-                 core_x + int(core["qubit_selector"]["x"]) + column_x,
+                core_x + int(core["qubit_selector"]["x"]) + column_x,
                 core_y + int(core["qubit_selector"]["y"]),
                 color,
             )
