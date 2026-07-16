@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Safe parser and schema normalizer for Qilin's data-only Lua tables.
+
+The parser intentionally supports only the subset used by Qilin layout and
+level tables. Arithmetic expressions are limited to numeric literals,
+parentheses, and + - * / operators. Arbitrary Lua execution is never used.
+"""
+
+from __future__ import annotations
+
+import copy
+import re
+from dataclasses import dataclass
+from typing import Any
+
+
+class LayoutParseError(RuntimeError):
+    """Raised when source data is unsupported or internally inconsistent."""
+
+
+@dataclass(frozen=True)
+class Token:
+    kind: str
+    value: str
+
+
+TOKEN_RE = re.compile(
+    r"""
+    (?P<WS>\s+)
+  | (?P<COMMENT>--[^\n]*)
+  | (?P<STRING>"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')
+  | (?P<NUMBER>\d+(?:\.\d+)?)
+  | (?P<IDENT>[A-Za-z_][A-Za-z0-9_]*)
+  | (?P<SYM>[\{\}\[\]=,()+\-*/])
+    """,
+    re.VERBOSE,
+)
+
+
+def tokenize_lua(text: str) -> list[Token]:
+    tokens: list[Token] = []
+    pos = 0
+    while pos < len(text):
+        match = TOKEN_RE.match(text, pos)
+        if not match:
+            raise LayoutParseError(
+                f"Unsupported Lua syntax near {text[pos:pos + 50]!r}"
+            )
+        pos = match.end()
+        kind = match.lastgroup or ""
+        if kind in {"WS", "COMMENT"}:
+            continue
+        tokens.append(Token(kind, match.group()))
+    return tokens
+
+
+def extract_assigned_table(source: str, name: str) -> str:
+    match = re.search(rf"\b{re.escape(name)}\s*=\s*\{{", source)
+    if not match:
+        raise LayoutParseError(f"Lua table {name!r} was not found.")
+
+    start = source.find("{", match.start())
+    depth = 0
+    in_string: str | None = None
+    escaped = False
+    index = start
+
+    while index < len(source):
+        char = source[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == in_string:
+                in_string = None
+        else:
+            if char in {'"', "'"}:
+                in_string = char
+            elif char == "-" and index + 1 < len(source) and source[index + 1] == "-":
+                newline = source.find("\n", index)
+                if newline == -1:
+                    break
+                index = newline
+                continue
+            elif char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    return source[start:index + 1]
+        index += 1
+
+    raise LayoutParseError(f"Lua table {name!r} is not balanced.")
+
+
+class LuaDataParser:
+    """Recursive-descent parser for Qilin's data-only Lua subset."""
+
+    def __init__(self, tokens: list[Token]):
+        self.tokens = tokens
+        self.index = 0
+
+    def peek(self, *, value: str | None = None, kind: str | None = None) -> bool:
+        if self.index >= len(self.tokens):
+            return False
+        token = self.tokens[self.index]
+        return (
+            (value is None or token.value == value)
+            and (kind is None or token.kind == kind)
+        )
+
+    def pop(self, *, value: str | None = None, kind: str | None = None) -> Token:
+        if self.index >= len(self.tokens):
+            raise LayoutParseError("Unexpected end of Lua data.")
+        token = self.tokens[self.index]
+        if value is not None and token.value != value:
+            raise LayoutParseError(f"Expected {value!r}; got {token.value!r}.")
+        if kind is not None and token.kind != kind:
+            raise LayoutParseError(
+                f"Expected token type {kind!r}; got {token.kind!r}."
+            )
+        self.index += 1
+        return token
+
+    def parse(self) -> Any:
+        value = self.parse_value()
+        if self.index != len(self.tokens):
+            raise LayoutParseError(
+                f"Unexpected trailing token {self.tokens[self.index].value!r}."
+            )
+        return value
+
+    def parse_value(self) -> Any:
+        if sel
