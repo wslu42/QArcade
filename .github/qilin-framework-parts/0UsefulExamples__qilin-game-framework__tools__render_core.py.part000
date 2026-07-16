@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+"""Pure rendering core for Qilin PICO-8 previews.
+
+This module performs no release packaging and no file watching. A caller gives
+it parsed project data, a loaded P8SCII font, and an explicit preview state.
+"""
+
+from __future__ import annotations
+
+import re
+import urllib.request
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+from PIL import Image, ImageDraw
+
+from layout_parser import LayoutParseError, parse_project, parse_scalar
+
+
+SCREEN_W = 128
+SCREEN_H = 128
+RENDERER_VERSION = "3.0.0"
+
+PICO8_PALETTE = [
+    (0, 0, 0),
+    (29, 43, 83),
+    (126, 37, 83),
+    (0, 135, 81),
+    (171, 82, 54),
+    (95, 87, 79),
+    (194, 195, 199),
+    (255, 241, 232),
+    (255, 0, 77),
+    (255, 163, 0),
+    (255, 236, 39),
+    (0, 228, 54),
+    (41, 173, 255),
+    (131, 118, 156),
+    (255, 119, 168),
+    (255, 204, 170),
+]
+
+DEFAULT_FONT_URL = (
+    "https://raw.githubusercontent.com/libretro/retro8/"
+    "master/src/gen/pico_font.h"
+)
+
+SPECIAL_UNICODE_TO_P8SCII = {
+    "⬇️": 128 + (ord("D") - ord("A")),
+    "⬅️": 128 + (ord("L") - ord("A")),
+    "🅾️": 128 + (ord("O") - ord("A")),
+    "➡️": 128 + (ord("R") - ord("A")),
+    "⬆️": 128 + (ord("U") - ord("A")),
+    "❎": 128 + (ord("X") - ord("A")),
+    "⬇": 128 + (ord("D") - ord("A")),
+    "⬅": 128 + (ord("L") - ord("A")),
+    "🅾": 128 + (ord("O") - ord("A")),
+    "➡": 128 + (ord("R") - ord("A")),
+    "⬆": 128 + (ord("U") - ord("A")),
+}
+
+
+class PreviewError(RuntimeError):
+    """Raised when a preview cannot be generated safely."""
+
+
+@dataclass(frozen=True)
+class GateSpec:
+    visual_q: int
+    depth: int
+    gate_type: str
+    target_visual_q: int | None = None
+
+
+@dataclass(frozen=True)
+class PreviewState:
+    level_number: int = 1
+    cursor_visual_q: int | None = None
+    gates: tuple[GateSpec, ...] = ()
+    counts: dict[str, int] | None = None
+    feedback: str | None = None
+
+
+def default_cache_dir(project_root: Path) -> Path:
+    return project_root / ".qilin-cache"
+
+
+def load_font_header(
+    *,
+    explicit_path: Path | None,
+    cache_path: Path,
+    font_url: str = DEFAULT_FONT_URL,
+    no_download: bool = False,
+) -> tuple[str, str]:
+    if explicit_path is not None:
+        if not explicit_path.exists():
+            raise PreviewError(f"Font header not found: {explicit_path}")
+        return explicit_path.read_text(encoding="utf-8"), str(explicit_path)
+
+    if cache_path.exists():
+        return cache_path.read_text(encoding="utf-8"), str(cache_path)
+
+    if no_download:
+        raise PreviewError(
+            "No P8SCII font header is cached. Supply --font-header or allow "
+            "the first-run font download."
+        )
+
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with urllib.request.urlopen(font_url, timeout=30) as response:
+            data = response.read()
+    except Exception as exc:  # pragma: no cover - network environment dependent
+        raise PreviewError(
+            "Could not download the PICO-8-compatible bitmap font. Supply "
+            "--font-header for offline use."
+        ) from exc
+
+    cache_path.write_bytes(data)
+    return data.decode("utf-8"), f"{font_url} (cached at {cache_path})"
+
+
+def parse_font_map(header_text: str) -> list[int]:
+    match = re.search(
+        r"font_map\s*\[\s*\]\s*=\s*\{(?P<body>.*?)\};",
+        header_text,
+        re.DOTALL,
+    )
+    if not match:
+        raise PreviewError("font_map[] was not found in the font header.")
+    values = [
+        int(value, 16)
+        for value in re.findall(r"0x([0-9a-fA-F]{2})", match.group("body"))
+    ]
+    if len(values) != 1280:
+        raise PreviewError(
+            f"Expected 1280 font bytes (128x80 bitmap); found {len(values)}."
+        )
+    return values
+
+
+class Pico8BitmapFont:
+    """P8SCII bitmap renderer: 4x6 standard glyphs and 8x6 symbols."""
+
+    def __init__(self, font_map: list[int]):
+        self.font_map = font_map
+        self._glyph_cache: dict[int, tuple[tuple[bool, ...], ...]] = {}
