@@ -1,0 +1,100 @@
+    if cache_path.exists():
+        return cache_path.read_text(encoding="utf-8"), str(cache_path)
+
+    if no_download:
+        raise PreviewError(
+            "No P8SCII font header is cached. Supply --font-header or allow "
+            "the first-run font download."
+        )
+
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with urllib.request.urlopen(font_url, timeout=30) as response:
+            data = response.read()
+    except Exception as exc:  # pragma: no cover - network environment dependent
+        raise PreviewError(
+            "Could not download the PICO-8-compatible bitmap font. Supply "
+            "--font-header for offline use."
+        ) from exc
+
+    cache_path.write_bytes(data)
+    return data.decode("utf-8"), f"{font_url} (cached at {cache_path})"
+
+
+def parse_font_map(header_text: str) -> list[int]:
+    match = re.search(
+        r"font_map\s*\[\s*\]\s*=\s*\{(?P<body>.*?)\};",
+        header_text,
+        re.DOTALL,
+    )
+    if not match:
+        raise PreviewError("font_map[] was not found in the font header.")
+    values = [
+        int(value, 16)
+        for value in re.findall(r"0x([0-9a-fA-F]{2})", match.group("body"))
+    ]
+    if len(values) != 1280:
+        raise PreviewError(
+            f"Expected 1280 font bytes (128x80 bitmap); found {len(values)}."
+        )
+    return values
+
+
+class Pico8BitmapFont:
+    """P8SCII bitmap renderer: 4x6 standard glyphs and 8x6 symbols."""
+
+    def __init__(self, font_map: list[int]):
+        self.font_map = font_map
+        self._glyph_cache: dict[int, tuple[tuple[bool, ...], ...]] = {}
+        self._token_cache: dict[str, tuple[tuple[int, int], ...]] = {}
+
+    def glyph(self, code: int) -> tuple[tuple[bool, ...], ...]:
+        if not 0 <= code < 160:
+            code = ord("?")
+        cached = self._glyph_cache.get(code)
+        if cached is not None:
+            return cached
+
+        glyph_row = code // 16
+        glyph_col = code % 16
+        rows: list[tuple[bool, ...]] = []
+        for y in range(8):
+            byte_index = glyph_row * 128 + y * 16 + glyph_col
+            value = self.font_map[byte_index]
+            rows.append(tuple(bool(value & (1 << (7 - x))) for x in range(8)))
+        result = tuple(rows)
+        self._glyph_cache[code] = result
+        return result
+
+    def tokenize(self, text: str) -> tuple[tuple[int, int], ...]:
+        cached = self._token_cache.get(text)
+        if cached is not None:
+            return cached
+
+        result: list[tuple[int, int]] = []
+        index = 0
+        specials = sorted(SPECIAL_UNICODE_TO_P8SCII, key=len, reverse=True)
+        while index < len(text):
+            for symbol in specials:
+                if text.startswith(symbol, index):
+                    result.append((SPECIAL_UNICODE_TO_P8SCII[symbol], 8))
+                    index += len(symbol)
+                    break
+            else:
+                code = ord(text[index])
+                result.append((code if code <= 127 else ord("?"), 4))
+                index += 1
+                continue
+            continue
+
+        tokenized = tuple(result)
+        self._token_cache[text] = tokenized
+        return tokenized
+
+    def width(self, text: str) -> int:
+        return sum(advance for _, advance in self.tokenize(text))
+
+    def draw(
+        self,
+        image: Image.Image,
+        text: str,
