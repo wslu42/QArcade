@@ -1,0 +1,542 @@
+pico-8 cartridge // http://www.pico-8.com
+version 32
+__lua__
+--------- microqiskit ---------
+-- math.p8
+math = {}
+math.pi = 3.14159
+math.max = max
+math.sqrt = sqrt
+math.floor = flr
+function math.random()
+  return rnd(1)
+end
+function math.cos(theta)
+  return cos(theta/(2*math.pi))
+end
+function math.sin(theta)
+  return -sin(theta/(2*math.pi))
+end
+function math.randomseed(time)
+end
+os = {}
+function os.time()
+end
+-------------------------------
+------- microqiskit.lua -------
+-- this code is part of qiskit.
+-- copyright ibm 2020
+math.randomseed(os.time())
+function quantumcircuit ()
+
+  local qc = {}
+
+  local function set_registers (n,m)
+    qc.num_qubits = n
+    qc.num_clbits = m or 0
+  end
+  qc.set_registers = set_registers
+
+  qc.data = {}
+
+  function qc.initialize (ket)
+    ket_copy = {}
+    for j, amp in pairs(ket) do
+      if type(amp)=="number" then
+        ket_copy[j] = {amp, 0}
+      else
+        ket_copy[j] = {amp[0], amp[1]}
+      end
+    end
+    qc.data = {{'init',ket_copy}}
+  end
+
+  function qc.add_circuit (qc2)
+    qc.num_qubits = math.max(qc.num_qubits,qc2.num_qubits)
+    qc.num_clbits = math.max(qc.num_clbits,qc2.num_clbits)
+    for g, gate in pairs(qc2.data) do
+      qc.data[#qc.data+1] = ( gate )
+    end
+  end
+
+  function qc.x (q)
+    qc.data[#qc.data+1] = ( {'x',q} )
+  end
+
+  function qc.rx (theta,q)
+    qc.data[#qc.data+1] = ( {'rx',theta,q} )
+  end
+
+  function qc.h (q)
+    qc.data[#qc.data+1] = ( {'h',q} )
+  end
+
+  function qc.cx (s,t)
+    qc.data[#qc.data+1] = ( {'cx',s,t} )
+  end
+
+  function qc.measure (q,b)
+    qc.data[#qc.data+1] = ( {'m',q,b} )
+  end
+
+  function qc.rz (theta,q)
+    qc.h(q)
+    qc.rx(theta,q)
+    qc.h(q)
+  end
+
+  function qc.ry (theta,q)
+    qc.rx(math.pi/2,q)
+    qc.rz(theta,q)
+    qc.rx(-math.pi/2,q)
+  end
+
+  function qc.z (q)
+    qc.rz(math.pi,q)
+  end
+
+  function qc.y (q)
+    qc.z(q)
+    qc.x(q)
+  end
+
+  return qc
+
+end
+function simulate (qc, get, shots)
+
+  if not shots then
+    shots = 1024
+  end
+
+  function as_bits (num,bits)
+    -- returns num converted to a bitstring of length bits
+    -- adapted from https://stackoverflow.com/a/9080080/1225661
+    local bitstring = {}
+    for index = bits, 1, -1 do
+        b = num - math.floor(num/2)*2
+        num = math.floor((num - b) / 2)
+        bitstring[index] = b
+    end
+    return bitstring
+  end
+
+  function get_out (j)
+    raw_out = as_bits(j-1,qc.num_qubits)
+    out = ""
+    for b=0,qc.num_clbits-1 do
+      if outputnum_clbitsap[b] then
+        out = raw_out[qc.num_qubits-outputnum_clbitsap[b]]..out
+      end
+    end
+    return out
+  end
+
+
+  ket = {}
+  for j=1,2^qc.num_qubits do
+    ket[j] = {0,0}
+  end
+  ket[1] = {1,0}
+
+  outputnum_clbitsap = {}
+
+  for g, gate in pairs(qc.data) do
+
+    if gate[1]=='init' then
+
+      for j, amp in pairs(gate[2]) do
+          ket[j] = {amp[1], amp[2]}
+      end
+
+    elseif gate[1]=='m' then
+
+      outputnum_clbitsap[gate[3]] = gate[2]
+
+    elseif gate[1]=="x" or gate[1]=="rx" or gate[1]=="h" then
+
+      j = gate[#gate]
+
+      for i0=0,2^j-1 do
+        for i1=0,2^(qc.num_qubits-j-1)-1 do
+          b1=i0+2^(j+1)*i1 + 1
+          b2=b1+2^j
+
+          e = {{ket[b1][1],ket[b1][2]},{ket[b2][1],ket[b2][2]}}
+
+          if gate[1]=="x" then
+            ket[b1] = e[2]
+            ket[b2] = e[1]
+          elseif gate[1]=="rx" then
+            theta = gate[2]
+            ket[b1][1] = e[1][1]*math.cos(theta/2)+e[2][2]*math.sin(theta/2)
+            ket[b1][2] = e[1][2]*math.cos(theta/2)-e[2][1]*math.sin(theta/2)
+            ket[b2][1] = e[2][1]*math.cos(theta/2)+e[1][2]*math.sin(theta/2)
+            ket[b2][2] = e[2][2]*math.cos(theta/2)-e[1][1]*math.sin(theta/2)
+          elseif gate[1]=="h" then
+            for k=1,2 do
+              ket[b1][k] = (e[1][k] + e[2][k])/math.sqrt(2)
+              ket[b2][k] = (e[1][k] - e[2][k])/math.sqrt(2)
+            end
+          end
+        end
+      end
+
+    elseif gate[1]=="cx" then
+
+      s = gate[2]
+      t = gate[3]
+
+      if s>t then
+        h = s
+        l = t
+      else
+        h = t
+        l = s
+      end
+
+      for i0=0,2^l-1 do
+        for i1=0,2^(h-l-1)-1 do
+          for i2=0,2^(qc.num_qubits-h-1)-1 do
+            b1 = i0 + 2^(l+1)*i1 + 2^(h+1)*i2 + 2^s + 1
+            b2 = b1 + 2^t
+            e = {{ket[b1][1],ket[b1][2]},{ket[b2][1],ket[b2][2]}}
+            ket[b1] = e[2]
+            ket[b2] = e[1]
+          end
+        end
+      end
+    end
+  end
+
+  if get=="statevector" then
+    return ket
+  else
+
+    probs = {}
+    for j,amp in pairs(ket) do
+      probs[j] = amp[1]^2 + amp[2]^2
+    end
+
+    if get=="expected_counts" then
+
+      c = {}
+      for j,p in pairs(probs) do
+        out = get_out(j)
+        if c[out] then
+          c[out] = c[out] + probs[j]*shots
+        else
+          if out then -- in case of pico8 weirdness
+            c[out] = probs[j]*shots
+          end
+        end
+      end
+      return c
+
+    else
+
+      m = {}
+      for s=1,shots do
+        cumu = 0
+        un = true
+        r = math.random()
+        for j,p in pairs(probs) do
+          cumu = cumu + p
+          if r<cumu and un then
+            m[s] = get_out(j)
+            un = false
+          end
+        end
+      end
+
+      if get=="memory" then
+        return m
+
+      elseif get=="counts" then
+        c = {}
+        for s=1,shots do
+          if c[m[s]] then
+            c[m[s]] = c[m[s]] + 1
+          else
+            if m[s] then -- in case of pico8 weirdness
+              c[m[s]] = 1
+            else
+              if c["error"] then
+                c["error"] = c["error"]+1
+              else
+                c["error"] = 1
+              end
+            end
+          end
+        end
+        return c
+
+      end
+    end
+  end
+end
+--------- router engine ---------
+num_qubits=3
+circuit_depth=4
+shots=16
+states={"000","001","010","011","100","101","110","111"}
+
+-- centralized nested layout contract
+--
+-- coordinate rule:
+-- area.x/y + cluster.x/y + local element offset
+layout={
+  controller={
+    x=0,
+    y=0,
+    w=128,
+    h=66,
+
+    core={
+      x=14-8,
+      y=11-4,
+      w=43,
+      h=53,
+
+      grid={
+        x=0,
+        y=0,
+        cell_w=8,
+        cell_h=8,
+        col_pitch=11,
+        row_pitch=11
+      },
+
+      depth_index={
+        x=32,
+        y=0,
+        text_dy=2
+      },
+
+      depth_flow={
+        x=34,
+        y=0,
+        gap_dy=-2
+      },
+
+      qubit_index={
+        x=0+1,
+        y=45
+      },
+
+      qubit_selector={
+        x=2+1,
+        y=51
+      }
+    },
+
+    key_map={
+      x=62-4,
+      y=11-4,
+      w=66,
+      h=22,
+
+      items={
+        {text="🅾️⬆️ x",x=0,y=0},
+        {text="🅾️⬇️ h",x=33,y=0},
+        {text="🅾️⬅️/🅾️➡️ cnot",x=0,y=8},
+        {text="⬇️ clr",x=8,y=16},
+        {text="❎ run",x=41,y=16}
+      }
+    }
+  },
+
+  mission={
+    x=56,
+    y=44-8,
+    w=72,
+    h=22,
+
+    title={
+      x=0,
+      y=0,
+      w=72,
+      h=6
+    },
+
+    instruction={
+      x=0,
+      y=10,
+      w=72,
+      h=6
+    },
+
+    feedback={
+      x=0,
+      y=19,
+      w=72,
+      h=6
+    }
+  },
+
+  -- full rectangular 𝘲uantum 𝘳esponse 𝘢rea.
+  -- screen bounds: x=0..127, y=68..127.
+  -- includes:
+  --   former mission strip: y=68..85
+  --   response content:     y=86..122
+  --   bottom padding:       y=123..127
+  response={
+    x=0,
+    y=68,
+    w=128,
+    h=60,
+
+    legend={
+      x=0,
+      y=18,
+      w=128,
+      h=6,
+
+      target={
+        box_x=3,
+        text_x=10
+      },
+
+      measured={
+        box_x=53,
+        text_x=60
+      }
+    },
+
+    canvas={
+      x=2,
+      y=28,
+      w=126,
+      h=17,
+
+      base_y=16,
+      first_state_x=0,
+      state_pitch=16
+    },
+
+    state_index={
+      x=1,
+      y=49,
+      w=127,
+      h=6,
+      state_pitch=16
+    }
+  }
+}
+
+function blank_grid()
+  local grid={}
+  for q=0,num_qubits-1 do
+    grid[q+1]={}
+    for d=1,circuit_depth do
+      grid[q+1][d]="-"
+    end
+  end
+  return grid
+end
+
+function blank_counts()
+  local counts={}
+  for s in all(states) do
+    counts[s]=0
+  end
+  return counts
+end
+
+function gate_options(q)
+  local options={"-","x","h"}
+  for target=0,num_qubits-1 do
+    if target~=q then
+      add(options,"c"..target)
+    end
+  end
+  return options
+end
+
+function cycle_gate(grid,q,d)
+  local options=gate_options(q)
+  local current=grid[q+1][d]
+  local index=1
+  for i=1,#options do
+    if options[i]==current then
+      index=i
+    end
+  end
+  index=index%#options+1
+  grid[q+1][d]=options[index]
+end
+
+
+-- 𝘢 qubit is busy at a depth if it has its own gate or is
+-- the target of a 𝘤𝘹 stored in another qubit's cell.
+function qubit_busy(grid,q,d)
+  if grid[q+1][d]!="-" then
+    return true
+  end
+
+  for control=0,num_qubits-1 do
+    local gate=grid[control+1][d]
+    if (
+      sub(gate,1,1)=="c" and
+      tonum(sub(gate,2,2))==q
+    ) then
+      return true
+    end
+  end
+
+  return false
+end
+
+-- 𝘧ind the first legal time slice from 𝘥1 to 𝘥3.
+-- 𝘹/𝘩 occupy one qubit. 𝘤𝘹 occupies both control and target.
+-- 𝘳eturn 0 when no legal depth exists; never shift old gates.
+function append_gate(grid,q,gate)
+  local target=-1
+
+  if sub(gate,1,1)=="c" then
+    target=tonum(sub(gate,2,2))
+  end
+
+  for d=1,circuit_depth do
+    local free=not qubit_busy(grid,q,d)
+
+    if target>=0 then
+      free=free and not qubit_busy(grid,target,d)
+    end
+
+    if free then
+      grid[q+1][d]=gate
+      return d
+    end
+  end
+
+  return 0
+end
+
+-- 𝘤lear every operation involving the selected qubit, whether it is
+-- a single-qubit gate, 𝘤𝘹 control, or 𝘤𝘹 target.
+function clear_qubit_gates(grid,q)
+  for d=1,circuit_depth do
+    grid[q+1][d]="-"
+
+    for control=0,num_qubits-1 do
+      local gate=grid[control+1][d]
+      if (
+        sub(gate,1,1)=="c" and
+        tonum(sub(gate,2,2))==q
+      ) then
+        grid[control+1][d]="-"
+      end
+    end
+  end
+end
+
+function compile_grid(grid)
+  local qc=quantumcircuit()
+  qc.set_registers(num_qubits,num_qubits)
+
+  -- 𝘤ompile by circuit depth, not by qubit row.
+  -- 𝘵his preserves the left-to-right circuit order shown to students.
+  for d=1,circuit_depth do
+    for q=num_qubits-1,0,-1 do
+      loc
