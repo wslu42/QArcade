@@ -7,6 +7,9 @@ previews/*.json
 release/*.zip
 release/*.json
 
+# Local Python environment
+.venv/
+
 # Python
 __pycache__/
 *.py[cod]
