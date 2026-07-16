@@ -1,57 +1,29 @@
 #!/usr/bin/env python3
-"""Render Qilin previews with thin guide rectangles for major layout blocks.
+"""Render Qilin previews with output-resolution layout guide rectangles.
 
-This wrapper keeps the main renderer unchanged and adds a one-native-pixel
-muted-lavender overlay after the normal 128x128 frame has been rendered.
+The native 128x128 preview remains untouched. Guide rectangles are added only
+after nearest-neighbor scaling, so a one-pixel guide stays one output pixel
+instead of becoming an 8-pixel-wide native line in the default preview.
 """
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 from PIL import Image, ImageDraw
 
 import render_preview
-from render_core import PICO8_PALETTE, Pico8BitmapFont, PreviewState
+from render_core import PICO8_PALETTE
 from render_core import render_source as render_source_without_guides
 
 
-GUIDED_RENDERER_VERSION = "3.1.0-guides"
+GUIDED_RENDERER_VERSION = "3.2.0-output-guides"
 GUIDE_COLOR_INDEX = 13
-SCREEN_MAX = 127
+OUTPUT_LINE_WIDTH = 1
 
 
-def _draw_box(
-    draw: ImageDraw.ImageDraw,
-    *,
-    x: int,
-    y: int,
-    width: int,
-    height: int,
-) -> None:
-    """Draw one native pixel around a declared layout rectangle."""
-    if width <= 0 or height <= 0:
-        return
-
-    left = max(0, x)
-    top = max(0, y)
-    right = min(SCREEN_MAX, x + width - 1)
-    bottom = min(SCREEN_MAX, y + height - 1)
-    if left > right or top > bottom:
-        return
-
-    draw.rectangle(
-        (left, top, right, bottom),
-        outline=PICO8_PALETTE[GUIDE_COLOR_INDEX],
-        width=1,
-    )
-
-
-def _add_layout_guides(
-    image: Image.Image,
-    layout: dict[str, Any],
-) -> list[dict[str, int | str]]:
-    """Overlay the declared major block boundaries and return their metadata."""
+def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
     controller = layout["controller"]
     controller_x = int(controller["x"])
     controller_y = int(controller["y"])
@@ -62,7 +34,7 @@ def _add_layout_guides(
     mission = layout["mission"]
     response = layout["response"]
 
-    blocks: list[dict[str, int | str]] = [
+    return [
         {
             "name": "controller_operation_feedback",
             "x": controller_x + int(feedback["x"]),
@@ -100,40 +72,142 @@ def _add_layout_guides(
         },
     ]
 
+
+def _draw_output_box(
+    draw: ImageDraw.ImageDraw,
+    image: Image.Image,
+    *,
+    x: int,
+    y: int,
+    width: int,
+    height: int,
+    scale: int,
+) -> None:
+    """Draw a one-output-pixel rectangle around a native-space block."""
+    if width <= 0 or height <= 0:
+        return
+
+    left = max(0, x * scale)
+    top = max(0, y * scale)
+    right = min(image.width - 1, (x + width) * scale - 1)
+    bottom = min(image.height - 1, (y + height) * scale - 1)
+    if left > right or top > bottom:
+        return
+
+    draw.rectangle(
+        (left, top, right, bottom),
+        outline=PICO8_PALETTE[GUIDE_COLOR_INDEX],
+        width=OUTPUT_LINE_WIDTH,
+    )
+
+
+def _add_output_layout_guides(
+    image: Image.Image,
+    layout: dict[str, Any],
+    *,
+    scale: int,
+) -> list[dict[str, int | str]]:
+    blocks = _layout_blocks(layout)
     draw = ImageDraw.Draw(image)
     for block in blocks:
-        _draw_box(
+        _draw_output_box(
             draw,
+            image,
             x=int(block["x"]),
             y=int(block["y"]),
             width=int(block["w"]),
             height=int(block["h"]),
+            scale=scale,
         )
     return blocks
 
 
-def guided_render_source(
-    source: str,
-    font: Pico8BitmapFont,
-    state: PreviewState,
-) -> tuple[Image.Image, dict[str, Any]]:
-    image, metadata = render_source_without_guides(source, font, state)
-    blocks = _add_layout_guides(image, metadata["normalized_layout"])
-    metadata["layout_guides"] = {
-        "enabled": True,
-        "native_line_width": 1,
-        "color_index": GUIDE_COLOR_INDEX,
-        "blocks": blocks,
-    }
-    metadata["renderer_version"] = GUIDED_RENDERER_VERSION
-    return image, metadata
+class GuidedRenderSession(render_preview.RenderSession):
+    """Render a pure native frame and overlay guides only on the scaled copy."""
+
+    def render_if_changed(self) -> tuple[bool, float, str]:
+        started = time.perf_counter()
+        source_bytes = self.source.read_bytes()
+        fingerprint = render_preview.compute_fingerprint(
+            source_bytes,
+            self.header_text,
+            self.state,
+            scale=self.scale,
+        )
+        key = str(self.output.resolve())
+        cached = self.cache["entries"].get(key, {})
+        outputs_exist = self.output.exists()
+        if self.native_output is not None:
+            outputs_exist = outputs_exist and self.native_output.exists()
+        if self.metadata_output is not None:
+            outputs_exist = outputs_exist and self.metadata_output.exists()
+
+        if not self.force and outputs_exist and cached.get("fingerprint") == fingerprint:
+            return False, time.perf_counter() - started, fingerprint
+
+        source = source_bytes.decode("utf-8")
+        native, metadata = render_source_without_guides(
+            source,
+            self.font,
+            self.state,
+        )
+
+        # Always use a separate object so the native output remains guide-free,
+        # including when --scale 1 is selected.
+        scaled = (
+            native.copy()
+            if self.scale == 1
+            else native.resize(
+                (native.width * self.scale, native.height * self.scale),
+                Image.Resampling.NEAREST,
+            )
+        )
+        blocks = _add_output_layout_guides(
+            scaled,
+            metadata["normalized_layout"],
+            scale=self.scale,
+        )
+
+        render_preview.save_image_atomic(scaled, self.output)
+        if self.native_output is not None:
+            render_preview.save_image_atomic(native, self.native_output)
+
+        metadata["renderer_version"] = GUIDED_RENDERER_VERSION
+        metadata["layout_guides"] = {
+            "enabled": True,
+            "draw_stage": "after_scaling",
+            "output_line_width": OUTPUT_LINE_WIDTH,
+            "output_scale": self.scale,
+            "effective_native_line_width": OUTPUT_LINE_WIDTH / self.scale,
+            "native_preview_contains_guides": False,
+            "color_index": GUIDE_COLOR_INDEX,
+            "blocks": blocks,
+        }
+        metadata.update({
+            "source": str(self.source),
+            "font_source": self.font_source,
+            "fingerprint": fingerprint,
+            "scaled_output": str(self.output),
+            "native_output": str(self.native_output) if self.native_output else None,
+        })
+        if self.metadata_output is not None:
+            render_preview.save_json_atomic(metadata, self.metadata_output)
+
+        self.cache["entries"][key] = {
+            "fingerprint": fingerprint,
+            "source": str(self.source.resolve()),
+            "updated_unix": time.time(),
+        }
+        render_preview.save_cache(self.cache_file, self.cache)
+        self.force = False
+        return True, time.perf_counter() - started, fingerprint
 
 
 def main() -> int:
-    # RenderSession resolves these names from the render_preview module.
-    # Updating both also invalidates an existing preview cache on next start.
+    # create_session() resolves these names from render_preview at runtime.
+    # The version change invalidates the previous guided-preview cache.
     render_preview.RENDERER_VERSION = GUIDED_RENDERER_VERSION
-    render_preview.render_source = guided_render_source
+    render_preview.RenderSession = GuidedRenderSession
     return render_preview.main()
 
 
