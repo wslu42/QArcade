@@ -1,0 +1,371 @@
+# QILIN_GAME_DESIGNER_GUIDE.md
+
+## Purpose
+
+This guide is for a game designer who wants to create a new educational game using the Qilin controller framework.
+
+The main idea is:
+
+> keep the quantum controller framework stable, and use it as a reusable input system for new game ideas.
+
+You do **not** need to redesign everything from scratch.
+
+---
+
+## High-Level Concept
+
+A Qilin-based game has three major screen Areas:
+
+1. **Controller Area**
+2. **Mission Area**
+3. **Quantum Response Area**
+
+The design philosophy is:
+
+- the **Controller Area** is the stable quantum input tool;
+- the **Mission Area** explains what the player should do;
+- the **Quantum Response Area** is the main game output space.
+
+---
+
+## PICO-8 Truth for Designers
+
+When designing a new game, always think in **PICO-8 truth**.
+
+That means:
+
+- you are designing for a `128 × 128` pixel screen;
+- every pixel matters;
+- spacing should be deliberate and grid-friendly;
+- colors should remain simple and readable;
+- text should respect the PICO-8 aesthetic;
+- previews are useful, but actual PICO-8 behavior is the final authority.
+
+Do not design as if this were a full desktop UI.
+Think like a compact pixel game.
+
+---
+
+# 1. What stays fixed
+
+## 1.1 Controller Area is the framework anchor
+The Controller Area is the reusable input framework.
+
+Normally it should remain conceptually stable:
+- the Controller Grid stays recognizable;
+- qubit/depth interaction stays recognizable;
+- the Key Map stays understandable;
+- the designer does not have to rewrite the quantum input engine for every new game.
+
+## 1.2 Layout names stay stable
+Use the official names from `QILIN_LAYOUT_CONTRACT.md`.
+
+This matters because you will likely work with an agent, and the agent needs precise references.
+
+---
+
+# 2. What you are expected to design
+
+The two main designer-facing surfaces are:
+
+## 2.1 Mission Area
+Use this to tell the player:
+- what the goal is;
+- what action to try;
+- what result they got.
+
+Typical content:
+- title of the challenge
+- short hint
+- success / retry message
+
+## 2.2 Quantum Response Area
+This is the main output canvas for the game concept.
+
+In the current prototype, it shows a histogram.
+
+In your future game, it could show:
+- a puzzle board
+- a maze
+- an enemy state
+- a platformer condition
+- a door/unlock pattern
+- a logic display
+- an address decoder
+- a state machine
+- an educational simulation
+
+Think of the Quantum Response Area as the place where quantum state affects gameplay.
+
+---
+
+# 3. How to think about the controller
+
+The Controller Area should be treated as a **quantum controller**, not just a circuit composer.
+
+That means the player is not editing a circuit for its own sake.
+
+Instead, the player is:
+- choosing operations;
+- shaping a quantum state;
+- causing a game-relevant response.
+
+A useful mental model is:
+
+```text
+player input
+→ Controller Grid
+→ quantum state change
+→ measurement / response
+→ game behavior
+```
+
+---
+
+# 4. What 3 qubits give you
+
+The current framework has **3 qubits**, which means:
+
+```text
+2^3 = 8 basis states
+```
+
+These eight states can encode information.
+
+For design purposes, you can think of them as:
+- eight addresses
+- eight tiles
+- eight rooms
+- eight outputs
+- eight lanes
+- eight possible behaviors
+- eight logical bins
+
+This is one of the most important educational affordances of the framework.
+
+The student does not need advanced quantum knowledge.
+What matters is that they can see:
+
+> changing quantum operations changes which states appear, and that changes game behavior.
+
+---
+
+# 5. Good design questions to ask
+
+When designing a new game, ask:
+
+## Mission design
+- What do I want the player to achieve?
+- What should the Mission Area tell them?
+- What hints are enough without over-explaining?
+
+## Response design
+- What should the Quantum Response Area represent?
+- Should I keep the histogram, or replace it with another visualization?
+- How do measured outcomes influence the game?
+
+## Educational design
+- What quantum idea is visible through play?
+- Can a student notice that different gates produce different behavior?
+- Does the game teach cause-and-effect between operations and outcomes?
+
+## UI design
+- Is the layout readable on a 128×128 screen?
+- Is the response area doing meaningful work?
+- Is the mission text short and legible?
+
+---
+
+# 6. Good uses of the Quantum Response Area
+
+Strong uses include:
+- showing how states map to outcomes;
+- showing a compact puzzle surface;
+- showing something that clearly reacts to `run`;
+- making the measured distribution visually meaningful.
+
+Weak uses include:
+- wasting the space with decorative filler;
+- duplicating information already obvious in the controller;
+- putting too much tiny text there.
+
+The Response Area should earn its space.
+
+---
+
+# 7. Working with an Agent
+
+The intended workflow is collaborative.
+
+A good loop is:
+
+```text
+1. describe the game idea
+2. ask the agent to update the cartridge
+3. ask the agent to generate a preview PNG
+4. inspect the preview
+5. refine layout or behavior
+6. repeat
+```
+
+This is why the preview workflow matters so much.
+
+---
+
+## Exact preview command
+
+From the project root:
+
+```bash
+python tools/render_preview.py path/to/game.p8 \
+  -o preview.png \
+  --native-output preview_128x128.png
+```
+
+The default preview uses P8SCII glyph metrics and button-symbol bindings.
+It should therefore show lowercase source strings with the same
+uppercase-like visual behavior seen in PICO-8.
+
+For a circuit-state mockup:
+
+```bash
+python tools/render_preview.py path/to/game.p8 \
+  --gate q1:d1:h \
+  --gate q1:d2:cx:q2 \
+  -o preview_after_edit.png
+```
+
+For a response-state mockup:
+
+```bash
+python tools/render_preview.py path/to/game.p8 \
+  --counts '{"000":8,"011":8}' \
+  -o preview_after_run.png
+```
+
+
+# 8. When to ask for previews
+
+You should ask the agent to regenerate a preview whenever:
+- text changes;
+- layout changes;
+- response visuals change;
+- controller visuals change;
+- a new game mechanic affects the visible screen.
+
+Useful requests include:
+
+- “Generate a blank-state preview.”
+- “Generate a preview after adding one X gate.”
+- “Generate a preview after run.”
+- “Generate before/after PNGs so I can compare layout.”
+
+---
+
+# 9. What to tell the agent
+
+When you work with an agent, try to use precise layout names.
+
+Good examples:
+- “Move the Mission Area down 2 px.”
+- “Reduce the gap between the Controller Core Group and the Key Map Group.”
+- “Keep the Controller Area fixed, but redesign the Response Canvas.”
+- “Replace the histogram in the Quantum Response Area with a simple tile board.”
+
+Less helpful:
+- “Move the bottom part”
+- “Change the text area”
+- “Fix the composer stuff”
+
+Precision makes collaboration faster.
+
+---
+
+# 10. Suggested design boundaries
+
+A good working boundary is:
+
+## Framework-owned
+- Controller Area
+- Controller behavior
+- Key Map behavior
+- layout contract infrastructure
+- preview tooling
+
+## Designer-owned
+- Mission wording
+- challenge sequence
+- educational pacing
+- Response Canvas concept
+- game-specific visual logic
+
+This division keeps the framework reusable.
+
+---
+
+# 11. What not to overdo
+
+Because the target is a small pixel screen, avoid:
+- too many lines of text;
+- overly dense legends;
+- tiny decorative details;
+- UI complexity that fights readability.
+
+Clarity matters more than visual flourish.
+
+The priority order should be:
+
+1. educational clarity
+2. playability
+3. code simplicity
+4. visual polish
+
+---
+
+# 12. Recommended first experiments
+
+If you are designing a new Qilin-based game, good first experiments are:
+
+1. **Addressing game**
+   - use the 8 states as addresses;
+   - player learns how X / H / CNOT affect state reachability.
+
+2. **Routing game**
+   - use state distributions to route outputs.
+
+3. **Matching game**
+   - player tries to produce a target distribution or target pattern.
+
+4. **Mini puzzle board**
+   - each basis state maps to a tile or object.
+
+These work well because they use the 3-qubit / 8-state structure directly.
+
+---
+
+# 13. Final reminder
+
+The preview system is part of the design workflow, but:
+
+> **PICO-8 is still the final source of truth.**
+
+Use previews to iterate quickly.
+Use live cartridge behavior to confirm the final result.
+
+---
+
+# Repository source selection
+
+For framework/game design work, always edit and preview:
+
+```text
+framework/qilin_game_framework.p8
+```
+
+Use the original cartridge only for reference:
+
+```text
+reference/qilin.p8
+```
+
+The versioned Lua file is a readable mirror, not the authoritative cartridge.
