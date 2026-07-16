@@ -1,0 +1,119 @@
+n(expression: str) -> int | float:
+    parser = LuaDataParser(tokenize_lua(expression))
+    value = parser.parse_expression()
+    if parser.index != len(parser.tokens):
+        raise LayoutParseError(
+            f"Unexpected arithmetic token {parser.tokens[parser.index].value!r}."
+        )
+    return value
+
+
+def parse_scalar(source: str, name: str, default: int) -> int:
+    match = re.search(
+        rf"(?m)^\s*{re.escape(name)}\s*=\s*([^\n;]+)",
+        source,
+    )
+    if not match:
+        return default
+    expression = re.sub(r"--.*$", "", match.group(1)).strip()
+    value = parse_numeric_expression(expression)
+    if not isinstance(value, (int, float)):
+        raise LayoutParseError(f"Scalar {name!r} is not numeric.")
+    return int(value)
+
+
+def _setdefault(mapping: dict[str, Any], key: str, value: Any) -> Any:
+    if key not in mapping:
+        mapping[key] = value
+    return mapping[key]
+
+
+def _child_extent(parent: dict[str, Any], *child_names: str) -> tuple[int, int]:
+    max_right = 0
+    max_bottom = 0
+    for name in child_names:
+        child = parent.get(name)
+        if not isinstance(child, dict):
+            continue
+        x = int(child.get("x", 0))
+        y = int(child.get("y", 0))
+        w = int(child.get("w", 0))
+        h = int(child.get("h", 0))
+        max_right = max(max_right, x + w)
+        max_bottom = max(max_bottom, y + h)
+    return max_right, max_bottom
+
+
+def normalize_layout(
+    raw_layout: dict[str, Any],
+    source: str,
+    *,
+    num_qubits: int,
+    circuit_depth: int,
+) -> dict[str, Any]:
+    """Return one canonical layout schema without changing visible geometry."""
+
+    layout = copy.deepcopy(raw_layout)
+    controller = _setdefault(layout, "controller", {})
+    controller.setdefault("x", 0)
+    controller.setdefault("y", 0)
+
+    operation_feedback = _setdefault(controller, "operation_feedback", {})
+    operation_feedback.setdefault("x", 2)
+    operation_feedback.setdefault("y", 2)
+    operation_feedback.setdefault("w", 64)
+    operation_feedback.setdefault("h", 6)
+
+    core = _setdefault(controller, "core", {})
+    core.setdefault("x", 0)
+    core.setdefault("y", 0)
+    grid = _setdefault(core, "grid", {})
+    grid.setdefault("x", 0)
+    grid.setdefault("y", 0)
+    grid.setdefault("col_pitch", 11)
+    grid.setdefault("row_pitch", 11)
+
+    # v49 stores inclusive far-edge offsets (8) and draws x+cell_w. Canonical
+    # schema stores true dimensions (9) and draws x+cell_w-1.
+    source_uses_inclusive_cell_extent = bool(
+        re.search(r"x\s*\+\s*grid_layout\.cell_w\b", source)
+        and re.search(r"y\s*\+\s*grid_layout\.cell_h\b", source)
+    )
+    raw_cell_w = int(grid.get("cell_w", 9))
+    raw_cell_h = int(grid.get("cell_h", 9))
+    grid["cell_w"] = raw_cell_w + 1 if source_uses_inclusive_cell_extent else raw_cell_w
+    grid["cell_h"] = raw_cell_h + 1 if source_uses_inclusive_cell_extent else raw_cell_h
+    grid["source_cell_extent_mode"] = (
+        "inclusive_offset" if source_uses_inclusive_cell_extent else "true_dimension"
+    )
+
+    defaults = {
+        "wire_top_overhang": 2,
+        "wire_bottom_overhang": 2,
+        "wire_arrow_half_w": 2,
+        "control_radius": 1,
+        "target_radius": 2,
+        "gate_text_y": 2,
+        "single_gate_text_x": 3,
+        "multi_gate_text_x": 1,
+        "fresh_outline": 1,
+    }
+    for key, value in defaults.items():
+        grid.setdefault(key, value)
+
+    depth_index = _setdefault(core, "depth_index", {})
+    depth_index.setdefault("x", 0)
+    depth_index.setdefault("y", 0)
+    if "text_y" not in depth_index:
+        depth_index["text_y"] = depth_index.get("text_dy", 0)
+
+    depth_flow = _setdefault(core, "depth_flow", {})
+    depth_flow.setdefault("x", 0)
+    depth_flow.setdefault("y", 0)
+    if "gap_y" not in depth_flow:
+        depth_flow["gap_y"] = depth_flow.get("gap_dy", 0)
+
+    qubit_index = _setdefault(core, "qubit_index", {})
+    qubit_index.setdefault("x", 0)
+    qubit_index.setdefault("y", 0)
+    qubit_selector =
