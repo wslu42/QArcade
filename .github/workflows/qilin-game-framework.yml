@@ -27,12 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
-
-      - name: Apply staged framework payload
-        if: ${{ hashFiles('0UsefulExamples/qilin-game-framework/bootstrap/apply_payload.py') != '' }}
-        run: python 0UsefulExamples/qilin-game-framework/bootstrap/apply_payload.py
 
       - uses: actions/setup-python@v5
         with:
@@ -46,8 +41,8 @@ jobs:
         working-directory: 0UsefulExamples/qilin-game-framework
         run: python -m unittest discover -s tests -v
 
-      - name: Commit staged update to the current branch
-        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      - name: Refresh original Qilin reference
+        if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -55,14 +50,13 @@ jobs:
             https://raw.githubusercontent.com/wslu42/qilin/main/qilin.p8 \
             -o 0UsefulExamples/qilin-game-framework/reference/qilin.p8
 
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-
-          if git diff --cached --quiet; then
-            echo 'Framework and reference are already current.'
+          if git diff --quiet -- 0UsefulExamples/qilin-game-framework/reference/qilin.p8; then
+            echo 'Original Qilin reference is already current.'
             exit 0
           fi
 
-          git commit -m 'Promote controller schema and remove legacy wrapper [skip ci]'
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add 0UsefulExamples/qilin-game-framework/reference/qilin.p8
+          git commit -m 'Sync original Qilin reference [skip ci]'
+          git push
