@@ -18,7 +18,7 @@ from render_core import PICO8_PALETTE
 from render_core import render_source as render_source_without_guides
 
 
-GUIDED_RENDERER_VERSION = "3.7.0-feedback-mission-response-reflow"
+GUIDED_RENDERER_VERSION = "3.8.0-controller-schema-promotion"
 GUIDE_COLOR_INDEX = 13
 OUTPUT_LINE_WIDTH = 1
 LABEL_PADDING_X = 3
@@ -27,56 +27,52 @@ LABEL_SCALE = 4
 MISSION_LEFT_LINE_WIDTH = 2
 
 DISPLAY_NAMES = {
-    "controller_core_group": "controller",
-    "key_map_group": "key map",
-    "operation_feedback_group": "feedback",
-    "mission_area": "mission",
-    "quantum_response_area": "response",
+    "controller": "controller",
+    "key_map": "key map",
+    "operation_feedback": "feedback",
+    "mission": "mission",
+    "response": "response",
 }
 
 
 def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
     controller = layout["controller"]
-    controller_x = int(controller["x"])
-    controller_y = int(controller["y"])
-
-    core = controller["core"]
-    key_map = controller["key_map"]
-    operation_feedback = controller["operation_feedback"]
+    key_map = layout["key_map"]
+    operation_feedback = layout["operation_feedback"]
     mission = layout["mission"]
     response = layout["response"]
 
     return [
         {
-            "name": "controller_core_group",
-            "x": controller_x + int(core["x"]),
-            "y": controller_y + int(core["y"]),
-            "w": int(core["w"]),
-            "h": int(core["h"]),
+            "name": "controller",
+            "x": int(controller["x"]),
+            "y": int(controller["y"]),
+            "w": int(controller["w"]),
+            "h": int(controller["h"]),
         },
         {
-            "name": "key_map_group",
-            "x": controller_x + int(key_map["x"]),
-            "y": controller_y + int(key_map["y"]),
+            "name": "key_map",
+            "x": int(key_map["x"]),
+            "y": int(key_map["y"]),
             "w": int(key_map["w"]),
             "h": int(key_map["h"]),
         },
         {
-            "name": "operation_feedback_group",
-            "x": controller_x + int(operation_feedback["x"]),
-            "y": controller_y + int(operation_feedback["y"]),
+            "name": "operation_feedback",
+            "x": int(operation_feedback["x"]),
+            "y": int(operation_feedback["y"]),
             "w": int(operation_feedback["w"]),
             "h": int(operation_feedback["h"]),
         },
         {
-            "name": "mission_area",
+            "name": "mission",
             "x": int(mission["x"]),
             "y": int(mission["y"]),
             "w": int(mission["w"]),
             "h": int(mission["h"]),
         },
         {
-            "name": "quantum_response_area",
+            "name": "response",
             "x": int(response["x"]),
             "y": int(response["y"]),
             "w": int(response["w"]),
@@ -161,7 +157,7 @@ def _add_output_layout_guides(
         if box is None:
             continue
         left, top, right, bottom = box
-        if str(block["name"]) == "mission_area":
+        if str(block["name"]) == "mission":
             draw.line(
                 (left, top, left, bottom),
                 fill=text_color,

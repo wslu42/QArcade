@@ -20,7 +20,7 @@ from layout_parser import LayoutParseError, parse_project, parse_scalar
 
 SCREEN_W = 128
 SCREEN_H = 128
-RENDERER_VERSION = "3.0.0"
+RENDERER_VERSION = "3.1.0"
 
 PICO8_PALETTE = [
     (0, 0, 0),
@@ -280,6 +280,8 @@ def parse_gate_spec(spec: str) -> GateSpec:
     return GateSpec(visual_q, depth, gate_type, target)
 
 
+
+
 def _draw_target_plus(
     canvas: PicoCanvas,
     x: int,
@@ -336,13 +338,12 @@ def render_project(
 
     canvas = PicoCanvas(font)
     controller = layout["controller"]
-    core = controller["core"]
-    grid = core["grid"]
-    key_map = controller["key_map"]
+    grid = controller["grid"]
+    key_map = layout["key_map"]
 
-    # Key Map Group
-    key_x = int(controller["x"]) + int(key_map["x"])
-    key_y = int(controller["y"]) + int(key_map["y"])
+    # Key Map
+    key_x = int(key_map["x"])
+    key_y = int(key_map["y"])
     for item in key_map["items"]:
         canvas.text(
             str(item["text"]),
@@ -351,20 +352,20 @@ def render_project(
             5,
         )
 
-    # Controller Operation Feedback
+    # Operation Feedback
     if state.feedback:
-        feedback = controller["operation_feedback"]
+        feedback = layout["operation_feedback"]
         canvas.text(
             state.feedback,
-            int(controller["x"]) + int(feedback["x"]),
-            int(controller["y"]) + int(feedback["y"]),
+            int(feedback["x"]),
+            int(feedback["y"]),
             13,
         )
 
-    core_x = int(controller["x"]) + int(core["x"])
-    core_y = int(controller["y"]) + int(core["y"])
-    grid_x = core_x + int(grid["x"])
-    grid_y = core_y + int(grid["y"])
+    controller_x = int(controller["x"])
+    controller_y = int(controller["y"])
+    grid_x = controller_x + int(grid["x"])
+    grid_y = controller_y + int(grid["y"])
 
     # Qubit Index and Qubit Selector
     for visual_col in range(num_qubits):
@@ -373,15 +374,15 @@ def render_project(
         color = 10 if visual_q == cursor_visual_q else 6
         canvas.text(
             f"q{visual_q}",
-            core_x + int(core["qubit_index"]["x"]) + column_x,
-            core_y + int(core["qubit_index"]["y"]),
+            controller_x + int(controller["qubit_index"]["x"]) + column_x,
+            controller_y + int(controller["qubit_index"]["y"]),
             color,
         )
         if visual_q == cursor_visual_q:
             canvas.text(
                 "^",
-                core_x + int(core["qubit_selector"]["x"]) + column_x,
-                core_y + int(core["qubit_selector"]["y"]),
+                controller_x + int(controller["qubit_selector"]["x"]) + column_x,
+                controller_y + int(controller["qubit_selector"]["y"]),
                 color,
             )
 
@@ -403,15 +404,15 @@ def render_project(
         canvas.line(wire_x + half_w, grid_y, wire_x, wire_top_y, 5)
 
     # Depth Flow Indicator
-    depth_flow = core["depth_flow"]
+    depth_flow = controller["depth_flow"]
     for visual_row in range(1, circuit_depth):
         marker_y = (
-            core_y
+            controller_y
             + int(depth_flow["y"])
             + visual_row * int(grid["row_pitch"])
             + int(depth_flow["gap_y"])
         )
-        canvas.text("^", core_x + int(depth_flow["x"]), marker_y, 6)
+        canvas.text("^", controller_x + int(depth_flow["x"]), marker_y, 6)
 
     gate_map: dict[tuple[int, int], tuple[str, int | None]] = {}
     incoming: dict[tuple[int, int], int] = {}
@@ -431,15 +432,15 @@ def render_project(
             incoming[(target, gate.depth)] = gate.visual_q
 
     # Controller Grid and Depth Index
-    depth_index = core["depth_index"]
+    depth_index = controller["depth_index"]
     for visual_row in range(circuit_depth):
         depth = circuit_depth - visual_row
         row_y = visual_row * int(grid["row_pitch"])
         y = grid_y + row_y
         canvas.text(
             f"d{depth}",
-            core_x + int(depth_index["x"]),
-            core_y + int(depth_index["y"]) + row_y + int(depth_index["text_y"]),
+            controller_x + int(depth_index["x"]),
+            controller_y + int(depth_index["y"]) + row_y + int(depth_index["text_y"]),
             6,
         )
 
@@ -462,7 +463,7 @@ def render_project(
                 text_x = x + int(grid["single_gate_text_x"])
                 canvas.text(gate_type, text_x, y + int(grid["gate_text_y"]), 7)
 
-    # Mission Area
+    # Mission
     mission = layout["mission"]
     title = mission["title"]
     instruction = mission["instruction"]
@@ -481,7 +482,7 @@ def render_project(
         6,
     )
 
-    # Quantum Response Area
+    # Response
     response = layout["response"]
     legend = response["legend"]
     legend_x = int(response["x"]) + int(legend["x"])
@@ -548,6 +549,8 @@ def render_project(
             state_y,
             6,
         )
+
+    # Layout guides are drawn last so their 1-pixel boundaries remain visible.
 
     metadata = {
         "renderer_version": RENDERER_VERSION,

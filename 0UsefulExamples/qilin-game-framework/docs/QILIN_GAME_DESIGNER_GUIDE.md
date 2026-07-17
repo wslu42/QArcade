@@ -14,17 +14,19 @@ You do **not** need to redesign everything from scratch.
 
 ## High-Level Concept
 
-A Qilin-based game has three major screen Areas:
+A Qilin-based game has five official top-level layout blocks:
 
-1. **Controller Area**
-2. **Mission Area**
-3. **Quantum Response Area**
+1. **Controller**
+2. **Key Map**
+3. **Operation Feedback**
+4. **Mission**
+5. **Response**
 
 The design philosophy is:
 
-- the **Controller Area** is the stable quantum input tool;
-- the **Mission Area** explains what the player should do;
-- the **Quantum Response Area** is the main game output space.
+- the **Controller** is the stable quantum input tool;
+- the **Mission** explains what the player should do;
+- the **Response** is the main game output space.
 
 ---
 
@@ -48,8 +50,8 @@ Think like a compact pixel game.
 
 # 1. What stays fixed
 
-## 1.1 Controller Area is the framework anchor
-The Controller Area is the reusable input framework.
+## 1.1 Controller is the framework anchor
+The Controller is the reusable input framework.
 
 Normally it should remain conceptually stable:
 - the Controller Grid stays recognizable;
@@ -68,7 +70,7 @@ This matters because you will likely work with an agent, and the agent needs pre
 
 The two main designer-facing surfaces are:
 
-## 2.1 Mission Area
+## 2.1 Mission
 Use this to tell the player:
 - what the goal is;
 - what action to try;
@@ -79,7 +81,7 @@ Typical content:
 - short hint
 - success / retry message
 
-## 2.2 Quantum Response Area
+## 2.2 Response
 This is the main output canvas for the game concept.
 
 In the current prototype, it shows a histogram.
@@ -95,13 +97,13 @@ In your future game, it could show:
 - a state machine
 - an educational simulation
 
-Think of the Quantum Response Area as the place where quantum state affects gameplay.
+Think of the Response as the place where quantum state affects gameplay.
 
 ---
 
 # 3. How to think about the controller
 
-The Controller Area should be treated as a **quantum controller**, not just a circuit composer.
+The Controller should be treated as a **quantum controller**, not just a circuit composer.
 
 That means the player is not editing a circuit for its own sake.
 
@@ -156,11 +158,11 @@ When designing a new game, ask:
 
 ## Mission design
 - What do I want the player to achieve?
-- What should the Mission Area tell them?
+- What should Mission tell them?
 - What hints are enough without over-explaining?
 
 ## Response design
-- What should the Quantum Response Area represent?
+- What should Response represent?
 - Should I keep the histogram, or replace it with another visualization?
 - How do measured outcomes influence the game?
 
@@ -176,7 +178,7 @@ When designing a new game, ask:
 
 ---
 
-# 6. Good uses of the Quantum Response Area
+# 6. Good uses of Response
 
 Strong uses include:
 - showing how states map to outcomes;
@@ -189,7 +191,7 @@ Weak uses include:
 - duplicating information already obvious in the controller;
 - putting too much tiny text there.
 
-The Response Area should earn its space.
+Response should earn its space.
 
 ---
 
@@ -267,10 +269,10 @@ Useful requests include:
 When you work with an agent, try to use precise layout names.
 
 Good examples:
-- “Move the Mission Area down 2 px.”
-- “Reduce the gap between the Controller Core Group and the Key Map Group.”
-- “Keep the Controller Area fixed, but redesign the Response Canvas.”
-- “Replace the histogram in the Quantum Response Area with a simple tile board.”
+- “Move Mission down 2 px.”
+- “Reduce the gap between Controller and Key Map.”
+- “Keep the Controller fixed, but redesign the Response Canvas.”
+- “Replace the histogram in Response with a simple tile board.”
 
 Less helpful:
 - “Move the bottom part”
@@ -286,7 +288,7 @@ Precision makes collaboration faster.
 A good working boundary is:
 
 ## Framework-owned
-- Controller Area
+- Controller
 - Controller behavior
 - Key Map behavior
 - layout contract infrastructure
