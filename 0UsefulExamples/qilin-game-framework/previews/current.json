@@ -1,5 +1,5 @@
 {
-  "renderer_version": "3.7.0-feedback-mission-response-reflow",
+  "renderer_version": "3.8.0-controller-schema-promotion",
   "screen": [
     128,
     128
@@ -8,93 +8,87 @@
   "cursor_visual_q": 1,
   "normalized_layout": {
     "controller": {
-      "x": 0,
-      "y": 0,
-      "w": 128,
-      "h": 66,
-      "core": {
-        "x": 6,
-        "y": 7,
-        "w": 40,
-        "h": 59,
-        "grid": {
-          "x": 0,
-          "y": 2,
-          "cell_w": 9,
-          "cell_h": 9,
-          "col_pitch": 11,
-          "row_pitch": 11,
-          "source_cell_extent_mode": "inclusive_offset",
-          "wire_top_overhang": 2,
-          "wire_bottom_overhang": 2,
-          "wire_arrow_half_w": 2,
-          "control_radius": 1,
-          "target_radius": 2,
-          "gate_text_y": 2,
-          "single_gate_text_x": 3,
-          "multi_gate_text_x": 1,
-          "fresh_outline": 1
-        },
-        "depth_index": {
-          "x": 32,
-          "y": 2,
-          "text_dy": 2,
-          "text_y": 2
-        },
-        "depth_flow": {
-          "x": 34,
-          "y": 2,
-          "gap_dy": -2,
-          "gap_y": -2
-        },
-        "qubit_index": {
-          "x": 1,
-          "y": 47
-        },
-        "qubit_selector": {
-          "x": 3,
-          "y": 53
-        }
+      "x": 6,
+      "y": 7,
+      "w": 40,
+      "h": 59,
+      "grid": {
+        "x": 0,
+        "y": 2,
+        "cell_w": 9,
+        "cell_h": 9,
+        "col_pitch": 11,
+        "row_pitch": 11,
+        "source_cell_extent_mode": "inclusive_offset",
+        "wire_top_overhang": 2,
+        "wire_bottom_overhang": 2,
+        "wire_arrow_half_w": 2,
+        "control_radius": 1,
+        "target_radius": 2,
+        "gate_text_y": 2,
+        "single_gate_text_x": 3,
+        "multi_gate_text_x": 1,
+        "fresh_outline": 1
       },
-      "key_map": {
-        "x": 58,
-        "y": 7,
-        "w": 66,
-        "h": 22,
-        "items": [
-          {
-            "text": "🅾️⬆️ x",
-            "x": 0,
-            "y": 0
-          },
-          {
-            "text": "🅾️⬇️ h",
-            "x": 33,
-            "y": 0
-          },
-          {
-            "text": "🅾️⬅️/🅾️➡️ cnot",
-            "x": 0,
-            "y": 8
-          },
-          {
-            "text": "⬇️ clr",
-            "x": 8,
-            "y": 16
-          },
-          {
-            "text": "❎ run",
-            "x": 41,
-            "y": 16
-          }
-        ]
+      "depth_index": {
+        "x": 32,
+        "y": 2,
+        "text_dy": 2,
+        "text_y": 2
       },
-      "operation_feedback": {
-        "x": 58,
-        "y": 30,
-        "w": 66,
-        "h": 6
+      "depth_flow": {
+        "x": 34,
+        "y": 2,
+        "gap_dy": -2,
+        "gap_y": -2
+      },
+      "qubit_index": {
+        "x": 1,
+        "y": 47
+      },
+      "qubit_selector": {
+        "x": 3,
+        "y": 53
       }
+    },
+    "key_map": {
+      "x": 58,
+      "y": 7,
+      "w": 66,
+      "h": 22,
+      "items": [
+        {
+          "text": "🅾️⬆️ x",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "text": "🅾️⬇️ h",
+          "x": 33,
+          "y": 0
+        },
+        {
+          "text": "🅾️⬅️/🅾️➡️ cnot",
+          "x": 0,
+          "y": 8
+        },
+        {
+          "text": "⬇️ clr",
+          "x": 8,
+          "y": 16
+        },
+        {
+          "text": "❎ run",
+          "x": 41,
+          "y": 16
+        }
+      ]
+    },
+    "operation_feedback": {
+      "x": 58,
+      "y": 30,
+      "w": 66,
+      "h": 6
     },
     "mission": {
       "x": 46,
@@ -179,11 +173,11 @@
     "labels_enabled": true,
     "label_scale": 4,
     "label_names": {
-      "controller_core_group": "controller",
-      "key_map_group": "key map",
-      "operation_feedback_group": "feedback",
-      "mission_area": "mission",
-      "quantum_response_area": "response"
+      "controller": "controller",
+      "key_map": "key map",
+      "operation_feedback": "feedback",
+      "mission": "mission",
+      "response": "response"
     },
     "mission_left_line_width": 2,
     "draw_stage": "after_scaling",
@@ -194,35 +188,35 @@
     "color_index": 13,
     "blocks": [
       {
-        "name": "controller_core_group",
+        "name": "controller",
         "x": 6,
         "y": 7,
         "w": 40,
         "h": 59
       },
       {
-        "name": "key_map_group",
+        "name": "key_map",
         "x": 58,
         "y": 7,
         "w": 66,
         "h": 22
       },
       {
-        "name": "operation_feedback_group",
+        "name": "operation_feedback",
         "x": 58,
         "y": 30,
         "w": 66,
         "h": 6
       },
       {
-        "name": "mission_area",
+        "name": "mission",
         "x": 46,
         "y": 36,
         "w": 82,
         "h": 30
       },
       {
-        "name": "quantum_response_area",
+        "name": "response",
         "x": 0,
         "y": 66,
         "w": 128,
@@ -230,9 +224,9 @@
       }
     ]
   },
-  "source": "/mnt/data/qarcade_qilin_framework_ready/0UsefulExamples/qilin-game-framework/framework/qilin_game_framework.p8",
-  "font_source": "/mnt/data/qarcade_qilin_framework_ready/0UsefulExamples/qilin-game-framework/tools/pico_font_sample_derived.h",
-  "fingerprint": "b1858def168f2d9d877b534147e74c08d14227d95cf9213cc9151ad98cfaf512",
-  "scaled_output": "/mnt/data/qarcade_qilin_framework_ready/0UsefulExamples/qilin-game-framework/previews/current.png",
-  "native_output": "/mnt/data/qarcade_qilin_framework_ready/0UsefulExamples/qilin-game-framework/previews/current_128x128.png"
+  "source": "framework/qilin_game_framework.p8",
+  "font_source": "P8SCII-compatible local render source",
+  "fingerprint": "5c000387d7c717a70ea515f75a1030271682cfd43a9acb5ae6796b0954a146fa",
+  "scaled_output": "previews/current.png",
+  "native_output": "previews/current_128x128.png"
 }

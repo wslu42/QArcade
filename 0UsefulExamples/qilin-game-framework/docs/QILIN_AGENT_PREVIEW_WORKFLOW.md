@@ -176,6 +176,20 @@ python tools/render_preview.py game.p8 \
 The scaled image uses nearest-neighbor resampling. The native image remains
 exactly 128×128.
 
+## Layout guide overlay
+
+The preview renderer now draws subtle 1-pixel guide rectangles to show the
+major layout blocks used in framework discussion:
+
+- Controller
+- Key Map
+- Operation Feedback
+- Mission
+- Response
+
+These guide lines are part of the preview workflow so a designer can review
+block boundaries visually while iterating on layout.
+
 ## Useful state options
 
 ```bash
@@ -213,7 +227,7 @@ It should render using the official contract from:
 > `QILIN_LAYOUT_CONTRACT.md`
 
 Specifically:
-- Area origin + cluster origin + local offset
+- Top-level block origin + local offset
 - `w/h` interpreted as true dimensions
 - rectangles using `x..x+w-1`, `y..y+h-1`
 
@@ -293,9 +307,9 @@ A run is successful if:
 Every preview generation should validate the following when practical.
 
 ## Geometry
-- Controller Area elements appear in the expected positions.
-- Mission Area appears in the expected positions.
-- Quantum Response Area remains a rectangular region.
+- Controller elements appear in the expected positions.
+- Mission appears in the expected position.
+- Response remains a rectangular region.
 - child clusters remain within their parent bounds where applicable.
 
 ## Content

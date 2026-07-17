@@ -8,12 +8,17 @@ on:
       - '0UsefulExamples/qilin-game-framework/**'
       - '.github/workflows/qilin-game-framework.yml'
       - '!0UsefulExamples/qilin-game-framework/reference/qilin.p8'
+  pull_request:
+    branches: [main]
+    paths:
+      - '0UsefulExamples/qilin-game-framework/**'
+      - '.github/workflows/qilin-game-framework.yml'
 
 permissions:
   contents: write
 
 concurrency:
-  group: qilin-game-framework-main
+  group: qilin-game-framework-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,7 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
           fetch-depth: 0
 
       - uses: actions/setup-python@v5
@@ -38,6 +42,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Refresh original Qilin reference
+        if: ${{ github.event_name != 'pull_request' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -54,4 +59,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add 0UsefulExamples/qilin-game-framework/reference/qilin.p8
           git commit -m 'Sync original Qilin reference [skip ci]'
-          git push origin main
+          git push

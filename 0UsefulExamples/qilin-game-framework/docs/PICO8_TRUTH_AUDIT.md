@@ -37,15 +37,15 @@ Controller glyph mappings:
 ## Current effective layout anchors
 
 ```text
-Controller Core Group: (6,7)
-Controller Grid:       (6,7)
-Key Map Group:         (58,7)
-Mission Area:          (56,36)
-Quantum Response Area: (0,68)
+Controller:         (6,7), 40×59
+Key Map:            (58,7), 66×22
+Operation Feedback: (58,30), 66×6
+Mission:            (46,36), 82×30
+Response:           (0,66), 128×62
 ```
 
-The parser evaluates the source arithmetic expressions rather than requiring
-pre-flattened values.
+The former full-width controller wrapper and nested composer name are no longer
+part of the active schema. `controller` now means the actual composer block.
 
 ## Normalization checks
 
@@ -55,8 +55,9 @@ pre-flattened values.
 - `gap_dy` is normalized to `gap_y`.
 - State Index effective x is normalized from source `1-1` to `0`.
 - Missing wire and histogram dimensions are filled from framework defaults.
-- Parent bounds are expanded when their declared dimensions do not contain
-  their child clusters.
+- Controller dimensions are expanded when required to contain its direct
+  grid, depth, and qubit elements.
+- Mission and Response child bounds are normalized within their top-level blocks.
 
 ## Authority boundary
 
