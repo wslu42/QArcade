@@ -92,6 +92,20 @@ needed.
 
 Close the command window or press `Ctrl+C` to stop watching.
 
+## Accepted compact controller layout
+
+The current controller iteration is documented in
+`docs/QILIN_LAYOUT_CONTRACT.md`. This phase established:
+
+- a `36 x 54` Controller beside a Key Map beginning at `x=36`;
+- three 9-pixel-wide qubit columns with four vertically stacked 9-pixel cells;
+- no vertical gap between depth cells;
+- numeric depth labels `4, 3, 2, 1` without the former `D` prefix;
+- no qubit wires or large time-flow arrow;
+- consistent one-pixel fresh-gate highlights for X, H, and CX;
+- layout-driven PNG geometry and cartridge-derived grid colors;
+- forced first render on watcher startup to prevent stale cached previews.
+
 ## Command-line preview loop
 
 Install once:

@@ -26,6 +26,60 @@ edit cartridge
 → regenerate preview
 ```
 
+## Agent operating boundary
+
+Before changing this framework, read:
+
+- `README.md`
+- `docs/QILIN_LAYOUT_CONTRACT.md`
+- `docs/QILIN_AGENT_PREVIEW_WORKFLOW.md`
+- `docs/QILIN_GAME_DESIGNER_GUIDE.md`
+
+The authoritative cartridge is:
+
+```text
+framework/qilin_game_framework.p8
+```
+
+Do not treat `reference/qilin.p8`, the readable Lua mirror, or generated PNG
+previews as authoritative. Native PICO-8 behavior is final when it differs
+from the Python preview.
+
+Framework-owned components:
+
+- MicroQiskit simulation;
+- quantum circuit compilation and measurement;
+- Controller Grid, gate placement, and qubit selection;
+- X, H, and CX input behavior;
+- Key Map and Operation Feedback;
+- layout parsing and preview tooling.
+
+Game-owned components:
+
+- level definitions;
+- Mission text;
+- scoring and progression;
+- Response visualization;
+- game-specific mechanics;
+- completion experience.
+
+Keep the Controller stable unless the task explicitly requests a framework
+change. Mission explains the objective. Response is the primary game-specific
+output surface. Operation Feedback is only for immediate controller actions,
+not mission narrative or scoring. Change the Key Map only when the actual
+controls also change.
+
+After a meaningful visual or layout change:
+
+1. update the authoritative `.p8`;
+2. update the fallback renderer when required;
+3. generate a guided preview;
+4. run `python -m unittest discover -s tests -v`;
+5. verify native PICO-8 behavior when possible.
+
+Do not add preview-only metadata to the cartridge. Keep documented geometry,
+normalized preview metadata, and test expectations synchronized.
+
 ---
 
 ## PICO-8 Truth
@@ -189,6 +243,37 @@ major layout blocks used in framework discussion:
 
 These guide lines are part of the preview workflow so a designer can review
 block boundaries visually while iterating on layout.
+
+## Cartridge and fallback-renderer synchronization
+
+The Python preview is a static fallback renderer; it does not execute the
+cartridge's `_draw()` function. Layout-table values are parsed directly from
+the `.p8`. Grid background and normal border colors are read from the existing
+PICO-8 grid drawing statements. No preview-only data should be added to the
+cartridge.
+
+When a visual algorithm changes in Lua, update the corresponding fallback
+algorithm in `tools/render_core.py`. The live watcher keeps Python modules in
+memory, so a running watcher must be restarted after Python renderer or parser
+changes.
+
+`WATCH_PREVIEW.bat` starts with `--force`. This guarantees one fresh render
+after every watcher restart and prevents an older cached PNG from surviving a
+renderer-code change. After startup, watch mode returns to content-hash-based
+change detection, so the forced startup render does not create ongoing load.
+
+Use the guided renderer when `previews/current.png` should contain the major
+layout outlines:
+
+```bash
+python tools/render_preview_guided.py framework/qilin_game_framework.p8 \
+  -o previews/current.png \
+  --native-output previews/current_128x128.png \
+  --metadata-output previews/current.json \
+  --force
+```
+
+The native 128x128 output intentionally contains no guide overlay.
 
 ## Useful state options
 

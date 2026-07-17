@@ -33,11 +33,11 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
 
     def test_current_adjusted_origins(self) -> None:
         layout = self.project["layout"]
-        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (6, 7))
-        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (58, 7))
-        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (46, 36))
-        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (58, 30))
-        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 66))
+        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (0, 0))
+        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (36, 0))
+        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (36, 29))
+        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (36, 23))
+        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 54))
 
     def test_schema_aliases_and_dimensions(self) -> None:
         layout = self.project["layout"]
@@ -46,7 +46,7 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         self.assertEqual((grid["cell_w"], grid["cell_h"]), (9, 9))
         self.assertEqual(layout["controller"]["depth_index"]["text_y"], 2)
         self.assertEqual(layout["controller"]["depth_flow"]["gap_y"], -2)
-        self.assertEqual(layout["response"]["state_index"]["x"], 0)
+        self.assertEqual(layout["response"]["state_index"]["x"], 3)
 
     def test_parent_bounds_expand_to_children(self) -> None:
         mission = self.project["layout"]["mission"]

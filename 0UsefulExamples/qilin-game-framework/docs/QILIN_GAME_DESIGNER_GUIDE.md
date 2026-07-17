@@ -345,7 +345,40 @@ These work well because they use the 3-qubit / 8-state structure directly.
 
 ---
 
-# 13. Final reminder
+# 13. Example versus standalone project
+
+Before implementation, confirm the folder name, cartridge filename, Response
+concept, and whether the deliverable is a simple example or a standalone
+project.
+
+## 13.1 Simple example — default
+
+Unless the user requests otherwise, create:
+
+```text
+0UsefulExamples/
+└── ex_GAME_TITLE_/
+    ├── ex_GAME_TITLE.p8
+    └── README.md
+```
+
+Copy `framework/qilin_game_framework.p8` into the new folder as the starting
+cartridge and rename it to match the game. Apply game-owned changes to that
+copy. The README should be written for players and explain the premise,
+objective, controls, and basic quantum mechanic.
+
+Use the existing framework preview tools during development when useful, but
+do not copy generated previews or framework infrastructure into the example.
+
+## 13.2 Standalone project — only when requested
+
+Copy preview tools, tests, documentation, scripts, and other infrastructure
+only when the user explicitly asks for a self-contained or independently
+distributable project.
+
+---
+
+# 14. Final reminder
 
 The preview system is part of the design workflow, but:
 
@@ -358,11 +391,15 @@ Use live cartridge behavior to confirm the final result.
 
 # Repository source selection
 
-For framework/game design work, always edit and preview:
+For work on the reusable framework itself, always edit and preview:
 
 ```text
 framework/qilin_game_framework.p8
 ```
+
+For a derived example, its copied and renamed `.p8` cartridge becomes the
+authoritative game file. The framework cartridge remains the source template
+and must not receive game-specific behavior.
 
 Use the original cartridge only for reference:
 
