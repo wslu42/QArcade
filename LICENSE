@@ -1,0 +1,41 @@
+# QArcade License Map
+
+QArcade is preparing a multi-license, open-core distribution. This file is a
+scope map, not a license grant for the entire repository.
+
+## Open-source code
+
+Only files that are expressly identified as code covered by `LICENSE-CODE`,
+either in this file or in the nearest `LICENSE_SCOPE.md`, are intended to be
+licensed under the Apache License, Version 2.0.
+
+At this stage, that scope is limited to the reusable Qilin framework and its
+development infrastructure as described in:
+
+- `0UsefulExamples/qilin-game-framework/LICENSE_SCOPE.md`
+- `.github/LICENSE_SCOPE.md`
+
+Third-party code within those paths remains subject to its original license,
+copyright notices, and attribution requirements.
+
+## Content, games, hardware, and brand
+
+Existing games, examples, curriculum, missions, levels, artwork, audio,
+hardware materials, and QArcade/Qilin brand assets are not covered by
+`LICENSE-CODE` unless a file-specific license expressly says otherwise.
+
+- See `LICENSE-CONTENT` for the current content status.
+- See `LICENSE-HARDWARE` for the current hardware status.
+- See the nearest `LICENSE_SCOPE.md` for directory-specific rules.
+
+Existing file- or directory-specific licenses continue to apply. In
+particular, this license map does not revoke or replace the MIT license found
+in `5QShooter_wsLu/LICENSE`.
+
+## No implied rights
+
+Material not expressly included in a license scope is not licensed by this
+file. All rights in that material remain with their respective copyright
+holders. No trademark or endorsement rights are granted.
+
+This structure is subject to final legal and contributor-ownership review.

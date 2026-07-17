@@ -1,0 +1,17 @@
+# QArcade Hardware License Status
+
+No general public hardware license is granted at this time.
+
+The documents and design materials in `0Hardware/` and the root
+`requirements.md` are excluded from `LICENSE-CODE`. All rights remain with
+their respective copyright holders unless a file-specific license expressly
+states otherwise.
+
+After ownership and manufacturing-file review, selected hardware designs may
+be released under a hardware-specific license such as CERN-OHL, Solderpad, or
+another approved license. Commercial enclosure designs, manufacturing files,
+product documentation, and brand elements may instead remain proprietary.
+
+This placeholder does not grant permission to manufacture, sell, certify, or
+market a product as an official QArcade product. Hardware is provided with no
+safety, regulatory, fitness, or warranty representation.

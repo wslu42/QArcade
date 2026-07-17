@@ -1,0 +1,49 @@
+QArcade
+Copyright holders and years: to be confirmed by contributor and legal review.
+
+This NOTICE file is an attribution template. Entries must be verified against
+the exact source versions distributed in each release. It does not change any
+applicable license.
+
+Third-party and upstream material currently identified
+------------------------------------------------------
+
+MicroQiskit
+  Source: https://github.com/qiskit-community/MicroQiskit
+  Upstream repository license: Apache License 2.0
+  Existing embedded notices include "Copyright IBM 2020" and identify the
+  code as part of Qiskit. Preserve those notices and record local changes.
+
+Original Qilin reference
+  Source: https://github.com/wslu42/qilin
+  Rights holder statement: the QArcade repository owner states that this
+  upstream repository is owned by them.
+  Exact copyright name and year: to be confirmed before release.
+
+Pillow
+  Source: https://python-pillow.github.io/
+  Used by the Qilin preview tools. Preserve the license and bundled-library
+  notices corresponding to the version actually distributed.
+
+Retro8 PICO-8-compatible font data
+  Source: https://github.com/libretro/retro8, src/gen/pico_font.h
+  Fetched at runtime and not intended to be redistributed by this repository.
+  Verify upstream terms before bundling or distributing cached font data.
+
+PICO-8
+  Product and platform by Lexaloffle Games LLP.
+  PICO-8 is a separately licensed commercial dependency. QArcade licenses do
+  not license the PICO-8 runtime, fonts, trademarks, or other platform assets.
+
+Additional material requiring release-specific review
+----------------------------------------------------
+
+- `2QPong_FetainerTW/qpong.p8` cites QPong upstream repositories, IBM/Qiskit,
+  a Stack Overflow answer, and a PICO-8 BBS source.
+- `5QShooter_wsLu/index.html` identifies the default PICO-8 HTML shell as
+  CC0 while excluding injected cartridge and artwork.
+- GitHub Actions workflows use external actions including
+  `actions/checkout` and `actions/setup-python`.
+
+Before release, replace provisional descriptions with exact copyright,
+license, version, modification, and attribution text required by each source.

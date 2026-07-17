@@ -60,3 +60,31 @@ In this project, we hope to contribute to quantum education by leveraging the ex
 
 # Collaborations WANTED!
   Currently we are collaborating with students and teachers coming from four Taiwan local high schools/colleges to train and learn programming quantum games. If you are interested please join us by sending an email to Vincent (wslu42@gmail.com)!
+
+## Licensing and Open-Core Model
+
+QArcade is preparing an open-core model. The reusable Qilin engine, quantum
+game framework, and selected developer tooling are intended for open
+development under the Apache License 2.0. Official games, historical game
+projects, curriculum, levels, missions, artwork, audio, hardware designs, and
+QArcade/Qilin brand assets may use separate terms or remain reserved.
+
+The repository is not licensed as one undivided work. Read the root
+[`LICENSE`](LICENSE), the applicable category file, and the nearest
+`LICENSE_SCOPE.md` before using or redistributing material:
+
+- [`LICENSE-CODE`](LICENSE-CODE) — Apache-2.0 text for expressly included code;
+- [`LICENSE-CONTENT`](LICENSE-CONTENT) — current content status;
+- [`LICENSE-HARDWARE`](LICENSE-HARDWARE) — current hardware status; and
+- [`NOTICE`](NOTICE) — third-party attribution template.
+
+Existing file- or directory-specific licenses remain effective. In
+particular, the existing qShooter MIT license is not replaced by this model.
+Material not expressly included in an open license scope remains with its
+respective copyright holders. No trademark or official-product endorsement
+rights are granted.
+
+This licensing structure is preparatory and remains subject to final legal,
+contributor-ownership, and third-party review. See
+[`docs/LICENSE_AUDIT.md`](docs/LICENSE_AUDIT.md) and
+[`docs/LICENSE_STRATEGY.md`](docs/LICENSE_STRATEGY.md) for details.
