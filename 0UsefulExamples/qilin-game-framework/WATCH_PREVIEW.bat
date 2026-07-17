@@ -20,6 +20,7 @@ echo.
   -o previews\current.png ^
   --native-output previews\current_128x128.png ^
   --metadata-output previews\current.json ^
+  --force ^
   --watch ^
   --poll-interval 0.15
 

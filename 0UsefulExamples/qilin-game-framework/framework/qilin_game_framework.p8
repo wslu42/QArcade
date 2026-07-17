@@ -289,45 +289,45 @@ layout={
   controller={
     x=0,
     y=0,
-    w=41,
-    h=59,
+    w=36,
+    h=54,
 
     grid={
       x=1,
       y=3,
       cell_w=8,
       cell_h=8,
-      col_pitch=11,
-      row_pitch=11
+      col_pitch=10,
+      row_pitch=9
     },
 
     depth_index={
-      x=33,
+      x=31,
       y=3,
       text_dy=2
     },
 
     depth_flow={
-      x=35,
-      y=3,
+      x=31,
+      y=4,
       gap_dy=-2
     },
 
     qubit_index={
       x=2,
-      y=48
+      y=40
     },
 
     qubit_selector={
       x=4,
-      y=54
+      y=46
     }
   },
 
   key_map={
-    x=41,
+    x=36,
     y=0,
-    w=90,
+    w=92,
     h=23,
 
     items={
@@ -340,17 +340,17 @@ layout={
   },
 
   operation_feedback={
-    x=41,
+    x=36,
     y=23,
-    w=87,
+    w=92,
     h=6
   },
 
   mission={
-    x=41,
+    x=36,
     y=29,
-    w=87,
-    h=31,
+    w=92,
+    h=25,
 
     title={
       x=0,
@@ -382,9 +382,9 @@ layout={
   --   bottom padding:       y=123..127
   response={
     x=0,
-    y=60,
+    y=54,
     w=128,
-    h=68,
+    h=74,
 
     legend={
       x=2,
@@ -878,27 +878,6 @@ function draw_circuit()
     end
   end
 
-  -- qubit wires are derived from controller grid geometry.
-  -- they therefore move and resize with the grid automatically.
-  local wire_local_x=flr(grid_layout.cell_w/2)
-  local wire_top_y=grid_y-2
-  local wire_bottom_y=
-    grid_y+
-    (circuit_depth-1)*grid_layout.row_pitch+
-    grid_layout.cell_h+
-    2
-
-  for visual_col=0,num_qubits-1 do
-    local x=
-      grid_x+
-      visual_col*grid_layout.col_pitch+
-      wire_local_x
-
-    line(x,wire_top_y,x,wire_bottom_y,5)
-    line(x-2,grid_y,x,wire_top_y,5)
-    line(x+2,grid_y,x,wire_top_y,5)
-  end
-
   -- depth flow indicator
   local depth_flow_x=controller_x+depth_flow.x
   local depth_flow_y=controller_y+depth_flow.y
@@ -921,7 +900,7 @@ function draw_circuit()
     local y=grid_y+visual_row*grid_layout.row_pitch
 
     print(
-      "d"..d,
+      d,
       depth_index_x,
       depth_index_y+
         visual_row*grid_layout.row_pitch+
@@ -953,8 +932,8 @@ function draw_circuit()
         fresh_target<0
       )
 
-      local symbol_color=7
-      local border_color=5
+      local symbol_color=1
+      local border_color=1
 
       if is_fresh_pair or is_fresh_single then
         symbol_color=13
@@ -966,7 +945,7 @@ function draw_circuit()
         y,
         x+grid_layout.cell_w,
         y+grid_layout.cell_h,
-        1
+        6
       )
 
       rect(
@@ -991,17 +970,9 @@ function draw_circuit()
         end
       end
 
-      if is_fresh_single and fresh_timer>21 then
-        rect(
-          x-1,
-          y-1,
-          x+grid_layout.cell_w+1,
-          y+grid_layout.cell_h+1,
-          13
-        )
-      end
     end
   end
+
 end
 
 function print_centered_in_region(text,x,y,w,color)

@@ -20,7 +20,7 @@ from layout_parser import LayoutParseError, parse_project, parse_scalar
 
 SCREEN_W = 128
 SCREEN_H = 128
-RENDERER_VERSION = "3.1.0"
+RENDERER_VERSION = "3.6.0"
 
 PICO8_PALETTE = [
     (0, 0, 0),
@@ -297,6 +297,41 @@ def _draw_target_plus(
     canvas.line(center_x, center_y - radius, center_x, center_y + radius, color)
 
 
+def parse_grid_colors(source: str) -> tuple[int, int]:
+    """Read the grid colors from the cartridge's real draw_circuit code."""
+    function_match = re.search(
+        r"\bfunction\s+draw_circuit\s*\(\s*\)(.*?)"
+        r"\nend\s*\n\s*function\s+print_centered_in_region\b",
+        source,
+        re.DOTALL,
+    )
+    if function_match is None:
+        raise PreviewError("Could not find the draw_circuit function.")
+    draw_circuit = function_match.group(1)
+
+    background_match = re.search(
+        r"rectfill\s*\(\s*x\s*,\s*y\s*,"
+        r"\s*x\s*\+\s*grid_layout\.cell_w\s*,"
+        r"\s*y\s*\+\s*grid_layout\.cell_h\s*,\s*(\d+)\s*\)",
+        draw_circuit,
+        re.DOTALL,
+    )
+    border_match = re.search(
+        r"\blocal\s+border_color\s*=\s*(\d+)\b",
+        draw_circuit,
+    )
+    if background_match is None or border_match is None:
+        raise PreviewError(
+            "Could not read the grid background and border colors from draw_circuit."
+        )
+
+    background = int(background_match.group(1))
+    border = int(border_match.group(1))
+    if not 0 <= background <= 15 or not 0 <= border <= 15:
+        raise PreviewError("Grid colors must be PICO-8 palette indices from 0 to 15.")
+    return background, border
+
+
 def render_source(
     source: str,
     font: Pico8BitmapFont,
@@ -320,6 +355,7 @@ def render_project(
     states = project["states"]
     num_qubits = int(project["num_qubits"])
     circuit_depth = int(project["circuit_depth"])
+    grid_background_color, grid_border_color = parse_grid_colors(source)
 
     if not 1 <= state.level_number <= len(levels):
         raise PreviewError(
@@ -386,23 +422,6 @@ def render_project(
                 color,
             )
 
-    # Qubit Wires derived from Controller Grid
-    wire_local_x = int(grid["cell_w"]) // 2
-    wire_top_y = grid_y - int(grid["wire_top_overhang"])
-    wire_bottom_y = (
-        grid_y
-        + (circuit_depth - 1) * int(grid["row_pitch"])
-        + int(grid["cell_h"])
-        - 1
-        + int(grid["wire_bottom_overhang"])
-    )
-    for visual_col in range(num_qubits):
-        wire_x = grid_x + visual_col * int(grid["col_pitch"]) + wire_local_x
-        canvas.line(wire_x, wire_top_y, wire_x, wire_bottom_y, 5)
-        half_w = int(grid["wire_arrow_half_w"])
-        canvas.line(wire_x - half_w, grid_y, wire_x, wire_top_y, 5)
-        canvas.line(wire_x + half_w, grid_y, wire_x, wire_top_y, 5)
-
     # Depth Flow Indicator
     depth_flow = controller["depth_flow"]
     for visual_row in range(1, circuit_depth):
@@ -438,7 +457,7 @@ def render_project(
         row_y = visual_row * int(grid["row_pitch"])
         y = grid_y + row_y
         canvas.text(
-            f"d{depth}",
+            str(depth),
             controller_x + int(depth_index["x"]),
             controller_y + int(depth_index["y"]) + row_y + int(depth_index["text_y"]),
             6,
@@ -449,8 +468,8 @@ def render_project(
             x = grid_x + visual_col * int(grid["col_pitch"])
             right = x + int(grid["cell_w"]) - 1
             bottom = y + int(grid["cell_h"]) - 1
-            canvas.rectfill(x, y, right, bottom, 1)
-            canvas.rect(x, y, right, bottom, 5)
+            canvas.rectfill(x, y, right, bottom, grid_background_color)
+            canvas.rect(x, y, right, bottom, grid_border_color)
 
             gate_type, target = gate_map.get((visual_q, depth), ("-", None))
             if gate_type == "cx":

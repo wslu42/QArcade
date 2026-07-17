@@ -10,18 +10,18 @@
     "controller": {
       "x": 0,
       "y": 0,
-      "w": 41,
-      "h": 60,
+      "w": 36,
+      "h": 54,
       "grid": {
         "x": 1,
         "y": 3,
         "cell_w": 9,
         "cell_h": 9,
-        "col_pitch": 11,
-        "row_pitch": 11,
+        "col_pitch": 10,
+        "row_pitch": 9,
         "source_cell_extent_mode": "inclusive_offset",
         "wire_top_overhang": 2,
-        "wire_bottom_overhang": 2,
+        "wire_bottom_overhang": 0,
         "wire_arrow_half_w": 2,
         "control_radius": 1,
         "target_radius": 2,
@@ -31,30 +31,30 @@
         "fresh_outline": 1
       },
       "depth_index": {
-        "x": 33,
+        "x": 31,
         "y": 3,
         "text_dy": 2,
         "text_y": 2
       },
       "depth_flow": {
-        "x": 35,
-        "y": 3,
+        "x": 31,
+        "y": 4,
         "gap_dy": -2,
         "gap_y": -2
       },
       "qubit_index": {
         "x": 2,
-        "y": 48
+        "y": 40
       },
       "qubit_selector": {
         "x": 4,
-        "y": 54
+        "y": 46
       }
     },
     "key_map": {
-      "x": 41,
+      "x": 36,
       "y": 0,
-      "w": 90,
+      "w": 92,
       "h": 23,
       "items": [
         {
@@ -85,16 +85,16 @@
       ]
     },
     "operation_feedback": {
-      "x": 41,
+      "x": 36,
       "y": 23,
-      "w": 87,
+      "w": 92,
       "h": 6
     },
     "mission": {
-      "x": 41,
+      "x": 36,
       "y": 29,
-      "w": 87,
-      "h": 31,
+      "w": 92,
+      "h": 25,
       "title": {
         "x": 0,
         "y": 0,
@@ -116,9 +116,9 @@
     },
     "response": {
       "x": 0,
-      "y": 60,
+      "y": 54,
       "w": 128,
-      "h": 68,
+      "h": 74,
       "legend": {
         "x": 2,
         "y": 20,
@@ -191,42 +191,42 @@
         "name": "controller",
         "x": 0,
         "y": 0,
-        "w": 41,
-        "h": 60
+        "w": 36,
+        "h": 54
       },
       {
         "name": "key_map",
-        "x": 41,
+        "x": 36,
         "y": 0,
-        "w": 90,
+        "w": 92,
         "h": 23
       },
       {
         "name": "operation_feedback",
-        "x": 41,
+        "x": 36,
         "y": 23,
-        "w": 87,
+        "w": 92,
         "h": 6
       },
       {
         "name": "mission",
-        "x": 41,
+        "x": 36,
         "y": 29,
-        "w": 87,
-        "h": 31
+        "w": 92,
+        "h": 25
       },
       {
         "name": "response",
         "x": 0,
-        "y": 60,
+        "y": 54,
         "w": 128,
-        "h": 68
+        "h": 74
       }
     ]
   },
   "source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\framework\\qilin_game_framework.p8",
   "font_source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\.qilin-cache\\pico_font.h",
-  "fingerprint": "4d076d26202fc196db8ffde9b74f96140f626417ac816c956b40fcedc1571a15",
+  "fingerprint": "cc335ece447c61c01001fd2b793e5c9c5677ac902782d90373edfbea683f0545",
   "scaled_output": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\previews\\current.png",
   "native_output": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\previews\\current_128x128.png"
 }

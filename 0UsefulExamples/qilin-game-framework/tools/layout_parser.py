@@ -324,7 +324,7 @@ def normalize_layout(
 
     defaults = {
         "wire_top_overhang": 2,
-        "wire_bottom_overhang": 2,
+        "wire_bottom_overhang": 0,
         "wire_arrow_half_w": 2,
         "control_radius": 1,
         "target_radius": 2,
@@ -359,7 +359,8 @@ def normalize_layout(
     grid_height = (circuit_depth - 1) * int(grid["row_pitch"]) + int(grid["cell_h"])
     required_controller_w = max(
         int(grid.get("x", 0)) + grid_width,
-        int(depth_index.get("x", 0)) + 8,
+        # Depth labels are now one 4-pixel P8SCII digit plus 1 px breathing room.
+        int(depth_index.get("x", 0)) + 5,
         int(depth_flow.get("x", 0)) + 4,
     )
     required_controller_h = max(
