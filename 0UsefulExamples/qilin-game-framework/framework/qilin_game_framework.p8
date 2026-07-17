@@ -287,14 +287,14 @@ states={"000","001","010","011","100","101","110","111"}
 -- top-level block.x/y + local element offset
 layout={
   controller={
-    x=14-8,
-    y=11-4,
-    w=40,
+    x=0,
+    y=0,
+    w=41,
     h=59,
 
     grid={
-      x=0,
-      y=2,
+      x=1,
+      y=3,
       cell_w=8,
       cell_h=8,
       col_pitch=11,
@@ -302,55 +302,55 @@ layout={
     },
 
     depth_index={
-      x=32,
-      y=2,
+      x=33,
+      y=3,
       text_dy=2
     },
 
     depth_flow={
-      x=34,
-      y=2,
+      x=35,
+      y=3,
       gap_dy=-2
     },
 
     qubit_index={
-      x=0+1,
-      y=47
+      x=2,
+      y=48
     },
 
     qubit_selector={
-      x=2+1,
-      y=53
+      x=4,
+      y=54
     }
   },
 
   key_map={
-    x=62-4,
-    y=11-4,
-    w=66,
-    h=22,
+    x=41,
+    y=0,
+    w=90,
+    h=23,
 
     items={
-      {text="🅾️⬆️ x",x=0,y=0},
-      {text="🅾️⬇️ h",x=33,y=0},
-      {text="🅾️⬅️/🅾️➡️ cnot",x=0,y=8},
-      {text="⬇️ clr",x=8,y=16},
-      {text="❎ run",x=41,y=16}
+      {text="🅾️⬆️ x",x=12,y=1},
+      {text="🅾️⬇️ h",x=45,y=1},
+      {text="🅾️⬅️/🅾️➡️ cnot",x=12,y=9},
+      {text="⬇️ clr",x=20,y=17},
+      {text="❎ run",x=53,y=17}
     }
   },
 
   operation_feedback={
-    x=62-4,
-    y=30,
-    w=66,
+    x=41,
+    y=23,
+    w=87,
     h=6
   },
 
   mission={
-    x=46,
-    y=36,
-    w=82,
-    h=30,
+    x=41,
+    y=29,
+    w=87,
+    h=31,
 
     title={
       x=0,
@@ -382,12 +382,12 @@ layout={
   --   bottom padding:       y=123..127
   response={
     x=0,
-    y=66,
+    y=60,
     w=128,
-    h=62,
+    h=68,
 
     legend={
-      x=0,
+      x=2,
       y=20,
       w=128,
       h=6,
@@ -404,7 +404,7 @@ layout={
     },
 
     canvas={
-      x=2,
+      x=4,
       y=30,
       w=126,
       h=17,
@@ -415,7 +415,7 @@ layout={
     },
 
     state_index={
-      x=1,
+      x=4,
       y=51,
       w=127,
       h=6,

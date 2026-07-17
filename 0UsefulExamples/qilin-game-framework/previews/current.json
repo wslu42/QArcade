@@ -8,13 +8,13 @@
   "cursor_visual_q": 1,
   "normalized_layout": {
     "controller": {
-      "x": 6,
-      "y": 7,
-      "w": 40,
-      "h": 59,
+      "x": 0,
+      "y": 0,
+      "w": 41,
+      "h": 60,
       "grid": {
-        "x": 0,
-        "y": 2,
+        "x": 1,
+        "y": 3,
         "cell_w": 9,
         "cell_h": 9,
         "col_pitch": 11,
@@ -31,70 +31,70 @@
         "fresh_outline": 1
       },
       "depth_index": {
-        "x": 32,
-        "y": 2,
+        "x": 33,
+        "y": 3,
         "text_dy": 2,
         "text_y": 2
       },
       "depth_flow": {
-        "x": 34,
-        "y": 2,
+        "x": 35,
+        "y": 3,
         "gap_dy": -2,
         "gap_y": -2
       },
       "qubit_index": {
-        "x": 1,
-        "y": 47
+        "x": 2,
+        "y": 48
       },
       "qubit_selector": {
-        "x": 3,
-        "y": 53
+        "x": 4,
+        "y": 54
       }
     },
     "key_map": {
-      "x": 58,
-      "y": 7,
-      "w": 66,
-      "h": 22,
+      "x": 41,
+      "y": 0,
+      "w": 90,
+      "h": 23,
       "items": [
         {
           "text": "🅾️⬆️ x",
-          "x": 0,
-          "y": 0
+          "x": 12,
+          "y": 1
         },
         {
           "text": "🅾️⬇️ h",
-          "x": 33,
-          "y": 0
+          "x": 45,
+          "y": 1
         },
         {
           "text": "🅾️⬅️/🅾️➡️ cnot",
-          "x": 0,
-          "y": 8
+          "x": 12,
+          "y": 9
         },
         {
           "text": "⬇️ clr",
-          "x": 8,
-          "y": 16
+          "x": 20,
+          "y": 17
         },
         {
           "text": "❎ run",
-          "x": 41,
-          "y": 16
+          "x": 53,
+          "y": 17
         }
       ]
     },
     "operation_feedback": {
-      "x": 58,
-      "y": 30,
-      "w": 66,
+      "x": 41,
+      "y": 23,
+      "w": 87,
       "h": 6
     },
     "mission": {
-      "x": 46,
-      "y": 36,
-      "w": 82,
-      "h": 30,
+      "x": 41,
+      "y": 29,
+      "w": 87,
+      "h": 31,
       "title": {
         "x": 0,
         "y": 0,
@@ -116,11 +116,11 @@
     },
     "response": {
       "x": 0,
-      "y": 66,
+      "y": 60,
       "w": 128,
-      "h": 62,
+      "h": 68,
       "legend": {
-        "x": 0,
+        "x": 2,
         "y": 20,
         "w": 128,
         "h": 6,
@@ -134,7 +134,7 @@
         }
       },
       "canvas": {
-        "x": 2,
+        "x": 4,
         "y": 30,
         "w": 126,
         "h": 17,
@@ -146,7 +146,7 @@
         "measured_w": 5
       },
       "state_index": {
-        "x": 0,
+        "x": 3,
         "y": 51,
         "w": 127,
         "h": 6,
@@ -189,44 +189,44 @@
     "blocks": [
       {
         "name": "controller",
-        "x": 6,
-        "y": 7,
-        "w": 40,
-        "h": 59
+        "x": 0,
+        "y": 0,
+        "w": 41,
+        "h": 60
       },
       {
         "name": "key_map",
-        "x": 58,
-        "y": 7,
-        "w": 66,
-        "h": 22
+        "x": 41,
+        "y": 0,
+        "w": 90,
+        "h": 23
       },
       {
         "name": "operation_feedback",
-        "x": 58,
-        "y": 30,
-        "w": 66,
+        "x": 41,
+        "y": 23,
+        "w": 87,
         "h": 6
       },
       {
         "name": "mission",
-        "x": 46,
-        "y": 36,
-        "w": 82,
-        "h": 30
+        "x": 41,
+        "y": 29,
+        "w": 87,
+        "h": 31
       },
       {
         "name": "response",
         "x": 0,
-        "y": 66,
+        "y": 60,
         "w": 128,
-        "h": 62
+        "h": 68
       }
     ]
   },
-  "source": "framework/qilin_game_framework.p8",
-  "font_source": "P8SCII-compatible local render source",
-  "fingerprint": "5c000387d7c717a70ea515f75a1030271682cfd43a9acb5ae6796b0954a146fa",
-  "scaled_output": "previews/current.png",
-  "native_output": "previews/current_128x128.png"
+  "source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\framework\\qilin_game_framework.p8",
+  "font_source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\.qilin-cache\\pico_font.h",
+  "fingerprint": "4d076d26202fc196db8ffde9b74f96140f626417ac816c956b40fcedc1571a15",
+  "scaled_output": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\previews\\current.png",
+  "native_output": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\previews\\current_128x128.png"
 }
