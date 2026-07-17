@@ -281,7 +281,7 @@ circuit_depth=4
 shots=16
 states={"000","001","010","011","100","101","110","111"}
 
--- centralized nested layout contract
+-- centralized layout contract
 --
 -- coordinate rule:
 -- top-level block.x/y + local element offset
