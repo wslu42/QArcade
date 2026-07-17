@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import shutil
 import zipfile
 from pathlib import Path
 
@@ -40,6 +39,9 @@ with zipfile.ZipFile(archive) as payload:
 archive.unlink()
 for path in chunks:
     path.unlink()
+trigger = bootstrap / "trigger.txt"
+if trigger.exists():
+    trigger.unlink()
 script.unlink()
 
 if bootstrap.exists() and not any(bootstrap.iterdir()):
