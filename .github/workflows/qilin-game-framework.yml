@@ -8,12 +8,17 @@ on:
       - '0UsefulExamples/qilin-game-framework/**'
       - '.github/workflows/qilin-game-framework.yml'
       - '!0UsefulExamples/qilin-game-framework/reference/qilin.p8'
+  pull_request:
+    branches: [main]
+    paths:
+      - '0UsefulExamples/qilin-game-framework/**'
+      - '.github/workflows/qilin-game-framework.yml'
 
 permissions:
   contents: write
 
 concurrency:
-  group: qilin-game-framework-main
+  group: qilin-game-framework-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 0
 
       - name: Apply staged framework payload
@@ -41,7 +46,8 @@ jobs:
         working-directory: 0UsefulExamples/qilin-game-framework
         run: python -m unittest discover -s tests -v
 
-      - name: Refresh original Qilin reference and commit staged update
+      - name: Commit staged update to the current branch
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         shell: bash
         run: |
           set -euo pipefail
@@ -51,7 +57,7 @@ jobs:
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A 0UsefulExamples/qilin-game-framework
+          git add -A
 
           if git diff --cached --quiet; then
             echo 'Framework and reference are already current.'
@@ -59,4 +65,4 @@ jobs:
           fi
 
           git commit -m 'Promote controller schema and remove legacy wrapper [skip ci]'
-          git push origin main
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
