@@ -302,16 +302,7 @@ def normalize_layout(
     controller.setdefault("x", 0)
     controller.setdefault("y", 0)
 
-    operation_feedback = _setdefault(controller, "operation_feedback", {})
-    operation_feedback.setdefault("x", 2)
-    operation_feedback.setdefault("y", 2)
-    operation_feedback.setdefault("w", 64)
-    operation_feedback.setdefault("h", 6)
-
-    core = _setdefault(controller, "core", {})
-    core.setdefault("x", 0)
-    core.setdefault("y", 0)
-    grid = _setdefault(core, "grid", {})
+    grid = _setdefault(controller, "grid", {})
     grid.setdefault("x", 0)
     grid.setdefault("y", 0)
     grid.setdefault("col_pitch", 11)
@@ -345,46 +336,52 @@ def normalize_layout(
     for key, value in defaults.items():
         grid.setdefault(key, value)
 
-    depth_index = _setdefault(core, "depth_index", {})
+    depth_index = _setdefault(controller, "depth_index", {})
     depth_index.setdefault("x", 0)
     depth_index.setdefault("y", 0)
     if "text_y" not in depth_index:
         depth_index["text_y"] = depth_index.get("text_dy", 0)
 
-    depth_flow = _setdefault(core, "depth_flow", {})
+    depth_flow = _setdefault(controller, "depth_flow", {})
     depth_flow.setdefault("x", 0)
     depth_flow.setdefault("y", 0)
     if "gap_y" not in depth_flow:
         depth_flow["gap_y"] = depth_flow.get("gap_dy", 0)
 
-    qubit_index = _setdefault(core, "qubit_index", {})
+    qubit_index = _setdefault(controller, "qubit_index", {})
     qubit_index.setdefault("x", 0)
     qubit_index.setdefault("y", 0)
-    qubit_selector = _setdefault(core, "qubit_selector", {})
+    qubit_selector = _setdefault(controller, "qubit_selector", {})
     qubit_selector.setdefault("x", 0)
     qubit_selector.setdefault("y", 0)
 
     grid_width = (num_qubits - 1) * int(grid["col_pitch"]) + int(grid["cell_w"])
     grid_height = (circuit_depth - 1) * int(grid["row_pitch"]) + int(grid["cell_h"])
-    required_core_w = max(
+    required_controller_w = max(
         int(grid.get("x", 0)) + grid_width,
         int(depth_index.get("x", 0)) + 8,
         int(depth_flow.get("x", 0)) + 4,
     )
-    required_core_h = max(
+    required_controller_h = max(
         int(grid.get("y", 0)) + grid_height + int(grid["wire_bottom_overhang"]),
         int(qubit_index.get("y", 0)) + 6,
         int(qubit_selector.get("y", 0)) + 6,
     )
-    core["w"] = max(int(core.get("w", 0)), required_core_w)
-    core["h"] = max(int(core.get("h", 0)), required_core_h)
+    controller["w"] = max(int(controller.get("w", 0)), required_controller_w)
+    controller["h"] = max(int(controller.get("h", 0)), required_controller_h)
 
-    key_map = _setdefault(controller, "key_map", {})
+    key_map = _setdefault(layout, "key_map", {})
     key_map.setdefault("x", 0)
     key_map.setdefault("y", 0)
     key_map.setdefault("items", [])
     key_map.setdefault("w", 0)
     key_map.setdefault("h", 0)
+
+    operation_feedback = _setdefault(layout, "operation_feedback", {})
+    operation_feedback.setdefault("x", 2)
+    operation_feedback.setdefault("y", 2)
+    operation_feedback.setdefault("w", 64)
+    operation_feedback.setdefault("h", 6)
 
     mission = _setdefault(layout, "mission", {})
     mission.setdefault("x", 0)

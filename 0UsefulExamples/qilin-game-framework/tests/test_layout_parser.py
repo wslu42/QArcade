@@ -33,19 +33,19 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
 
     def test_current_adjusted_origins(self) -> None:
         layout = self.project["layout"]
-        self.assertEqual((layout["controller"]["core"]["x"], layout["controller"]["core"]["y"]), (6, 7))
-        self.assertEqual((layout["controller"]["key_map"]["x"], layout["controller"]["key_map"]["y"]), (58, 7))
+        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (6, 7))
+        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (58, 7))
         self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (46, 36))
-        self.assertEqual((layout["controller"]["operation_feedback"]["x"], layout["controller"]["operation_feedback"]["y"]), (58, 30))
+        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (58, 30))
         self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 66))
 
     def test_schema_aliases_and_dimensions(self) -> None:
         layout = self.project["layout"]
-        grid = layout["controller"]["core"]["grid"]
+        grid = layout["controller"]["grid"]
         self.assertEqual(grid["source_cell_extent_mode"], "inclusive_offset")
         self.assertEqual((grid["cell_w"], grid["cell_h"]), (9, 9))
-        self.assertEqual(layout["controller"]["core"]["depth_index"]["text_y"], 2)
-        self.assertEqual(layout["controller"]["core"]["depth_flow"]["gap_y"], -2)
+        self.assertEqual(layout["controller"]["depth_index"]["text_y"], 2)
+        self.assertEqual(layout["controller"]["depth_flow"]["gap_y"], -2)
         self.assertEqual(layout["response"]["state_index"]["x"], 0)
 
     def test_parent_bounds_expand_to_children(self) -> None:
