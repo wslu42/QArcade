@@ -8,6 +8,7 @@ release/*.zip
 release/*.json
 
 # Python
+.venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
