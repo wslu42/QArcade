@@ -52,7 +52,6 @@ class GuidedOutputTest(unittest.TestCase):
                 "--no-font-download",
             ]
             subprocess.run(command, check=True, text=True, capture_output=True)
-
             baseline_command = [
                 sys.executable,
                 str(ROOT / "tools" / "render_preview.py"),
@@ -68,10 +67,7 @@ class GuidedOutputTest(unittest.TestCase):
                 "--no-font-download",
             ]
             subprocess.run(
-                baseline_command,
-                check=True,
-                text=True,
-                capture_output=True,
+                baseline_command, check=True, text=True, capture_output=True
             )
 
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -88,8 +84,6 @@ class GuidedOutputTest(unittest.TestCase):
             with Image.open(native_path) as native, Image.open(
                 baseline_native_path
             ) as baseline_native:
-                self.assertEqual(native.mode, baseline_native.mode)
-                self.assertEqual(native.size, baseline_native.size)
                 self.assertEqual(native.tobytes(), baseline_native.tobytes())
 
             self.assertEqual(guides["output_line_width"], 1)
@@ -97,6 +91,13 @@ class GuidedOutputTest(unittest.TestCase):
             self.assertEqual(guides["effective_native_line_width"], 0.125)
             self.assertEqual(guides["label_scale"], 4)
             self.assertEqual(guides["label_names"]["mission_area"], "mission")
+            self.assertEqual(
+                guides["label_names"]["operation_feedback_group"], "feedback"
+            )
+            self.assertIn(
+                "operation_feedback_group",
+                {block["name"] for block in guides["blocks"]},
+            )
             self.assertEqual(guides["mission_left_line_width"], 2)
             self.assertFalse(guides["native_preview_contains_guides"])
 

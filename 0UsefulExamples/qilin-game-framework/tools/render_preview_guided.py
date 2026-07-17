@@ -18,18 +18,18 @@ from render_core import PICO8_PALETTE
 from render_core import render_source as render_source_without_guides
 
 
-GUIDED_RENDERER_VERSION = "3.5.0-short-labels-x4-mission-edge"
+GUIDED_RENDERER_VERSION = "3.7.0-feedback-mission-response-reflow"
 GUIDE_COLOR_INDEX = 13
 OUTPUT_LINE_WIDTH = 1
-MISSION_LEFT_LINE_WIDTH = 2
 LABEL_PADDING_X = 3
 LABEL_PADDING_Y = 2
 LABEL_SCALE = 4
+MISSION_LEFT_LINE_WIDTH = 2
 
 DISPLAY_NAMES = {
-    "controller_operation_feedback": "feedback",
     "controller_core_group": "controller",
     "key_map_group": "key map",
+    "operation_feedback_group": "feedback",
     "mission_area": "mission",
     "quantum_response_area": "response",
 }
@@ -40,20 +40,13 @@ def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
     controller_x = int(controller["x"])
     controller_y = int(controller["y"])
 
-    feedback = controller["operation_feedback"]
     core = controller["core"]
     key_map = controller["key_map"]
+    operation_feedback = controller["operation_feedback"]
     mission = layout["mission"]
     response = layout["response"]
 
     return [
-        {
-            "name": "controller_operation_feedback",
-            "x": controller_x + int(feedback["x"]),
-            "y": controller_y + int(feedback["y"]),
-            "w": int(feedback["w"]),
-            "h": int(feedback["h"]),
-        },
         {
             "name": "controller_core_group",
             "x": controller_x + int(core["x"]),
@@ -67,6 +60,13 @@ def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
             "y": controller_y + int(key_map["y"]),
             "w": int(key_map["w"]),
             "h": int(key_map["h"]),
+        },
+        {
+            "name": "operation_feedback_group",
+            "x": controller_x + int(operation_feedback["x"]),
+            "y": controller_y + int(operation_feedback["y"]),
+            "w": int(operation_feedback["w"]),
+            "h": int(operation_feedback["h"]),
         },
         {
             "name": "mission_area",
@@ -131,16 +131,10 @@ def _draw_scaled_label(
     label = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     label_draw = ImageDraw.Draw(label)
     label_draw.text((-bbox[0], -bbox[1]), text, fill=color + (255,), font=base_font)
-    label = label.resize(
-        (width * LABEL_SCALE, height * LABEL_SCALE),
-        Image.Resampling.NEAREST,
-    )
+    label = label.resize((width * LABEL_SCALE, height * LABEL_SCALE), Image.Resampling.NEAREST)
     max_x = max(0, image.width - label.width)
     max_y = max(0, image.height - label.height)
-    image.alpha_composite(
-        label,
-        (min(max(x, 0), max_x), min(max(y, 0), max_y)),
-    )
+    image.alpha_composite(label, (min(max(x, 0), max_x), min(max(y, 0), max_y)))
 
 
 def _add_output_layout_guides(

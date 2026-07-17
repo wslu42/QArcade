@@ -35,8 +35,9 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         layout = self.project["layout"]
         self.assertEqual((layout["controller"]["core"]["x"], layout["controller"]["core"]["y"]), (6, 7))
         self.assertEqual((layout["controller"]["key_map"]["x"], layout["controller"]["key_map"]["y"]), (58, 7))
-        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (56, 36))
-        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 68))
+        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (46, 36))
+        self.assertEqual((layout["controller"]["operation_feedback"]["x"], layout["controller"]["operation_feedback"]["y"]), (58, 30))
+        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 66))
 
     def test_schema_aliases_and_dimensions(self) -> None:
         layout = self.project["layout"]

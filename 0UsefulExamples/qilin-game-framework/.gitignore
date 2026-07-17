@@ -7,10 +7,12 @@ previews/*.json
 release/*.zip
 release/*.json
 
-# Local Python environment
-.venv/
-
 # Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Commit the canonical current preview while ignoring other generated previews.
+!previews/current.png
+!previews/current_128x128.png
+!previews/current.json

@@ -295,12 +295,12 @@ layout={
     core={
       x=14-8,
       y=11-4,
-      w=43,
-      h=53,
+      w=40,
+      h=59,
 
       grid={
         x=0,
-        y=0,
+        y=2,
         cell_w=8,
         cell_h=8,
         col_pitch=11,
@@ -309,24 +309,24 @@ layout={
 
       depth_index={
         x=32,
-        y=0,
+        y=2,
         text_dy=2
       },
 
       depth_flow={
         x=34,
-        y=0,
+        y=2,
         gap_dy=-2
       },
 
       qubit_index={
         x=0+1,
-        y=45
+        y=47
       },
 
       qubit_selector={
         x=2+1,
-        y=51
+        y=53
       }
     },
 
@@ -343,52 +343,59 @@ layout={
         {text="⬇️ clr",x=8,y=16},
         {text="❎ run",x=41,y=16}
       }
+    },
+
+    operation_feedback={
+      x=62-4,
+      y=30,
+      w=66,
+      h=6
     }
   },
 
   mission={
-    x=56,
-    y=44-8,
-    w=72,
-    h=22,
+    x=46,
+    y=36,
+    w=82,
+    h=30,
 
     title={
       x=0,
       y=0,
-      w=72,
+      w=82,
       h=6
     },
 
     instruction={
       x=0,
       y=10,
-      w=72,
+      w=82,
       h=6
     },
 
     feedback={
       x=0,
       y=19,
-      w=72,
+      w=82,
       h=6
     }
   },
 
-  -- full rectangular 𝘲uantum 𝘳esponse 𝘢rea.
-  -- screen bounds: x=0..127, y=68..127.
+  -- full rectangular quantum response area.
+  -- screen bounds: x=0..127, y=66..127.
   -- includes:
-  --   former mission strip: y=68..85
+  --   reserved top band:    y=66..85
   --   response content:     y=86..122
   --   bottom padding:       y=123..127
   response={
     x=0,
-    y=68,
+    y=66,
     w=128,
-    h=60,
+    h=62,
 
     legend={
       x=0,
-      y=18,
+      y=20,
       w=128,
       h=6,
 
@@ -404,8 +411,8 @@ layout={
     },
 
     canvas={
-      x=2,
-      y=28,
+     x=2,
+      y=30,
       w=126,
       h=17,
 
@@ -415,8 +422,8 @@ layout={
     },
 
     state_index={
-      x=1,
-      y=49,
+     x=1,
+      y=51,
       w=127,
       h=6,
       state_pitch=16
@@ -446,7 +453,7 @@ end
 function gate_options(q)
   local options={"-","x","h"}
   for target=0,num_qubits-1 do
-    if target~=q then
+    if target!=q then
       add(options,"c"..target)
     end
   end
@@ -467,8 +474,8 @@ function cycle_gate(grid,q,d)
 end
 
 
--- 𝘢 qubit is busy at a depth if it has its own gate or is
--- the target of a 𝘤𝘹 stored in another qubit's cell.
+-- a qubit is busy at a depth if it has its own gate or is
+-- the target of a cx stored in another qubit's cell.
 function qubit_busy(grid,q,d)
   if grid[q+1][d]!="-" then
     return true
@@ -487,9 +494,9 @@ function qubit_busy(grid,q,d)
   return false
 end
 
--- 𝘧ind the first legal time slice from 𝘥1 to 𝘥3.
--- 𝘹/𝘩 occupy one qubit. 𝘤𝘹 occupies both control and target.
--- 𝘳eturn 0 when no legal depth exists; never shift old gates.
+-- find the first legal time slice from d1 to d3.
+-- x/h occupy one qubit. cx occupies both control and target.
+-- return 0 when no legal depth exists; never shift old gates.
 function append_gate(grid,q,gate)
   local target=-1
 
@@ -513,8 +520,8 @@ function append_gate(grid,q,gate)
   return 0
 end
 
--- 𝘤lear every operation involving the selected qubit, whether it is
--- a single-qubit gate, 𝘤𝘹 control, or 𝘤𝘹 target.
+-- clear every operation involving the selected qubit, whether it is
+-- a single-qubit gate, cx control, or cx target.
 function clear_qubit_gates(grid,q)
   for d=1,circuit_depth do
     grid[q+1][d]="-"
@@ -535,8 +542,8 @@ function compile_grid(grid)
   local qc=quantumcircuit()
   qc.set_registers(num_qubits,num_qubits)
 
-  -- 𝘤ompile by circuit depth, not by qubit row.
-  -- 𝘵his preserves the left-to-right circuit order shown to students.
+  -- compile by circuit depth, not by qubit row.
+  -- this preserves the left-to-right circuit order shown to students.
   for d=1,circuit_depth do
     for q=num_qubits-1,0,-1 do
       local gate=grid[q+1][d]
@@ -560,7 +567,7 @@ function run_grid(grid)
   local measured=simulate(compile_grid(grid),"counts",shots)
   local counts=blank_counts()
   for state,count in pairs(measured) do
-    if counts[state]~=nil then
+    if counts[state]!=nil then
       counts[state]=count
     end
   end
@@ -773,8 +780,8 @@ function _update()
 
   local changed=false
 
-  -- 𝘰riginal 𝘲ilin controls:
-  -- hold z/o and press a direction to append a gate.
+  -- original qilin controls:
+  -- hold zo and press a direction to append a gate.
   if btn(4) then
     if btnp(2) then
       changed=try_add_gate(cursor_q,"x")
@@ -794,7 +801,7 @@ function _update()
       changed=try_add_gate(cursor_q,gate)
     end
   else
-    -- 𝘸ithout z/o, left and right select the qubit column.
+    -- without zo, left and right select the qubit column.
     if btnp(0) then
       cursor_q=mid(0,cursor_q+1,num_qubits-1)
     end
@@ -803,7 +810,7 @@ function _update()
       cursor_q=mid(0,cursor_q-1,num_qubits-1)
     end
 
-    -- 𝘰riginal 𝘲ilin clears the selected qubit queue with down.
+    -- original qilin clears the selected qubit queue with down.
     if btnp(3) then
       clear_qubit_gates(grid,cursor_q)
       fresh_timer=0
@@ -816,16 +823,16 @@ function _update()
     edit_circuit()
   end
 
-  -- 𝘱𝘪𝘤𝘰-8 x button runs the circuit and measures 16 shots.
+  -- pico-8 x button runs the circuit and measures 16 shots.
   if btnp(5) then
     measure_circuit()
   end
 end
 
--- 𝘳otated composer:
+-- rotated composer:
 -- qubits are columns; d1 begins at the bottom and depth grows upward.
--- 𝘵he selected qubit column is highlighted because depth now fills
--- automatically, matching the original 𝘲ilin gate queue.
+-- the selected qubit column is highlighted because depth now fills
+-- automatically, matching the original qilin gate queue.
 function draw_circuit()
   local controller=layout.controller
   local core=controller.core
@@ -932,7 +939,7 @@ function draw_circuit()
 
     for visual_col=0,num_qubits-1 do
       local q=num_qubits-1-visual_col
-      local x=grid_x+visual_col*grid_layout.col_pitch
+      local x=grid_y+visual_col*grid_layout.col_pitch
       local gate=grid[q+1][d]
       local target=cx_target_of(gate)
       local incoming=cx_control_for(q,d)
@@ -1039,7 +1046,7 @@ function draw_prompt_line(text,color)
   print_centered_in_region(
     text,
     mission.x+instruction.x,
-    mission.y+instruction.y,
+    mission.y,instruction.y,
     instruction.w,
     color
   )
@@ -1194,24 +1201,35 @@ function _draw()
   cls(0)
   draw_key_hint()
 
+  local controller=layout.controller
+  local op_feedback=controller.operation_feedback
+  local op_feedback_x=controller.x+op_feedback.x
+  local op_feedback_y=controller.y+op_feedback.y
+
   if blocked_timer>0 then
-    print(blocked_text,2,2,8)
+    print_centered_in_region(blocked_text,op_feedback_x,op_feedback_y,op_feedback.w,8)
   elseif fresh_timer>0 then
     local target=cx_target_of(fresh_gate)
 
     if target>=0 then
-      print(
+      print_centered_in_region(
         "cx q"..visual_q(fresh_q)..
         ">q"..visual_q(target)..
         " d"..fresh_d,
-        2,2,13
+        op_feedback_x,
+        op_feedback_y,
+        op_feedback.w,
+        13
       )
     else
-      print(
+      print_centered_in_region(
         gate_label(fresh_gate)..
         " > q"..visual_q(fresh_q)..
         " d"..fresh_d,
-        2,2,13
+        op_feedback_x,
+        op_feedback_y,
+        op_feedback.w,
+        13
       )
     end
   end
