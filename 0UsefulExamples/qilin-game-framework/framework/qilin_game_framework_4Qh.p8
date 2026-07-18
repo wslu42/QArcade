@@ -293,6 +293,7 @@ states={
 layout={
   controller={
     orientation="horizontal",
+    anchor="bottom_right",
     x=78,
     y=78,
     w=50,

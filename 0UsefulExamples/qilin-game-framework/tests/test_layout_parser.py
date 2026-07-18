@@ -175,6 +175,7 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
                 grid = controller["grid"]
                 num_qubits = project["num_qubits"]
                 circuit_depth = project["circuit_depth"]
+                self.assertEqual(controller["anchor"], "bottom_right")
 
                 if controller.get("orientation") == "horizontal":
                     grid_bottom = (
@@ -187,6 +188,13 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
                     self.assertEqual(controller["depth_index"]["x"], grid["x"] + 2)
                     self.assertEqual(controller["qubit_index"]["x"] + 8, grid["x"] - 1)
                     self.assertEqual(controller["qubit_index"]["y"], grid["y"] + 2)
+                    grid_right = (
+                        grid["x"]
+                        + (circuit_depth - 1) * grid["col_pitch"]
+                        + grid["cell_w"]
+                        - 1
+                    )
+                    self.assertEqual(grid_right, controller["w"] - 2)
                 else:
                     grid_bottom = (
                         grid["y"]
@@ -203,6 +211,14 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
                         controller["depth_index"]["y"]
                         + controller["depth_index"]["text_y"],
                         grid["y"] + 2,
+                    )
+                    self.assertEqual(
+                        controller["depth_index"]["x"] + 4,
+                        controller["w"],
+                    )
+                    self.assertEqual(controller["qubit_index"]["x"], grid["x"])
+                    self.assertEqual(
+                        controller["qubit_selector"]["x"], grid["x"] + 2
                     )
 
     def test_all_maintained_qilin_cartridges_share_top_level_bands(self) -> None:

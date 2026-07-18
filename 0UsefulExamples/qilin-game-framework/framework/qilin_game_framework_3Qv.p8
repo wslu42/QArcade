@@ -287,13 +287,14 @@ states={"000","001","010","011","100","101","110","111"}
 -- top-level block.x/y + local element offset
 layout={
   controller={
+    anchor="bottom_right",
     x=91,
     y=78,
     w=37,
     h=50,
 
     grid={
-      x=1,
+      x=8,
       y=1,
       cell_w=6,
       cell_h=6,
@@ -302,18 +303,18 @@ layout={
     },
 
     depth_index={
-      x=26,
+      x=33,
       y=2,
       text_dy=1
     },
 
     qubit_index={
-      x=1,
+      x=8,
       y=41
     },
 
     qubit_selector={
-      x=3,
+      x=10,
       y=47,
       w=3,
       h=2,

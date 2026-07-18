@@ -313,6 +313,7 @@ layout={
 
 
   controller={
+    anchor="bottom_right",
     x=91,
     y=78,
     w=37,

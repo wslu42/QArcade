@@ -296,6 +296,7 @@ states={
 -- top-level block.x/y + local element offset
 layout={
   controller={
+    anchor="bottom_right",
     x=91,
     y=78,
     w=37,

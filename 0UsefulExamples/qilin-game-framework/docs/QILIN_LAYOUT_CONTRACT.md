@@ -47,6 +47,12 @@ variant changes `num_qubits`, `circuit_depth`, cell dimensions, or pitch. Their
 coordinates must therefore be recalculated from the grid bounds; copying label
 coordinates from a differently sized grid is invalid.
 
+Every maintained Controller declares `anchor="bottom_right"`. This applies to
+the complete Controller content group, not the grid alone: vertical layouts
+reserve the right edge for Depth Index and the bottom edge for Qubit Index plus
+Qubit Selector. Fewer qubit columns move the grid and its Q labels to the right;
+fewer depth rows move the grid and its depth labels down.
+
 For a normalized vertical Controller (`cell_w` and `cell_h` are true visible
 dimensions):
 
@@ -55,6 +61,9 @@ grid_bottom = grid.y + (circuit_depth - 1) * row_pitch + cell_h - 1
 qubit_index.y = grid_bottom + 2
 qubit_selector.y = qubit_index.y + 6
 depth_index.y + text_y = grid.y + 2
+depth_index.x + 4 = controller.w
+qubit_index.x = grid.x
+qubit_selector.x = grid.x + 2
 ```
 
 This leaves exactly one empty pixel between the last grid row and the Qubit
@@ -70,6 +79,7 @@ depth_index.y = grid_bottom + 3
 depth_index.x = grid.x + 2
 qubit_index.x + 8 = grid.x - 1
 qubit_index.y = grid.y + 2
+grid_right = controller.w - 2
 ```
 
 These equations preserve the accepted one-pixel Qubit Index gap and two-pixel
@@ -255,8 +265,10 @@ applicable qubit columns.
 
 The compact vertical pattern is bottom-anchored. For example, a four-depth
 3Q cartridge in the same `37 x 50` Controller uses `grid.y=9` and
-`depth_index.y=10`, while its Qubit Index remains at `y=41`. This keeps the
-labels attached to the last row instead of creating an eight-pixel void.
+`depth_index.y=10`, while its Qubit Index remains at `y=41`. Its three-column
+grid begins at `x=8`, with Depth Index at `x=33`; this right-aligns the same
+content envelope used by 4Qv. Together these offsets keep the labels attached
+without creating unused space below or to the right.
 
 Its grid uses inclusive `cell_w=6` and `cell_h=6` offsets, producing visible
 `7 x 7` cells on an 8-pixel column and row pitch. One-pixel gutters replace

@@ -473,6 +473,8 @@ Every preview generation should validate the following when practical.
 - Controller elements appear in the expected positions.
 - Qubit Index and Depth Index satisfy the grid-anchored label invariant; no
   qubit/depth change may leave either label group visually detached.
+- Controller content with `anchor="bottom_right"` remains right- and
+  bottom-aligned when its qubit count or circuit depth is reduced.
 - Mission appears in the expected position.
 - Response remains a rectangular region.
 - child clusters remain within their parent bounds where applicable.

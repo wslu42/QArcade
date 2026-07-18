@@ -74,6 +74,8 @@ After visual or layout changes:
 5. Verify the cartridge in native PICO-8 before treating the preview as exact.
 
 Controller labels are grid-anchored geometry, not free-positioned decoration.
+Maintained Controllers declare `anchor="bottom_right"`; the complete grid and
+label group must remain anchored to the Controller's lower-right corner.
 Whenever `num_qubits`, `circuit_depth`, cell dimensions, or grid pitch changes,
 recalculate Qubit Index, Qubit Selector, and Depth Index from the occupied grid
 bounds. Run the layout parser tests; they enforce the orientation-specific

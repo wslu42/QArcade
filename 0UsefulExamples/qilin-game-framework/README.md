@@ -120,6 +120,8 @@ The current controller iteration is documented in
 - forced first render on watcher startup to prevent stale cached previews.
 - grid-anchored Qubit/Depth labels, protected by layout parser tests so
   changing qubit count or circuit depth cannot leave detached labels.
+- an explicit `bottom_right` Controller content anchor, so smaller qubit/depth
+  variants grow inward from the same lower-right alignment.
 
 ## Command-line preview loop
 
