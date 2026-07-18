@@ -711,6 +711,12 @@ function draw_target_plus(x,y,color)
   line(x+4,y+2,x+4,y+6,color)
 end
 
+function draw_h_gate(x,y,color)
+  line(x+2,y+2,x+2,y+4,color)
+  line(x+4,y+2,x+4,y+4,color)
+  line(x+2,y+3,x+4,y+3,color)
+end
+
 function mark_fresh_gate(q,d,gate)
   fresh_q=q
   fresh_d=d

@@ -27,6 +27,7 @@ class TapHoldControlContractTest(unittest.TestCase):
                 if preview_calls > definitions:
                     self.assertEqual(definitions, 1)
                 self.assertIn("local preview_color=5", source)
+                self.assertIn("function draw_h_gate(x,y,color)", source)
                 self.assertNotIn("hold z/o", source.lower())
                 self.assertNotIn(
                     "if result_ready and passed then\n    if btnp(5)", source
