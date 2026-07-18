@@ -23,7 +23,8 @@ The parser normalizes current and earlier field conventions into one renderer sc
 
 - `text_dy` → `text_y`
 - `gap_dy` → `gap_y`
-- inclusive cell extents such as `cell_w=8` → true width `9`
+- current inclusive cell extents `cell_w=6` → true width `7`, while retaining
+  compatibility with earlier inclusive extents such as `8` → `9`
 - missing wire, gate-symbol, and response-bar defaults
 - the former `state_index.x=1` plus draw-time `-1` → effective `x=0`
 - parent bounds expanded when child clusters exceed declared bounds
@@ -33,7 +34,7 @@ Normalization preserves visible geometry while removing contradictory arithmetic
 ### 3. Persistent watch mode
 
 ```bash
-python tools/watch_preview.py framework/qilin_game_framework.p8 \
+python tools/watch_preview.py framework/qilin_game_framework_4Qv.p8 \
   -o previews/current.png
 ```
 
@@ -52,7 +53,7 @@ The source file is polled every 150 ms by default, configurable with `--poll-int
 Fast preview:
 
 ```bash
-python tools/render_preview.py framework/qilin_game_framework.p8 \
+python tools/render_preview.py framework/qilin_game_framework_4Qv.p8 \
   -o previews/current.png
 ```
 
@@ -89,11 +90,13 @@ Use `--force` to bypass the cache.
 python -m unittest discover -s tests -v
 ```
 
-The tests cover arithmetic parsing, current v49 layout normalization, cache skipping, and release separation.
+The tests cover arithmetic parsing, compact 4Q/3Q layout normalization,
+default gate examples, cache skipping, guided output, colors, and release
+separation.
 
 ## Local benchmark
 
-Using the current v49 framework cartridge and a loaded in-memory bitmap font,
+Using the framework cartridge and a loaded in-memory bitmap font,
 100 repeated render-core runs produced:
 
 ```text

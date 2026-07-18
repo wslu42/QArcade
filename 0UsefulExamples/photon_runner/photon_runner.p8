@@ -279,6 +279,10 @@ end
 num_qubits=3
 circuit_depth=4
 shots=16
+world_speed=0.75
+approach_x=74
+approach_speed=0.5
+collect_x=26
 states={"000","001","010","011","100","101","110","111"}
 
 -- centralized layout contract
@@ -289,8 +293,8 @@ layout={
   controller={
     x=0,
     y=0,
-    w=36,
-    h=54,
+    w=37,
+    h=51,
 
     grid={
       x=1,
@@ -320,71 +324,48 @@ layout={
 
     qubit_selector={
       x=4,
-      y=46
+      y=46,
+      w=3,
+      h=2,
+      style="pixel_caret"
     }
   },
 
   key_map={
-    x=36,
+    x=37,
     y=0,
-    w=92,
-    h=23,
+    w=91,
+    h=19,
 
     items={
-      {text="🅾️⬆️ x",x=12,y=1},
-      {text="🅾️⬇️ h",x=45,y=1},
-      {text="🅾️⬅️/🅾️➡️ cnot",x=12,y=9},
-      {text="⬇️ clr",x=20,y=17},
-      {text="❎ run",x=53,y=17}
+      {text="❎ x",x=15,y=1},
+      {text="🅾️ h",x=49,y=1},
+      {text="hold ❎+⬅️/➡️ cx",x=7,y=9},
+      {text="⬆️ run",x=15,y=17},
+      {text="⬇️ clr",x=49,y=17}
     }
   },
 
   operation_feedback={
-    x=36,
-    y=23,
-    w=92,
+    x=37,
+    y=19,
+    w=91,
     h=6
   },
 
   mission={
-    x=36,
-    y=29,
-    w=92,
-    h=25,
-
-    title={
-      x=0,
-      y=0,
-      w=82,
-      h=6
-    },
-
-    instruction={
-      x=0,
-      y=10,
-      w=82,
-      h=6
-    },
-
-    feedback={
-      x=0,
-      y=19,
-      w=82,
-      h=6
-    }
+    x=37,
+    y=25,
+    w=91,
+    h=26
   },
 
-  -- full rectangular quantum response area.
-  -- screen bounds: x=0..127, y=66..127.
-  -- includes:
-  --   reserved top band:    y=66..85
-  --   response content:     y=86..122
-  --   bottom padding:       y=123..127
+  -- full response canvas: x=0..127, y=51..127.
   response={
     x=0,
-    y=54,
+    y=51,
     w=128,
-    h=74,
+    h=77,
 
     legend={
       x=2,
@@ -476,11 +457,11 @@ function qubit_busy(grid,q,d)
 
   for control=0,num_qubits-1 do
     local gate=grid[control+1][d]
-    if (
-      sub(gate,1,1)=="c" and
-      tonum(sub(gate,2,2))==q
-    ) then
-      return true
+    if sub(gate,1,1)=="c" then
+      local target=tonum(sub(gate,2,2))
+      local low=min(control,target)
+      local high=max(control,target)
+      if q>=low and q<=high then return true end
     end
   end
 
@@ -490,7 +471,7 @@ end
 -- 𝘧ind the first legal time slice from 𝘥1 to 𝘥3.
 -- 𝘹/𝘩 occupy one qubit. 𝘤𝘹 occupies both control and target.
 -- 𝘳eturn 0 when no legal depth exists; never shift old gates.
-function append_gate(grid,q,gate)
+function find_gate_depth(grid,q,gate)
   local target=-1
 
   if sub(gate,1,1)=="c" then
@@ -501,16 +482,25 @@ function append_gate(grid,q,gate)
     local free=not qubit_busy(grid,q,d)
 
     if target>=0 then
-      free=free and not qubit_busy(grid,target,d)
+      local low=min(q,target)
+      local high=max(q,target)
+      for span_q=low,high do
+        free=free and not qubit_busy(grid,span_q,d)
+      end
     end
 
     if free then
-      grid[q+1][d]=gate
       return d
     end
   end
 
   return 0
+end
+
+function append_gate(grid,q,gate)
+  local d=find_gate_depth(grid,q,gate)
+  if d>0 then grid[q+1][d]=gate end
+  return d
 end
 
 -- 𝘤lear every operation involving the selected qubit, whether it is
@@ -579,43 +569,43 @@ end
 
 -- target counts must add up to 16.
 -- state strings are q2 q1 q0.
+game_title="photon runner"
+
 levels={
   {
-    name="1 address",
+    name="1 single guide",
     target={ ["001"]=16 },
-    pass=16,
-    hint="x on q3",
-    lesson="x flips one bit"
+    hint="route photon to 001"
   },
   {
-    name="2 split",
+    name="2 beam split",
     target={ ["000"]=8,["001"]=8 },
-    pass=11,
-    hint="h on q3",
-    lesson="h gives two outcomes"
+    hint="light 000 + 001"
   },
   {
-    name="3 linked pair",
+    name="3 linked guides",
     target={ ["000"]=8,["011"]=8 },
-    pass=11,
-    hint="h q2, cx 2>3",
-    lesson="cx links bits"
+    hint="link 000 + 011"
   },
   {
-    name="4 three-link",
+    name="4 quantum uplink",
     target={ ["000"]=8,["111"]=8 },
-    pass=11,
-    hint="h q1, cx 1>2,1>3",
-    lesson="one bit links all"
+    hint="link 000 + 111"
+  },
+  {
+    name="5 reroute",
+    target={ ["101"]=16 },
+    hint="route photon to 101"
+  },
+  {
+    name="6 photon rush",
+    target={ ["010"]=8,["110"]=8 },
+    hint="light 010 + 110"
   }
 }
 --------- quantum router game ---------
-function load_level(index)
-  level_index=index
-  level=levels[level_index]
+function reset_controller()
   grid=blank_grid()
-  counts=blank_counts()
-  cursor_q=2
   fresh_q=-1
   fresh_d=0
   fresh_gate=""
@@ -624,49 +614,56 @@ function load_level(index)
   blocked_target=-1
   blocked_text=""
   blocked_timer=0
-  result_ready=false
-  passed=false
-  score=0
-  attempts=0
 end
 
-function measure_circuit()
+function reset_input_state()
+  x_was_down=false
+  z_was_down=false
+  left_was_down=false
+  right_was_down=false
+  cx_control=-1
+  cx_target=-1
+  cx_moved=false
+  h_q=-1
+end
+
+function active_photon_count()
+  local total=0
+  for state in all(states) do
+    if photons[state] then total+=1 end
+  end
+  return total
+end
+
+function project_circuit()
   counts=run_grid(grid)
-  score=distribution_score(counts,level.target)
-  attempts=attempts+1
-  result_ready=true
-  passed=score>=level.pass
-end
+  local next_photons={}
+  local stable=0
 
-function advance_level()
-  if level_index<#levels then
-    load_level(level_index+1)
+  for state in all(states) do
+    if (counts[state] or 0)>=4 then
+      next_photons[state]=true
+      stable+=1
+    end
+  end
+
+  if stable>0 then
+    photons=next_photons
+    signal_text=stable.." stable pulse"
+    if stable>1 then signal_text=stable.." stable pulses" end
+    signal_color=11
   else
-    game_complete=true
+    signal_text="unstable projection"
+    signal_color=8
   end
-end
 
-function edit_circuit()
-  result_ready=false
-  passed=false
-end
-
-function cx_target_right(q)
-  if q==0 then
-    return 2
-  end
-  return q-1
-end
-
-function cx_target_left(q)
-  if q==2 then
-    return 0
-  end
-  return q+1
+  signal_timer=45
+  projection_timer=10
+  reset_controller()
 end
 
 function visual_q(q)
-  return num_qubits-q
+  return q
 end
 
 function gate_label(gate)
@@ -701,7 +698,7 @@ function cx_control_for(q,d)
 end
 
 function draw_control_dot(x,y,color)
-  circfill(x+4,y+4,1,color)
+  circfill(x+4,y+4,2,color)
 end
 
 function draw_target_plus(x,y,color)
@@ -745,87 +742,231 @@ function try_add_gate(q,gate)
   return false
 end
 
-function _init()
-  game_complete=false
-  load_level(1)
+function lane_y(index)
+  return layout.response.y+5+(index-1)*9
 end
 
-function _update()
-  if (fresh_timer>0) fresh_timer-=1
-  if (blocked_timer>0) blocked_timer-=1
+function init_stars()
+  stars={}
+  for i=1,20 do
+    add(stars,{
+      x=rnd(113)+15,
+      y=rnd(72)+layout.response.y+1,
+      speed=rnd(1.25)+0.25,
+      color=rnd(1)<0.75 and 5 or 6
+    })
+  end
+end
 
-  if game_complete then
-    if btnp(4) then
-      game_complete=false
-      load_level(1)
+function spawn_wave(index)
+  level_index=index
+  level=levels[level_index]
+  objects={}
+  for lane=1,#states do
+    local state=states[lane]
+    local kind=(level.target[state] or 0)>0 and "energy" or "block"
+    add(objects,{x=132,lane=lane,kind=kind,hit=false})
+  end
+end
+
+function restart_game()
+  cursor_q=2
+  counts=blank_counts()
+  photons={ ["000"]=true }
+  score=0
+  shields=3
+  waves_cleared=0
+  level_index=1
+  level=levels[1]
+  objects={}
+  wave_gap=0
+  scroll_speed=0.75
+  guide_scroll=0
+  signal_text="build circuit + run"
+  signal_color=6
+  signal_timer=90
+  projection_timer=0
+  game_complete=false
+  game_over=false
+  reset_controller()
+  reset_input_state()
+  init_stars()
+  spawn_wave(1)
+end
+
+function update_world()
+  local move_speed=scroll_speed*world_speed
+  guide_scroll=(guide_scroll+move_speed)%12
+
+  for star in all(stars) do
+    star.x-=star.speed*world_speed
+    if star.x<15 then
+      star.x=127
+      star.y=rnd(72)+layout.response.y+1
     end
-    return
   end
 
-  if result_ready and passed then
-    if btnp(5) then
-      advance_level()
-    elseif btnp(4) then
-      edit_circuit()
+  for object in all(objects) do
+    local object_speed=move_speed
+    if object.x<=approach_x then
+      object_speed*=approach_speed
     end
-    return
+    object.x-=object_speed
+    local state=states[object.lane]
+
+    if (
+      object.kind=="energy" and
+      not object.collected and
+      not object.hit and
+      object.x<=collect_x and
+      photons[state]
+    ) then
+      object.collected=true
+      object.fade=6
+      object.fade_x=object.x
+      score+=10
+    end
+
+    if not object.hit and object.x<=22 then
+      object.hit=true
+
+      if photons[state] then
+        if object.kind=="block" then
+          photons[state]=nil
+        end
+      end
+
+      if object.lane==#states then
+        waves_cleared+=1
+        if active_photon_count()==0 then
+          shields-=1
+          photons["000"]=true
+          signal_text="signal lost"
+          signal_color=8
+          signal_timer=45
+        end
+
+        if shields<=0 then
+          game_over=true
+        elseif waves_cleared>=#levels then
+          game_complete=true
+        else
+          wave_gap=50
+        end
+      end
+    end
+
+    if object.fade then
+      object.fade-=1
+      if object.fade<=0 then object.hidden=true end
+    end
+
+    if object.x<14 then del(objects,object) end
   end
 
-  local changed=false
-
-  -- 𝘰riginal 𝘲ilin controls:
-  -- hold z/o and press a direction to append a gate.
-  if btn(4) then
-    if btnp(2) then
-      changed=try_add_gate(cursor_q,"x")
-    end
-
-    if btnp(3) then
-      changed=try_add_gate(cursor_q,"h")
-    end
-
-    if btnp(1) then
-      local gate="c"..cx_target_right(cursor_q)
-      changed=try_add_gate(cursor_q,gate)
-    end
-
-    if btnp(0) then
-      local gate="c"..cx_target_left(cursor_q)
-      changed=try_add_gate(cursor_q,gate)
-    end
-  else
-    -- 𝘸ithout z/o, left and right select the qubit column.
-    if btnp(0) then
-      cursor_q=mid(0,cursor_q+1,num_qubits-1)
-    end
-
-    if btnp(1) then
-      cursor_q=mid(0,cursor_q-1,num_qubits-1)
-    end
-
-    -- 𝘰riginal 𝘲ilin clears the selected qubit queue with down.
-    if btnp(3) then
-      clear_qubit_gates(grid,cursor_q)
-      fresh_timer=0
-      blocked_timer=0
-      changed=true
+  if wave_gap>0 then
+    wave_gap-=1
+    if wave_gap==0 and waves_cleared<#levels then
+      spawn_wave(waves_cleared+1)
+      scroll_speed=min(1.25,scroll_speed+0.08)
     end
   end
+end
 
-  if changed then
-    edit_circuit()
-  end
-
-  -- 𝘱𝘪𝘤𝘰-8 x button runs the circuit and measures 16 shots.
-  if btnp(5) then
-    measure_circuit()
-  end
+function _init()
+  restart_game()
 end
 
 -- 𝘳otated composer:
 -- qubits are columns; d1 begins at the bottom and depth grows upward.
 -- 𝘵he selected qubit column is highlighted because depth now fills
 -- automatically, matching the original 𝘲ilin gate queue.
+function _update()
+  if (fresh_timer>0) fresh_timer-=1
+  if (blocked_timer>0) blocked_timer-=1
+  if (signal_timer>0) signal_timer-=1
+  if (projection_timer>0) projection_timer-=1
+
+  if game_complete or game_over then
+    if btnp(4) then restart_game() end
+    return
+  end
+
+  update_world()
+
+  local x_down=btn(5)
+  local z_down=btn(4)
+  local left_down=btn(0)
+  local right_down=btn(1)
+  local x_pressed=x_down and not x_was_down
+  local x_released=x_was_down and not x_down
+  local z_pressed=z_down and not z_was_down
+  local z_released=z_was_down and not z_down
+  local left_pressed=left_down and not left_was_down
+  local right_pressed=right_down and not right_was_down
+
+  if x_pressed then
+    h_q=-1
+    cx_control=cursor_q
+    cx_target=cursor_q
+    cx_moved=false
+  end
+
+  if z_pressed and not x_down then
+    h_q=cursor_q
+  end
+
+  if x_down then
+    if left_pressed then
+      cx_target=(cx_target+1)%num_qubits
+      cx_moved=true
+    elseif right_pressed then
+      cx_target=(cx_target-1)%num_qubits
+      cx_moved=true
+    end
+  else
+    if left_pressed then
+      cursor_q=mid(0,cursor_q+1,num_qubits-1)
+    elseif right_pressed then
+      cursor_q=mid(0,cursor_q-1,num_qubits-1)
+    end
+  end
+
+  if x_released then
+    if not cx_moved then
+      try_add_gate(cx_control,"x")
+    elseif cx_target!=cx_control then
+      try_add_gate(cx_control,"c"..cx_target)
+    else
+      blocked_text="cx cancelled"
+      blocked_timer=30
+    end
+    cx_control=-1
+    cx_target=-1
+    cx_moved=false
+  end
+
+  if z_released then
+    if h_q>=0 and not x_down then
+      try_add_gate(h_q,"h")
+    end
+    h_q=-1
+  end
+
+  if btnp(2) and not x_down then
+    project_circuit()
+  elseif btnp(3) and not x_down then
+    clear_qubit_gates(grid,cursor_q)
+    fresh_timer=0
+    blocked_timer=0
+  end
+
+  x_was_down=x_down
+  z_was_down=z_down
+  left_was_down=left_down
+  right_was_down=right_down
+end
+
 function draw_circuit()
   local controller=layout.controller
   local grid_layout=controller.grid
@@ -848,7 +989,7 @@ function draw_circuit()
       blocked_timer>0 and
       (q==blocked_q or q==blocked_target)
     )
-    local label="q"..(visual_col+1)
+    local label="q"..q
     local label_color=6
 
     if selected then
@@ -971,6 +1112,51 @@ function draw_circuit()
       end
 
     end
+
+    -- connect committed cnots across their reserved spans.
+    for control=0,num_qubits-1 do
+      local gate=grid[control+1][d]
+      local target=cx_target_of(gate)
+
+      if target>=0 then
+        local control_x=grid_x+
+          (num_qubits-1-control)*grid_layout.col_pitch
+        local target_x=grid_x+
+          (num_qubits-1-target)*grid_layout.col_pitch
+        local color=1
+
+        if (
+          fresh_timer>0 and
+          d==fresh_d and
+          control==fresh_q
+        ) then
+          color=13
+        end
+
+        line(control_x+4,y+4,target_x+4,y+4,color)
+        draw_control_dot(control_x,y,color)
+        draw_target_plus(target_x,y,color)
+      end
+    end
+  end
+
+  -- preview the cnot that x release will commit.
+  if btn(5) and cx_moved and cx_target!=cx_control then
+    local gate="c"..cx_target
+    local d=find_gate_depth(grid,cx_control,gate)
+
+    if d>0 then
+      local visual_row=circuit_depth-d
+      local y=grid_y+visual_row*grid_layout.row_pitch
+      local control_x=grid_x+
+        (num_qubits-1-cx_control)*grid_layout.col_pitch
+      local target_x=grid_x+
+        (num_qubits-1-cx_target)*grid_layout.col_pitch
+
+      line(control_x+4,y+4,target_x+4,y+4,13)
+      draw_control_dot(control_x,y,13)
+      draw_target_plus(target_x,y,13)
+    end
   end
 
 end
@@ -987,8 +1173,8 @@ end
 
 function draw_prompt_line(text,color)
   local mission=layout.mission
-  local title=mission.title
-  local instruction=mission.instruction
+  local title={x=0,y=0,w=mission.w}
+  local instruction={x=0,y=10,w=mission.w}
 
   print_centered_in_region(
     level.name,
@@ -1009,125 +1195,101 @@ end
 
 function draw_status()
   local mission=layout.mission
-  local feedback=mission.feedback
-
+  local feedback={x=0,y=19,w=mission.w}
   local feedback_x=mission.x+feedback.x
   local feedback_y=mission.y+feedback.y
 
-  if result_ready and passed then
-    draw_prompt_line(level.lesson,11)
-
-    print_centered_in_region(
-      "score "..score.."/16 next",
-      feedback_x,
-      feedback_y,
-      feedback.w,
-      11
-    )
-  elseif result_ready then
-    draw_prompt_line(level.hint,6)
-
-    print_centered_in_region(
-      "score "..score.."/16 retry",
-      feedback_x,
-      feedback_y,
-      feedback.w,
-      8
-    )
-  else
-    draw_prompt_line(level.hint,6)
-  end
+  draw_prompt_line(level.hint,6)
+  print_centered_in_region(
+    "score "..score.." shield "..shields,
+    feedback_x,feedback_y,feedback.w,11
+  )
 end
 
-function draw_histogram()
+function draw_energy(x,y,fade)
+  local color=10
+  local radius=2
+
+  if fade then
+    if fade<=4 then color=9 end
+    if fade<=2 then
+      color=5
+      radius=1
+    end
+    if fade<=1 then
+      color=1
+      radius=0
+    end
+  end
+
+  circfill(x,y,radius,color)
+  if not fade or fade>4 then pset(x,y,7) end
+end
+
+function draw_blocker(x,y)
+  rectfill(x-2,y-3,x+2,y+3,8)
+  line(x-2,y-2,x+2,y+2,2)
+  line(x+2,y-2,x-2,y+2,2)
+end
+
+function draw_photon(y,state)
+  local flash=projection_timer>0 and 10 or 11
+  line(17,y,23,y,flash)
+  circfill(22,y,2,flash)
+  pset(22,y,7)
+end
+
+function draw_waveguides()
   local response=layout.response
-  local legend=response.legend
-  local canvas=response.canvas
-  local state_index=response.state_index
+  clip(response.x,response.y,response.w,response.h)
+  rectfill(response.x,response.y,127,127,0)
 
-  local legend_x=response.x+legend.x
-  local legend_y=response.y+legend.y
-  local canvas_x=response.x+canvas.x
-  local canvas_y=response.y+canvas.y
-  local state_x=response.x+state_index.x
-  local state_y=response.y+state_index.y
-
-  local base_y=canvas_y+canvas.base_y
-  local unit_h=1
-
-  rect(
-    legend_x+legend.target.box_x,
-    legend_y,
-    legend_x+legend.target.box_x+4,
-    legend_y+4,
-    8
-  )
-
-  print(
-    "target",
-    legend_x+legend.target.text_x,
-    legend_y,
-    6
-  )
-
-  rectfill(
-    legend_x+legend.measured.box_x,
-    legend_y,
-    legend_x+legend.measured.box_x+4,
-    legend_y+4,
-    11
-  )
-
-  print(
-    "measured",
-    legend_x+legend.measured.text_x,
-    legend_y,
-    6
-  )
+  for star in all(stars) do
+    pset(star.x,star.y,star.color)
+    if star.speed>1.1 then pset(star.x+1,star.y,star.color) end
+  end
 
   for i=1,#states do
     local state=states[i]
+    local y=lane_y(i)
+    print(state,1,y-2,6)
+    line(14,y,127,y,1)
 
-    local x=
-      canvas_x+
-      canvas.first_state_x+
-      (i-1)*canvas.state_pitch
-
-    local target_h=(level.target[state] or 0)*unit_h
-    local count_h=(counts[state] or 0)*unit_h
-
-    line(x+4,base_y-16,x+4,base_y,1)
-
-    if target_h>0 then
-      rect(x,base_y-target_h,x+8,base_y,8)
+    for x=14-guide_scroll,127,12 do
+      if x>=14 then pset(x,y,5) end
     end
 
-    if count_h>0 then
-      rectfill(
-        x+2,
-        base_y-count_h+1,
-        x+6,
-        base_y-1,
-        11
-      )
-    end
-
-    print(
-      state,
-      state_x+
-        (i-1)*state_index.state_pitch-1,
-      state_y,
-      6
-    )
+    if photons[state] then draw_photon(y,state) end
   end
+
+  for object in all(objects) do
+    if not object.hidden then
+      local y=lane_y(object.lane)
+      if object.kind=="energy" then
+        draw_energy(object.fade_x or object.x,y,object.fade)
+      else
+        draw_blocker(object.x,y)
+      end
+    end
+  end
+
+  line(13,response.y,13,127,5)
+  clip()
 end
 
 function draw_complete()
   cls(1)
-  print_centered("router complete",42,11)
-  print_centered("circuits change outcomes",58,7)
-  print_centered("and correlations",67,7)
+  print_centered("photon runner",42,11)
+  print_centered("uplink restored",58,7)
+  print_centered("score "..score,67,10)
   print_centered("🅾️ replay",88,10)
+end
+
+function draw_game_over()
+  cls(1)
+  print_centered("signal lost",42,8)
+  print_centered("score "..score,58,7)
+  print_centered("o retry",88,10)
 end
 
 function draw_key_hint()
@@ -1152,6 +1314,11 @@ function _draw()
     return
   end
 
+  if game_over then
+    draw_game_over()
+    return
+  end
+
   cls(0)
   draw_key_hint()
 
@@ -1159,7 +1326,46 @@ function _draw()
   local op_feedback_x=op_feedback.x
   local op_feedback_y=op_feedback.y
 
-  if blocked_timer>0 then
+  if btn(5) and cx_control>=0 then
+    local pending_text="x q"..visual_q(cx_control).." on release"
+    local pending_color=13
+
+    if cx_moved and cx_target==cx_control then
+      pending_text="cx cancel on release"
+      pending_color=8
+    elseif cx_moved then
+      local pending_gate="c"..cx_target
+      local pending_d=find_gate_depth(
+        grid,cx_control,pending_gate
+      )
+
+      if pending_d>0 then
+        pending_text=
+          "cx q"..visual_q(cx_control)..
+          ">q"..visual_q(cx_target)..
+          " d"..pending_d.." on release"
+      else
+        pending_text="cx path blocked"
+        pending_color=8
+      end
+    end
+
+    print_centered_in_region(
+      pending_text,
+      op_feedback_x,
+      op_feedback_y,
+      op_feedback.w,
+      pending_color
+    )
+  elseif btn(4) and h_q>=0 then
+    print_centered_in_region(
+      "h q"..visual_q(h_q).." on release",
+      op_feedback_x,
+      op_feedback_y,
+      op_feedback.w,
+      13
+    )
+  elseif blocked_timer>0 then
     print_centered_in_region(blocked_text,op_feedback_x,op_feedback_y,op_feedback.w,8)
   elseif fresh_timer>0 then
     local target=cx_target_of(fresh_gate)
@@ -1185,9 +1391,17 @@ function _draw()
         13
       )
     end
+  elseif signal_timer>0 then
+    print_centered_in_region(
+      signal_text,
+      op_feedback_x,
+      op_feedback_y,
+      op_feedback.w,
+      signal_color
+    )
   end
 
   draw_circuit()
   draw_status()
-  draw_histogram()
+  draw_waveguides()
 end

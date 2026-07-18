@@ -1,67 +1,76 @@
-# PICO-8 Truth Audit — Framework v49
+# PICO-8 Truth Audit — Compact Qilin Framework
 
 ## Source audited
 
+The default authoritative cartridge is:
+
 ```text
-framework/qilin_game_framework.p8
+framework/qilin_game_framework_4Qv.p8
 ```
 
-This is the framework source of truth. `reference/qilin.p8` is only the
-original upstream reference.
+`qilin_game_framework_3Qv.p8` is the compact 3Q variant and
+`qilin_game_framework_4Qh.p8` is the optional horizontal 4Q variant.
+`reference/qilin.p8` is historical reference material only.
+
+## Current vertical 4Q contract
+
+```text
+Controller:         (0,0),   37 x 51
+Key Map:            (37,0),  91 x 19
+Operation Feedback: (37,19), 91 x 6
+Mission:            (37,25), 91 x 26
+Response:           (0,51), 128 x 77
+```
+
+The Controller contains four `7 x 7` qubit columns and five depths on an
+8-pixel pitch. Columns alternate colors 13 and 6; each qubit label uses its
+column color. Gates and CNOT connectors use color 1, selection uses yellow 10,
+and blocked feedback uses red 8. X shares the circled-plus CNOT-target glyph,
+H is code-drawn, and the obsolete depth-flow marks are absent.
+
+The Key Map follows the cartridge's release-confirmed tap/hold controls and
+reuses the same X, H, and CNOT shapes as the Controller. Button glyphs use
+`key_map.color=6`; gate symbols plus the `run` / `clr` labels use
+`control_examples.color=13`. X/H/Run occupy the first aligned row;
+CNOT/Clear occupy the second. The Python renderer reads both colors and all
+coordinates from the layout table.
+
+The selected-qubit caret is a code-drawn 3-by-2 pixel glyph declared as
+`style="pixel_caret"`. Its explicit height participates in parent-bound
+normalization; the renderer does not reserve the old six-pixel font height.
+
+Mission is one developer-owned `91 x 26` canvas. It has no required title,
+instruction, or feedback children; the cartridge's `draw_mission()` is only a
+clipped example that derived games may replace.
+
+Dialogue and overlays must use one modal input owner per frame. The required
+priority is `completion > modal (including dialogue) > controller`, followed
+by a release handoff before Controller input resumes. Right may advance
+dialogue only while dialogue owns input.
 
 ## Renderer behavior
 
-The renderer follows:
+The fallback renderer follows a 128 x 128 native integer-pixel canvas, the
+PICO-8 default palette, P8SCII bitmap glyphs, and nearest-neighbor scaling.
+With no `--gate` arguments it adds representative X, CNOT, and H gates to the
+preview only. Explicit `--gate` arguments replace them;
+`--blank-controller` disables them.
+
+The normal maintained outputs are:
 
 ```text
-128×128 native canvas
-integer pixel coordinates
-nearest-neighbor scaling
-PICO-8 default palette
-P8SCII bitmap glyphs
-4-pixel ordinary-character advance
-8-pixel graphical-symbol advance
+previews/current.png
+previews/current_128x128.png
+previews/current.json
 ```
 
-Controller glyph mappings:
-
-```text
-⬇️ P8SCII 131
-⬅️ P8SCII 139
-🅾️ P8SCII 142
-➡️ P8SCII 145
-⬆️ P8SCII 148
-❎ P8SCII 151
-```
-
-## Current effective layout anchors
-
-```text
-Controller:         (6,7), 40×59
-Key Map:            (58,7), 66×22
-Operation Feedback: (58,30), 66×6
-Mission:            (46,36), 82×30
-Response:           (0,66), 128×62
-```
-
-The former full-width controller wrapper and nested composer name are no longer
-part of the active schema. `controller` now means the actual composer block.
-
-## Normalization checks
-
-- Source `cell_w=8`, `cell_h=8` are recognized as inclusive offsets and
-  normalized to true dimensions `9×9`.
-- `text_dy` is normalized to `text_y`.
-- `gap_dy` is normalized to `gap_y`.
-- State Index effective x is normalized from source `1-1` to `0`.
-- Missing wire and histogram dimensions are filled from framework defaults.
-- Controller dimensions are expanded when required to contain its direct
-  grid, depth, and qubit elements.
-- Mission and Response child bounds are normalized within their top-level blocks.
+Both render and watch scripts use `qilin_game_framework_4Qv.p8`. Superseded
+variant snapshots are not maintained in `previews/`.
 
 ## Authority boundary
 
-This is a static preview renderer, not a complete emulator. Native PICO-8 is
-still authoritative for dynamic animation, runtime palette/font changes,
-sprites, maps, sound, and arbitrary code paths outside the implemented Qilin
-screen.
+The fallback renderer is not a complete emulator. Native PICO-8 remains
+authoritative for input timing, animation, runtime palette/font changes,
+sprites, maps, sound, and arbitrary Lua paths. After framework visual or input
+changes, regenerate and inspect the guided preview, run the tests, and verify
+native PICO-8 when available.

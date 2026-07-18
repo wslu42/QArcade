@@ -4,23 +4,29 @@ A reusable PICO-8 quantum-game controller framework and fast P8SCII preview work
 
 ## Source-of-truth contract
 
-There are two different cartridges in this project and they must not be confused.
+This project contains one default framework cartridge, supported layout
+variants, and historical compatibility/reference cartridges. They must not be
+confused.
 
 ### Framework source of truth
 
 ```text
-framework/qilin_game_framework.p8
+framework/qilin_game_framework_4Qv.p8
 ```
 
 This is the cartridge currently being designed and evolved as the game framework. All framework layout and behavior changes begin here.
 
-The file below is a readable Lua mirror of the current v49 working state:
+The repository-wide input standard is release-confirmed tap/hold. Tap X adds
+X; hold X plus the Controller's qubit axis selects a cyclic CNOT target and
+release commits it; tap O adds H. Vertical layouts use Left/Right for the qubit
+axis, Up for Run, and Down for Clear. Horizontal layouts rotate those
+directions. Future derived games inherit this contract unless a task explicitly
+requires a different control system.
 
-```text
-framework/qilin_quantum_router_v49_user_adjusted_layout.lua
-```
-
-The mirror is useful for review, but the `.p8` cartridge remains authoritative.
+Input is modal when dialogue or an overlay is active. Exactly one owner handles
+buttons per frame, using `completion > modal (including dialogue) > controller`.
+Closing a modal requires a release handoff before Controller input resumes, so
+one press cannot both close dialogue and move or edit the circuit.
 
 ### Original Qilin reference
 
@@ -35,8 +41,9 @@ This is the original upstream Qilin cartridge. It is preserved for historical, g
 ```text
 qilin-game-framework/
 ├── framework/
-│   ├── qilin_game_framework.p8
-│   └── qilin_quantum_router_v49_user_adjusted_layout.lua
+│   ├── qilin_game_framework_4Qv.p8
+│   ├── qilin_game_framework_3Qv.p8
+│   ├── qilin_game_framework_4Qh.p8
 ├── reference/
 │   ├── qilin.p8
 │   └── README.md
@@ -86,7 +93,7 @@ WATCH_PREVIEW.bat
 ```
 
 This opens `preview_viewer.html` and keeps the renderer in memory. Each time
-`framework/qilin_game_framework.p8` is saved, the PNG is regenerated. The
+`framework/qilin_game_framework_4Qv.p8` is saved, the PNG is regenerated. The
 browser viewer checks for the new PNG automatically, so no manual reopen is
 needed.
 
@@ -97,12 +104,16 @@ Close the command window or press `Ctrl+C` to stop watching.
 The current controller iteration is documented in
 `docs/QILIN_LAYOUT_CONTRACT.md`. This phase established:
 
-- a `36 x 54` Controller beside a Key Map beginning at `x=36`;
-- three 9-pixel-wide qubit columns with four vertically stacked 9-pixel cells;
-- no vertical gap between depth cells;
-- numeric depth labels `4, 3, 2, 1` without the former `D` prefix;
-- no qubit wires or large time-flow arrow;
-- consistent one-pixel fresh-gate highlights for X, H, and CX;
+- a `37 x 51` vertical 4Q Controller beside a Key Map beginning at `x=37`;
+- four 7-pixel-wide qubit columns with five vertically stacked cells;
+- one-pixel gutters with alternating column colors instead of cell borders;
+- numeric depth labels `5, 4, 3, 2, 1` without flow markers;
+- compact code-drawn H and shared X/CNOT-target glyphs;
+- a layout-sized 3-by-2 pixel qubit selector instead of a font caret;
+- independent `key_map.color` and `control_examples.color` settings;
+- one developer-owned `91 x 26` Mission canvas with no required child schema;
+- modal input ownership and release handoff for dialogue and overlays;
+- color-1 gates, yellow selection, and red blocked feedback;
 - layout-driven PNG geometry and cartridge-derived grid colors;
 - forced first render on watcher startup to prevent stale cached previews.
 
@@ -117,14 +128,19 @@ python -m pip install -r requirements.txt
 One-shot preview:
 
 ```bash
-python tools/render_preview.py framework/qilin_game_framework.p8 \
+python tools/render_preview.py framework/qilin_game_framework_4Qv.p8 \
   -o previews/current.png
 ```
+
+With no `--gate` options, the renderer fills the compact controller with an
+X, CNOT, and H example so the PNG demonstrates all supported gate symbols.
+Pass `--blank-controller` for an empty grid. Supplying one or more `--gate`
+options replaces the default examples.
 
 Persistent watch mode:
 
 ```bash
-python tools/render_preview.py framework/qilin_game_framework.p8 \
+python tools/render_preview.py framework/qilin_game_framework_4Qv.p8 \
   -o previews/current.png \
   --watch
 ```

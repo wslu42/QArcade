@@ -342,7 +342,9 @@ def normalize_layout(
     if "text_y" not in depth_index:
         depth_index["text_y"] = depth_index.get("text_dy", 0)
 
+    has_depth_flow = isinstance(controller.get("depth_flow"), dict)
     depth_flow = _setdefault(controller, "depth_flow", {})
+    depth_flow["enabled"] = has_depth_flow
     depth_flow.setdefault("x", 0)
     depth_flow.setdefault("y", 0)
     if "gap_y" not in depth_flow:
@@ -354,19 +356,24 @@ def normalize_layout(
     qubit_selector = _setdefault(controller, "qubit_selector", {})
     qubit_selector.setdefault("x", 0)
     qubit_selector.setdefault("y", 0)
+    qubit_selector.setdefault("w", 4)
+    qubit_selector.setdefault("h", 6)
+    qubit_selector.setdefault("style", "text_caret")
 
     grid_width = (num_qubits - 1) * int(grid["col_pitch"]) + int(grid["cell_w"])
     grid_height = (circuit_depth - 1) * int(grid["row_pitch"]) + int(grid["cell_h"])
-    required_controller_w = max(
+    required_widths = [
         int(grid.get("x", 0)) + grid_width,
-        # Depth labels are now one 4-pixel P8SCII digit plus 1 px breathing room.
-        int(depth_index.get("x", 0)) + 5,
-        int(depth_flow.get("x", 0)) + 4,
-    )
+        # A single P8SCII digit occupies four pixels.
+        int(depth_index.get("x", 0)) + 4,
+    ]
+    if has_depth_flow:
+        required_widths.append(int(depth_flow.get("x", 0)) + 4)
+    required_controller_w = max(required_widths)
     required_controller_h = max(
         int(grid.get("y", 0)) + grid_height + int(grid["wire_bottom_overhang"]),
         int(qubit_index.get("y", 0)) + 6,
-        int(qubit_selector.get("y", 0)) + 6,
+        int(qubit_selector.get("y", 0)) + int(qubit_selector["h"]),
     )
     controller["w"] = max(int(controller.get("w", 0)), required_controller_w)
     controller["h"] = max(int(controller.get("h", 0)), required_controller_h)
@@ -387,23 +394,41 @@ def normalize_layout(
     mission = _setdefault(layout, "mission", {})
     mission.setdefault("x", 0)
     mission.setdefault("y", 0)
-    for name in ("title", "instruction", "feedback"):
-        child = _setdefault(mission, name, {})
+    mission.setdefault("w", 0)
+    mission.setdefault("h", 0)
+    mission_children = [
+        name
+        for name in ("title", "instruction", "feedback")
+        if isinstance(mission.get(name), dict)
+    ]
+    for name in mission_children:
+        child = mission[name]
         child.setdefault("x", 0)
         child.setdefault("y", 0)
         child.setdefault("w", int(mission.get("w", 0)))
         child.setdefault("h", 6)
-    mission_extent_w, mission_extent_h = _child_extent(
-        mission, "title", "instruction", "feedback"
-    )
-    mission["w"] = max(int(mission.get("w", 0)), mission_extent_w)
-    mission["h"] = max(int(mission.get("h", 0)), mission_extent_h)
+    if mission_children:
+        mission_extent_w, mission_extent_h = _child_extent(
+            mission, *mission_children
+        )
+        mission["w"] = max(int(mission["w"]), mission_extent_w)
+        mission["h"] = max(int(mission["h"]), mission_extent_h)
 
     response = _setdefault(layout, "response", {})
     response.setdefault("x", 0)
     response.setdefault("y", 0)
     response.setdefault("w", 128)
     response.setdefault("h", 128 - int(response["y"]))
+
+    rooms = _setdefault(response, "rooms", {})
+    rooms.setdefault("x", 2)
+    rooms.setdefault("y", 2)
+    rooms.setdefault("cols", 4)
+    rooms.setdefault("rows", 4)
+    rooms.setdefault("w", 29)
+    rooms.setdefault("h", 16)
+    rooms.setdefault("col_pitch", 31)
+    rooms.setdefault("row_pitch", 18)
 
     legend = _setdefault(response, "legend", {})
     legend.setdefault("x", 0)

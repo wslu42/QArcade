@@ -63,12 +63,18 @@ def main() -> int:
 
     root = args.project_root.resolve()
     output = args.output.resolve()
-    if not (root / "framework" / "qilin_game_framework.p8").exists():
-        parser.error("framework/qilin_game_framework.p8 was not found.")
+    if not (root / "framework" / "qilin_game_framework_4Qv.p8").exists():
+        parser.error("framework/qilin_game_framework_4Qv.p8 was not found.")
+    if not (root / "framework" / "qilin_game_framework_4Qh.p8").exists():
+        parser.error("framework/qilin_game_framework_4Qh.p8 was not found.")
 
     files = collect_files(root, args.include_previews)
     manifest = {
-        "source_of_truth": "framework/qilin_game_framework.p8",
+        "source_of_truth": "framework/qilin_game_framework_4Qv.p8",
+        "controller_variants": [
+            "framework/qilin_game_framework_4Qv.p8",
+            "framework/qilin_game_framework_4Qh.p8",
+        ],
         "original_reference": "reference/qilin.p8",
         "files": {
             str(path.relative_to(root)): sha256(path)

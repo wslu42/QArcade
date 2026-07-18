@@ -30,6 +30,7 @@ from render_core import (
     load_font_header,
     parse_font_map,
     parse_gate_spec,
+    parse_scalar,
     render_source,
 )
 
@@ -243,6 +244,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--level", type=int, default=1)
     parser.add_argument("--cursor-q", type=int)
     parser.add_argument("--gate", action="append", default=[])
+    parser.add_argument(
+        "--blank-controller",
+        action="store_true",
+        help="Do not add the default X/CX/H example gates.",
+    )
     parser.add_argument("--counts")
     parser.add_argument("--feedback")
     parser.add_argument("--font-header", type=Path)
@@ -274,7 +280,17 @@ def create_session(args: argparse.Namespace) -> RenderSession:
     cache_file = args.cache_file or cache_dir / "preview-cache.json"
     font_cache_path = cache_dir / "pico_font.h"
 
+    source_text = source.read_text(encoding="utf-8")
     gates: list[GateSpec] = [parse_gate_spec(spec) for spec in args.gate]
+    if not gates and not args.blank_controller:
+        num_qubits = parse_scalar(source_text, "num_qubits", 4)
+        circuit_depth = parse_scalar(source_text, "circuit_depth", 3)
+        if circuit_depth >= 1:
+            gates.append(GateSpec(1, 1, "x"))
+        if num_qubits >= 2 and circuit_depth >= 2:
+            gates.append(GateSpec(1, 2, "cx", num_qubits))
+        if num_qubits >= 2 and circuit_depth >= 3:
+            gates.append(GateSpec(2, 3, "h"))
     counts = parse_counts(args.counts)
     state = PreviewState(
         level_number=args.level,

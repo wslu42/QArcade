@@ -36,7 +36,7 @@ class GuidedOutputTest(unittest.TestCase):
             command = [
                 sys.executable,
                 str(ROOT / "tools" / "render_preview_guided.py"),
-                str(ROOT / "framework" / "qilin_game_framework.p8"),
+                str(ROOT / "framework" / "qilin_game_framework_4Qv.p8"),
                 "-o",
                 str(scaled_path),
                 "--native-output",
@@ -55,7 +55,7 @@ class GuidedOutputTest(unittest.TestCase):
             baseline_command = [
                 sys.executable,
                 str(ROOT / "tools" / "render_preview.py"),
-                str(ROOT / "framework" / "qilin_game_framework.p8"),
+                str(ROOT / "framework" / "qilin_game_framework_4Qv.p8"),
                 "-o",
                 str(baseline_native_path),
                 "--scale",
@@ -104,23 +104,23 @@ class GuidedOutputTest(unittest.TestCase):
             blocks = {block["name"]: block for block in guides["blocks"]}
             self.assertEqual(
                 blocks["controller"],
-                {"name": "controller", "x": 0, "y": 0, "w": 36, "h": 54},
+                {"name": "controller", "x": 0, "y": 0, "w": 37, "h": 51},
             )
             self.assertEqual(
                 blocks["key_map"],
-                {"name": "key_map", "x": 36, "y": 0, "w": 92, "h": 23},
+                {"name": "key_map", "x": 37, "y": 0, "w": 91, "h": 19},
             )
             self.assertEqual(
                 blocks["operation_feedback"],
-                {"name": "operation_feedback", "x": 36, "y": 23, "w": 92, "h": 6},
+                {"name": "operation_feedback", "x": 37, "y": 19, "w": 91, "h": 6},
             )
             self.assertEqual(
                 blocks["mission"],
-                {"name": "mission", "x": 36, "y": 29, "w": 92, "h": 25},
+                {"name": "mission", "x": 37, "y": 25, "w": 91, "h": 26},
             )
             self.assertEqual(
                 blocks["response"],
-                {"name": "response", "x": 0, "y": 54, "w": 128, "h": 74},
+                {"name": "response", "x": 0, "y": 51, "w": 128, "h": 77},
             )
             self.assertNotIn("core", blocks)
             self.assertEqual(guides["mission_left_line_width"], 2)

@@ -12,8 +12,10 @@ Subject to final contributor and copyright-name review, these QArcade-authored
 components are intended to be covered by root `LICENSE-CODE` (Apache-2.0):
 
 ```text
-framework/qilin_game_framework.p8
-framework/qilin_quantum_router_v49_user_adjusted_layout.lua
+framework/qilin_game_framework_4Qv.p8
+framework/qilin_game_framework_4Qh.p8
+framework/qilin_game_framework_3Qv.p8
+framework/AGENT.md
 tools/**
 tests/**
 bootstrap/**
@@ -32,7 +34,7 @@ Qilin-authored framework code, but does not erase these exceptions:
 
 - embedded MicroQiskit remains under upstream Apache-2.0 with IBM/Qiskit
   copyright and attribution notices preserved;
-- game-owned levels, Mission text, scoring/progression, Response visualization,
+- game-owned levels, Mission canvas content, scoring/progression, Response visualization,
   game mechanics, and completion experience remain reserved until expressly
   designated as an open example; and
 - externally adapted routines retain their source attribution and applicable

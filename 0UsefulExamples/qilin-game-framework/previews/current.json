@@ -5,20 +5,20 @@
     128
   ],
   "level": 1,
-  "cursor_visual_q": 1,
+  "cursor_visual_q": 2,
   "normalized_layout": {
     "controller": {
       "x": 0,
       "y": 0,
-      "w": 36,
-      "h": 54,
+      "w": 37,
+      "h": 51,
       "grid": {
         "x": 1,
-        "y": 3,
-        "cell_w": 9,
-        "cell_h": 9,
-        "col_pitch": 10,
-        "row_pitch": 9,
+        "y": 2,
+        "cell_w": 7,
+        "cell_h": 7,
+        "col_pitch": 8,
+        "row_pitch": 8,
         "source_cell_extent_mode": "inclusive_offset",
         "wire_top_overhang": 2,
         "wire_bottom_overhang": 0,
@@ -31,97 +31,119 @@
         "fresh_outline": 1
       },
       "depth_index": {
-        "x": 31,
-        "y": 3,
-        "text_dy": 2,
-        "text_y": 2
-      },
-      "depth_flow": {
-        "x": 31,
-        "y": 4,
-        "gap_dy": -2,
-        "gap_y": -2
+        "x": 33,
+        "y": 2,
+        "text_dy": 1,
+        "text_y": 1
       },
       "qubit_index": {
-        "x": 2,
-        "y": 40
+        "x": 1,
+        "y": 42
       },
       "qubit_selector": {
-        "x": 4,
-        "y": 46
+        "x": 3,
+        "y": 48,
+        "w": 3,
+        "h": 2,
+        "style": "pixel_caret"
+      },
+      "depth_flow": {
+        "enabled": false,
+        "x": 0,
+        "y": 0,
+        "gap_y": 0
       }
     },
     "key_map": {
-      "x": 36,
+      "x": 37,
       "y": 0,
-      "w": 92,
-      "h": 23,
+      "w": 91,
+      "h": 19,
+      "color": 6,
       "items": [
         {
-          "text": "🅾️⬆️ x",
-          "x": 12,
-          "y": 1
+          "text": "❎",
+          "x": 3,
+          "y": 3
         },
         {
-          "text": "🅾️⬇️ h",
-          "x": 45,
-          "y": 1
+          "text": "🅾️",
+          "x": 31,
+          "y": 3
         },
         {
-          "text": "🅾️⬅️/🅾️➡️ cnot",
-          "x": 12,
-          "y": 9
+          "text": "⬆️",
+          "x": 65,
+          "y": 3
         },
         {
-          "text": "⬇️ clr",
-          "x": 20,
-          "y": 17
+          "text": "❎⬅️/❎➡️",
+          "x": 3,
+          "y": 11
         },
         {
-          "text": "❎ run",
-          "x": 53,
-          "y": 17
+          "text": "⬇️",
+          "x": 65,
+          "y": 11
         }
-      ]
+      ],
+      "control_examples": {
+        "color": 13,
+        "x": {
+          "x": 11,
+          "y": 2
+        },
+        "h": {
+          "x": 39,
+          "y": 2
+        },
+        "cx": {
+          "control_x": 40,
+          "target_x": 48,
+          "y": 10
+        },
+        "run": {
+          "text": "run",
+          "x": 75,
+          "y": 3
+        },
+        "clear": {
+          "text": "clr",
+          "x": 75,
+          "y": 11
+        }
+      }
     },
     "operation_feedback": {
-      "x": 36,
-      "y": 23,
-      "w": 92,
+      "x": 37,
+      "y": 19,
+      "w": 91,
       "h": 6
     },
     "mission": {
-      "x": 36,
-      "y": 29,
-      "w": 92,
-      "h": 25,
-      "title": {
-        "x": 0,
-        "y": 0,
-        "w": 82,
-        "h": 6
-      },
-      "instruction": {
-        "x": 0,
-        "y": 10,
-        "w": 82,
-        "h": 6
-      },
-      "feedback": {
-        "x": 0,
-        "y": 19,
-        "w": 82,
-        "h": 6
-      }
+      "x": 37,
+      "y": 25,
+      "w": 91,
+      "h": 26
     },
     "response": {
       "x": 0,
-      "y": 54,
+      "y": 51,
       "w": 128,
-      "h": 74,
+      "h": 77,
+      "rooms": {
+        "x": 3,
+        "y": 3,
+        "cols": 4,
+        "rows": 4,
+        "w": 29,
+        "h": 16,
+        "col_pitch": 31,
+        "row_pitch": 18
+      },
       "legend": {
-        "x": 2,
-        "y": 20,
+        "x": 0,
+        "y": 0,
         "w": 128,
         "h": 6,
         "target": {
@@ -134,9 +156,9 @@
         }
       },
       "canvas": {
-        "x": 4,
-        "y": 30,
-        "w": 126,
+        "x": 0,
+        "y": 0,
+        "w": 128,
         "h": 17,
         "base_y": 16,
         "first_state_x": 0,
@@ -146,25 +168,52 @@
         "measured_w": 5
       },
       "state_index": {
-        "x": 3,
-        "y": 51,
-        "w": 127,
+        "x": 0,
+        "y": 0,
+        "w": 128,
         "h": 6,
         "state_pitch": 16
       }
     }
   },
   "state": {
-    "gates": [],
+    "gates": [
+      {
+        "visual_q": 1,
+        "depth": 1,
+        "gate_type": "x",
+        "target_visual_q": null
+      },
+      {
+        "visual_q": 1,
+        "depth": 2,
+        "gate_type": "cx",
+        "target_visual_q": 4
+      },
+      {
+        "visual_q": 2,
+        "depth": 3,
+        "gate_type": "h",
+        "target_visual_q": null
+      }
+    ],
     "counts": {
-      "000": 0,
-      "001": 0,
-      "010": 0,
-      "011": 0,
-      "100": 0,
-      "101": 0,
-      "110": 0,
-      "111": 0
+      "0000": 0,
+      "0001": 0,
+      "0010": 0,
+      "0011": 0,
+      "0100": 0,
+      "0101": 0,
+      "0110": 0,
+      "0111": 0,
+      "1000": 0,
+      "1001": 0,
+      "1010": 0,
+      "1011": 0,
+      "1100": 0,
+      "1101": 0,
+      "1110": 0,
+      "1111": 0
     },
     "feedback": null
   },
@@ -191,42 +240,42 @@
         "name": "controller",
         "x": 0,
         "y": 0,
-        "w": 36,
-        "h": 54
+        "w": 37,
+        "h": 51
       },
       {
         "name": "key_map",
-        "x": 36,
+        "x": 37,
         "y": 0,
-        "w": 92,
-        "h": 23
+        "w": 91,
+        "h": 19
       },
       {
         "name": "operation_feedback",
-        "x": 36,
-        "y": 23,
-        "w": 92,
+        "x": 37,
+        "y": 19,
+        "w": 91,
         "h": 6
       },
       {
         "name": "mission",
-        "x": 36,
-        "y": 29,
-        "w": 92,
-        "h": 25
+        "x": 37,
+        "y": 25,
+        "w": 91,
+        "h": 26
       },
       {
         "name": "response",
         "x": 0,
-        "y": 54,
+        "y": 51,
         "w": 128,
-        "h": 74
+        "h": 77
       }
     ]
   },
-  "source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\framework\\qilin_game_framework.p8",
+  "source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\framework\\qilin_game_framework_4Qv.p8",
   "font_source": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\.qilin-cache\\pico_font.h",
-  "fingerprint": "cc335ece447c61c01001fd2b793e5c9c5677ac902782d90373edfbea683f0545",
+  "fingerprint": "719c5813697a83ea8cb84a04258fbd37c4720ae88cbc557d71787c4aaec458c4",
   "scaled_output": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\previews\\current.png",
   "native_output": "C:\\Users\\racco\\OneDrive\\Documents\\Python\\Git\\QArcade\\0UsefulExamples\\qilin-game-framework\\previews\\current_128x128.png"
 }

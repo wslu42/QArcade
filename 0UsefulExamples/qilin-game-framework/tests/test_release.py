@@ -29,7 +29,8 @@ class ReleaseSeparationTest(unittest.TestCase):
             )
             with zipfile.ZipFile(output) as archive:
                 names = archive.namelist()
-            self.assertTrue(any(name.endswith("framework/qilin_game_framework.p8") for name in names))
+            self.assertTrue(any(name.endswith("framework/qilin_game_framework_4Qv.p8") for name in names))
+            self.assertTrue(any(name.endswith("framework/qilin_game_framework_4Qh.p8") for name in names))
             self.assertFalse(any(".qilin-cache" in name for name in names))
             self.assertFalse(any(name.endswith("previews/current.png") for name in names))
 

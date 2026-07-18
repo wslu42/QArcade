@@ -26,31 +26,156 @@ class ArithmeticParserTest(unittest.TestCase):
 class CurrentFrameworkNormalizationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.source = (ROOT / "framework" / "qilin_game_framework.p8").read_text(
+        cls.source = (ROOT / "framework" / "qilin_game_framework_4Qv.p8").read_text(
             encoding="utf-8"
         )
         cls.project = parse_project(cls.source)
 
     def test_current_adjusted_origins(self) -> None:
         layout = self.project["layout"]
+        self.assertEqual(self.project["num_qubits"], 4)
+        self.assertEqual(self.project["circuit_depth"], 5)
+        self.assertEqual(len(self.project["states"]), 16)
         self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (0, 0))
-        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (36, 0))
-        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (36, 29))
-        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (36, 23))
-        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 54))
+        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (37, 0))
+        self.assertEqual(layout["key_map"]["color"], 6)
+        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (37, 25))
+        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (37, 19))
+        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 51))
+        self.assertEqual(layout["response"]["rooms"]["cols"], 4)
+        self.assertEqual(layout["response"]["rooms"]["rows"], 4)
+        self.assertEqual(
+            (layout["response"]["rooms"]["x"], layout["response"]["rooms"]["y"]),
+            (3, 3),
+        )
+        self.assertEqual(
+            layout["mission"],
+            {"x": 37, "y": 25, "w": 91, "h": 26},
+        )
 
     def test_schema_aliases_and_dimensions(self) -> None:
         layout = self.project["layout"]
         grid = layout["controller"]["grid"]
         self.assertEqual(grid["source_cell_extent_mode"], "inclusive_offset")
-        self.assertEqual((grid["cell_w"], grid["cell_h"]), (9, 9))
-        self.assertEqual(layout["controller"]["depth_index"]["text_y"], 2)
-        self.assertEqual(layout["controller"]["depth_flow"]["gap_y"], -2)
-        self.assertEqual(layout["response"]["state_index"]["x"], 3)
+        self.assertEqual((grid["cell_w"], grid["cell_h"]), (7, 7))
+        self.assertEqual(layout["controller"]["depth_index"]["text_y"], 1)
+        self.assertFalse(layout["controller"]["depth_flow"]["enabled"])
+        self.assertEqual(layout["controller"]["h"], 51)
+        self.assertEqual(
+            layout["controller"]["qubit_selector"]["style"], "pixel_caret"
+        )
+        self.assertEqual(
+            (
+                layout["controller"]["qubit_selector"]["w"],
+                layout["controller"]["qubit_selector"]["h"],
+            ),
+            (3, 2),
+        )
+        self.assertEqual(layout["response"]["state_index"]["x"], 0)
 
-    def test_parent_bounds_expand_to_children(self) -> None:
+    def test_mission_is_a_single_developer_owned_canvas(self) -> None:
         mission = self.project["layout"]["mission"]
-        self.assertGreaterEqual(mission["h"], mission["feedback"]["y"] + mission["feedback"]["h"])
+        self.assertNotIn("title", mission)
+        self.assertNotIn("instruction", mission)
+        self.assertNotIn("feedback", mission)
+
+    def test_compact_key_map_has_matching_control_examples(self) -> None:
+        items_4q = self.project["layout"]["key_map"]["items"]
+        self.assertEqual(
+            [item["text"] for item in items_4q],
+            ["❎", "🅾️", "⬆️", "❎⬅️/❎➡️", "⬇️"],
+        )
+
+        examples_4q = self.project["layout"]["key_map"]["control_examples"]
+        self.assertEqual(
+            set(examples_4q),
+            {"color", "x", "h", "cx", "run", "clear"},
+        )
+        self.assertEqual(examples_4q["color"], 13)
+        self.assertEqual(examples_4q["run"]["text"], "run")
+        self.assertEqual(examples_4q["clear"]["text"], "clr")
+
+        source_3q = (
+            ROOT / "framework" / "qilin_game_framework_3Qv.p8"
+        ).read_text(encoding="utf-8")
+        examples_3q = parse_project(source_3q)["layout"]["key_map"]["control_examples"]
+        self.assertEqual(
+            set(examples_3q),
+            {"color", "x", "h", "cx", "run", "clear"},
+        )
+        self.assertEqual(examples_3q["color"], 13)
+
+        source_orchard = (
+            ROOT.parent / "ex_quantum_orchard_" / "ex_quantum_orchard.p8"
+        ).read_text(encoding="utf-8")
+        examples_orchard = parse_project(source_orchard)["layout"]["key_map"][
+            "control_examples"
+        ]
+        self.assertEqual(
+            set(examples_orchard),
+            {"color", "x", "h", "cx", "run", "clear"},
+        )
+        self.assertEqual(examples_orchard["color"], 13)
+
+
+class HorizontalControllerLayoutTest(unittest.TestCase):
+    def test_horizontal_variant_geometry(self) -> None:
+        source = (ROOT / "framework" / "qilin_game_framework_4Qh.p8").read_text(
+            encoding="utf-8"
+        )
+        layout = parse_project(source)["layout"]
+        controller = layout["controller"]
+        self.assertEqual(controller["orientation"], "horizontal")
+        self.assertEqual((controller["w"], controller["h"]), (50, 51))
+        self.assertEqual((layout["key_map"]["x"], layout["mission"]["x"]), (50, 50))
+        self.assertEqual((layout["key_map"]["y"], layout["key_map"]["h"]), (0, 19))
+        self.assertEqual(
+            (layout["operation_feedback"]["y"], layout["mission"]["y"]),
+            (19, 25),
+        )
+        self.assertEqual((layout["response"]["y"], layout["response"]["h"]), (51, 77))
+        self.assertEqual(controller["depth_index"]["col_pitch"], 9)
+        self.assertEqual(controller["qubit_index"]["row_pitch"], 10)
+
+
+class LayoutSourceOfTruthTest(unittest.TestCase):
+    def test_all_maintained_qilin_cartridges_share_top_level_bands(self) -> None:
+        cartridges = [
+            ROOT / "framework" / "qilin_game_framework_4Qv.p8",
+            ROOT / "framework" / "qilin_game_framework_3Qv.p8",
+            ROOT / "framework" / "qilin_game_framework_4Qh.p8",
+            ROOT.parent / "photon_runner" / "photon_runner.p8",
+            ROOT.parent / "photon_runner" / "photon_runner_4Qv.p8",
+            ROOT.parent / "ex_quantum_orchard_" / "ex_quantum_orchard.p8",
+        ]
+        for cartridge in cartridges:
+            with self.subTest(cartridge=cartridge.name):
+                layout = parse_project(cartridge.read_text(encoding="utf-8"))["layout"]
+                horizontal = layout["controller"].get("orientation") == "horizontal"
+                split_x = 50 if horizontal else 37
+                right_w = 128 - split_x
+                self.assertEqual(
+                    (layout["controller"]["h"], layout["key_map"]["h"]),
+                    (51, 19),
+                )
+                self.assertEqual(
+                    (layout["key_map"]["x"], layout["key_map"]["w"]),
+                    (split_x, right_w),
+                )
+                self.assertEqual(
+                    (layout["operation_feedback"]["y"], layout["mission"]["y"]),
+                    (19, 25),
+                )
+                self.assertEqual(
+                    (layout["mission"]["w"], layout["mission"]["h"]),
+                    (right_w, 26),
+                )
+                self.assertEqual(
+                    (layout["response"]["y"], layout["response"]["h"]),
+                    (51, 77),
+                )
+                for child in ("title", "instruction", "feedback"):
+                    self.assertNotIn(child, layout["mission"])
 
 
 if __name__ == "__main__":

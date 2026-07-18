@@ -38,7 +38,7 @@ Before changing this framework, read:
 The authoritative cartridge is:
 
 ```text
-framework/qilin_game_framework.p8
+framework/qilin_game_framework_4Qv.p8
 ```
 
 Do not treat `reference/qilin.p8`, the readable Lua mirror, or generated PNG
@@ -51,23 +51,83 @@ Framework-owned components:
 - quantum circuit compilation and measurement;
 - Controller Grid, gate placement, and qubit selection;
 - X, H, and CX input behavior;
+- modal input ownership and release handoff;
 - Key Map and Operation Feedback;
 - layout parsing and preview tooling.
 
 Game-owned components:
 
 - level definitions;
-- Mission text;
+- Mission canvas content;
 - scoring and progression;
 - Response visualization;
 - game-specific mechanics;
 - completion experience.
 
 Keep the Controller stable unless the task explicitly requests a framework
-change. Mission explains the objective. Response is the primary game-specific
-output surface. Operation Feedback is only for immediate controller actions,
-not mission narrative or scoring. Change the Key Map only when the actual
-controls also change.
+change. Mission is one developer-owned canvas with no required child schema;
+it may contain objectives, dialogue, icons, or progress. Response is the
+primary game-specific output surface. Operation Feedback is only for immediate
+controller actions, not mission narrative or scoring. Change the Key Map only
+when the actual controls also change.
+
+Exactly one input owner may consume buttons per frame. Use
+`completion > modal (including dialogue) > controller`, return after a
+higher-priority update, and require a release handoff when a modal closes.
+Right-to-advance is contextual to dialogue ownership and must not leak into
+Controller navigation or X + Right CNOT targeting.
+
+## Derived-game cleanup and handoff contract
+
+Start a derived game from one authoritative framework variant. The copied
+game cartridge then becomes that game's source of truth; do not keep a second
+Lua mirror or copied framework tree that can drift from it.
+
+When an explicit task replaces framework-owned behavior in the derived game,
+finish the migration instead of layering a second path on top of the first:
+
+- keep exactly one active `_init`, `_update` or `_update60`, and `_draw` path;
+- remove superseded functions such as `_update_old`, obsolete direction
+  helpers, unused gate-cycling code, and stale modifier-control branches;
+- search the cartridge and README for old control strings and helper names;
+- remove code only after confirming that it is obsolete and game-local;
+  preserve unrelated or user-owned changes;
+- remember that unreachable functions still consume PICO-8 tokens.
+
+When scaling a derived game from 3Q to 4Q, prefer a separate named cartridge
+variant when both teaching levels remain useful. Do not overwrite the clearer
+3Q source merely to prove 16-state capacity. The 4Q migration must update the
+simulator register count, complete state list, level targets, initial/fallback
+states, Controller width, Response density, sprites, and collision geometry as
+one coherent change.
+
+`0UsefulExamples/photon_runner/photon_runner_4Qv.p8` is the tested dense-lane
+reference. It retains one `_init`, `_update`, and `_draw` path and removes
+unused gate-cycling and distribution helpers. Apply the same audit to future
+variants: copied helpers that are no longer called still consume cartridge
+tokens and should not survive a completed migration.
+
+Keep documentation at the correct ownership level. Reusable Controller,
+layout, CNOT, preview, and production rules belong in framework docs.
+Game-specific scoring, collision thresholds, animation timing, levels, and
+Response behavior belong in the derived game's README or source comments.
+Do not copy preview tools, caches, release folders, tests, or framework docs
+into a simple example. Update the fallback renderer only when a shared
+framework visual contract changes, not for every game-specific Response
+animation.
+
+Before handoff, synchronize and verify:
+
+1. input behavior (including modal ownership), Key Map / Operation Feedback,
+   and player README;
+2. a search for duplicate entry points and legacy control text;
+3. `git diff --check` and `python -m unittest discover -s tests -v`;
+4. native PICO-8 behavior and token budget when PICO-8 is available.
+
+The handoff should name the authoritative `.p8`, summarize the final controls
+and important game-owned changes, report automated checks, and state whether
+native PICO-8 verification was completed. Native PICO-8 remains the final
+authority when it differs from a generated preview.
 
 After a meaningful visual or layout change:
 
@@ -266,7 +326,7 @@ Use the guided renderer when `previews/current.png` should contain the major
 layout outlines:
 
 ```bash
-python tools/render_preview_guided.py framework/qilin_game_framework.p8 \
+python tools/render_preview_guided.py framework/qilin_game_framework_4Qv.p8 \
   -o previews/current.png \
   --native-output previews/current_128x128.png \
   --metadata-output previews/current.json \
@@ -277,14 +337,21 @@ The native 128x128 output intentionally contains no guide overlay.
 
 ## Useful state options
 
+By default, a PNG preview includes representative X, CNOT, and H gates in the
+controller. Explicit `--gate` options replace that example set; use
+`--blank-controller` when the controller must be empty.
+
 ```bash
 # choose a level and selected visual qubit
 python tools/render_preview.py game.p8 --level 2 --cursor-q 3
 
-# add gates
+# replace the default examples with an explicit gate set
 python tools/render_preview.py game.p8 \
   --gate q1:d1:h \
   --gate q1:d2:cx:q2
+
+# render an empty controller
+python tools/render_preview.py game.p8 --blank-controller
 
 # render measured counts
 python tools/render_preview.py game.p8 \
@@ -332,21 +399,25 @@ The preview should try to preserve:
 - special display symbols
 - lowercase source convention with PICO-8-like visual display
 
-If an exact glyph is not available, the fallback should use a documented substitute such as:
+The compact Key Map should reuse the same code-drawn gate notation as the
+Controller:
 
 ```text
-🅾️⬆️ x  →  O+UP x
-⬇️ clr  →  DN clr
-❎ run  →  X run
+Tap X         circled plus (X)
+Tap O         compact H
+Hold X+axis   filled control dot — circled-plus target (CNOT)
+Run direction run
+Down          clear
 ```
 
-The meaning must remain clear.
+If an exact P8SCII button glyph is unavailable, use a documented substitute,
+but do not fall back to obsolete gate assignments.
 
 ## 4.6 Preserve important visual semantics
 Examples:
 - highlighted current qubit
 - blocked feedback color
-- fresh gate feedback color
+- color-1 gate and committed CNOT rendering
 - target vs measured response colors
 - empty vs occupied controller cells
 
@@ -401,7 +472,7 @@ Every preview generation should validate the following when practical.
 - Qubit labels are visible.
 - Depth labels are visible.
 - Key Map items are visible.
-- Mission text is visible.
+- Mission canvas content is visible and clipped to Mission bounds.
 - Response legend is visible.
 - Response Canvas is visible.
 - State Index is visible if enabled.
@@ -508,7 +579,7 @@ If a fallback preview and actual PICO-8 output disagree:
 
 ---
 
-# Framework v49 performance implementation
+# Preview performance implementation
 
 The repository implementation is split into:
 
@@ -523,7 +594,7 @@ tools/release.py         explicit release packaging only
 The active framework cartridge is:
 
 ```text
-framework/qilin_game_framework.p8
+framework/qilin_game_framework_4Qv.p8
 ```
 
 Do not use `reference/qilin.p8` as the preview source unless explicitly

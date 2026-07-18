@@ -48,7 +48,7 @@ The Qilin framework documentation identifies these as framework-owned:
 - Key Map and Operation Feedback;
 - layout parsing and preview tooling.
 
-It identifies levels, Mission text, scoring/progression, Response visualization,
+It identifies levels, Mission canvas content, scoring/progression, Response visualization,
 game mechanics, and completion experiences as game-owned. Because the current
 authoritative cartridge contains both categories, its Apache-2.0 designation
 must be read together with `LICENSE_SCOPE.md`: third-party MicroQiskit stays

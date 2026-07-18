@@ -9,7 +9,7 @@ if not exist "previews" mkdir "previews"
 
 echo Rendering Qilin preview with layout guide lines...
 ".venv\Scripts\python.exe" tools\render_preview_guided.py ^
-  framework\qilin_game_framework.p8 ^
+  framework\qilin_game_framework_4Qv.p8 ^
   -o previews\current.png ^
   --native-output previews\current_128x128.png ^
   --metadata-output previews\current.json
