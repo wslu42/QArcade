@@ -26,6 +26,13 @@ Response is deliberately first in the visual hierarchy and receives the full
 upper screen. The framework controls occupy the lower band: narrative and
 feedback are on the left, while the compact Controller anchors the right.
 
+Every maintained Controller declares `anchor="bottom_right"`. The complete
+Controller content envelope is anchored, including Grid, Depth Index, Qubit
+Index, and Qubit Selector. A variant with fewer qubits moves its grid and
+Qubit labels right; a variant with fewer circuit depths moves its grid and
+Depth labels down. The unused space therefore accumulates at the upper-left,
+while Q/D labels remain adjacent to the occupied grid.
+
 The Controller contains four `7 x 7` qubit columns and five depths on an
 8-pixel pitch. Columns alternate colors 13 and 6; each qubit label uses its
 column color. Gates and CNOT connectors use color 1, selection uses yellow 10,

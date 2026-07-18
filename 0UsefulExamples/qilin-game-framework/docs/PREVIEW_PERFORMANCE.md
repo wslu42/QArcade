@@ -91,6 +91,7 @@ python -m unittest discover -s tests -v
 ```
 
 The tests cover arithmetic parsing, compact 4Q/3Q layout normalization,
+cross-cartridge bottom-right Controller anchoring and Q/D label adjacency,
 default gate examples, cache skipping, guided output, colors, and release
 separation.
 

@@ -96,6 +96,14 @@ creative canvas, with the full 128-pixel width and 78 pixels of height. It
 should show a meaningful consequence of measurement instead of repeating
 information already visible in the Controller.
 
+Maintained Controllers declare `anchor="bottom_right"`. This anchors the
+complete Grid and label envelope to the Controller's lower-right corner:
+fewer qubit columns move the Grid, Qubit Index, and Qubit Selector right;
+fewer circuit depths move the Grid and Depth Index down. Qubit and depth
+labels are structural grid extensions, so their fixed adjacency must be
+recalculated and tested whenever qubit count, circuit depth, cell size, or
+pitch changes.
+
 Mission is a single developer-owned `91 x 26` canvas with no required title,
 instruction, or feedback children. Replace `draw_mission()` with game-specific
 text, dialogue, icons, or progress, and keep drawing clipped to Mission bounds.
