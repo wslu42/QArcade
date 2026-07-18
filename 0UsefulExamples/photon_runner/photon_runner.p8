@@ -298,7 +298,7 @@ layout={
 
     grid={
       x=1,
-      y=1,
+      y=9,
       cell_w=6,
       cell_h=6,
       col_pitch=8,
@@ -307,7 +307,7 @@ layout={
 
     depth_index={
       x=26,
-      y=2,
+      y=10,
       text_dy=1
     },
 
@@ -1100,7 +1100,7 @@ function draw_circuit()
     local d=find_gate_depth(grid,cx_control,gate)
 
     if d>0 then
-      local preview_color=5
+      local preview_color=7
       local visual_row=circuit_depth-d
       local y=grid_y+visual_row*grid_layout.row_pitch
       local control_x=grid_x+

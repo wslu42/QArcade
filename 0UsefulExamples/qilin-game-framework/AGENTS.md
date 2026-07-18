@@ -72,3 +72,9 @@ After visual or layout changes:
 3. Generate and inspect the guided preview.
 4. Run the test suite.
 5. Verify the cartridge in native PICO-8 before treating the preview as exact.
+
+Controller labels are grid-anchored geometry, not free-positioned decoration.
+Whenever `num_qubits`, `circuit_depth`, cell dimensions, or grid pitch changes,
+recalculate Qubit Index, Qubit Selector, and Depth Index from the occupied grid
+bounds. Run the layout parser tests; they enforce the orientation-specific
+label adjacency rules documented in `docs/QILIN_LAYOUT_CONTRACT.md`.

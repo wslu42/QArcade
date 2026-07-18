@@ -1072,7 +1072,7 @@ function draw_circuit()
     local gate="c"..cx_target
     local d=find_gate_depth(grid,cx_control,gate)
     if d>0 then
-      local preview_color=5
+      local preview_color=7
       local x=grid_x+(d-1)*grid_layout.col_pitch
       local control_y=grid_y+cx_control*grid_layout.row_pitch
       local target_y=grid_y+cx_target*grid_layout.row_pitch

@@ -39,6 +39,43 @@ screen, while framework controls share the lower band.
 
 ## Controller
 
+### Grid-anchored label invariant
+
+Qubit Index, Qubit Selector, and Depth Index are structural extensions of the
+Controller Grid. They must remain adjacent to the occupied grid, even when a
+variant changes `num_qubits`, `circuit_depth`, cell dimensions, or pitch. Their
+coordinates must therefore be recalculated from the grid bounds; copying label
+coordinates from a differently sized grid is invalid.
+
+For a normalized vertical Controller (`cell_w` and `cell_h` are true visible
+dimensions):
+
+```text
+grid_bottom = grid.y + (circuit_depth - 1) * row_pitch + cell_h - 1
+qubit_index.y = grid_bottom + 2
+qubit_selector.y = qubit_index.y + 6
+depth_index.y + text_y = grid.y + 2
+```
+
+This leaves exactly one empty pixel between the last grid row and the Qubit
+Index. Each depth digit remains vertically centered on its grid row. A shorter
+depth stack is bottom-anchored by moving `grid.y` and `depth_index.y` together,
+not by leaving the labels detached at the Controller bottom.
+
+For the horizontal Controller:
+
+```text
+grid_bottom = grid.y + (num_qubits - 1) * row_pitch + cell_h - 1
+depth_index.y = grid_bottom + 3
+depth_index.x = grid.x + 2
+qubit_index.x + 8 = grid.x - 1
+qubit_index.y = grid.y + 2
+```
+
+These equations preserve the accepted one-pixel Qubit Index gap and two-pixel
+Depth Index gap. `tests/test_layout_parser.py` checks these invariants across
+every maintained framework and derived cartridge.
+
 ### Grid
 
 ```lua
@@ -210,9 +247,16 @@ not a replacement for every textual state reference.
 
 All maintained vertical Qilin cartridges now use the authoritative 4Qv
 Response-first allocation: a `128 x 78` upper Response, a 91-pixel lower-left
-region, and a `37 x 50` lower-right Controller. Four-qubit variants contain four qubit columns and five
-circuit depths; 3Q variants preserve the same outer allocation while drawing
-only their applicable qubit columns.
+region, and a `37 x 50` lower-right Controller. The default 4Qv and 3Qv
+framework cartridges use five circuit depths. Derived cartridges may use a
+shorter bottom-anchored stack, and the horizontal 4Qh variant uses four depths.
+3Q variants preserve the same outer allocation while drawing only their
+applicable qubit columns.
+
+The compact vertical pattern is bottom-anchored. For example, a four-depth
+3Q cartridge in the same `37 x 50` Controller uses `grid.y=9` and
+`depth_index.y=10`, while its Qubit Index remains at `y=41`. This keeps the
+labels attached to the last row instead of creating an eight-pixel void.
 
 Its grid uses inclusive `cell_w=6` and `cell_h=6` offsets, producing visible
 `7 x 7` cells on an 8-pixel column and row pitch. One-pixel gutters replace

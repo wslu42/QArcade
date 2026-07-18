@@ -59,6 +59,8 @@ The Controller is the reusable input framework.
 
 Normally it should remain conceptually stable:
 - the Controller Grid stays recognizable;
+- Qubit and Depth labels stay anchored to the occupied Controller Grid when
+  qubit count or circuit depth changes;
 - qubit/depth interaction stays recognizable;
 - the Key Map stays understandable;
 - the designer does not have to rewrite the quantum input engine for every new game.

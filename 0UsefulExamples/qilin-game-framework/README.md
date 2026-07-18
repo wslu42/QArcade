@@ -118,6 +118,8 @@ The current controller iteration is documented in
 - color-1 gates, yellow selection, and red blocked feedback;
 - layout-driven PNG geometry and cartridge-derived grid colors;
 - forced first render on watcher startup to prevent stale cached previews.
+- grid-anchored Qubit/Depth labels, protected by layout parser tests so
+  changing qubit count or circuit depth cannot leave detached labels.
 
 ## Command-line preview loop
 

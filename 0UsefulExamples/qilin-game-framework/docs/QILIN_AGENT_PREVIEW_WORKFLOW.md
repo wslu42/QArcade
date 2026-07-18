@@ -471,6 +471,8 @@ Every preview generation should validate the following when practical.
 
 ## Geometry
 - Controller elements appear in the expected positions.
+- Qubit Index and Depth Index satisfy the grid-anchored label invariant; no
+  qubit/depth change may leave either label group visually detached.
 - Mission appears in the expected position.
 - Response remains a rectangular region.
 - child clusters remain within their parent bounds where applicable.

@@ -140,7 +140,16 @@ class HorizontalControllerLayoutTest(unittest.TestCase):
 
 
 class LayoutSourceOfTruthTest(unittest.TestCase):
-    def test_photon_3q_uses_authoritative_compact_controller(self) -> None:
+    CARTRIDGES = [
+        ROOT / "framework" / "qilin_game_framework_4Qv.p8",
+        ROOT / "framework" / "qilin_game_framework_3Qv.p8",
+        ROOT / "framework" / "qilin_game_framework_4Qh.p8",
+        ROOT.parent / "photon_runner" / "photon_runner.p8",
+        ROOT.parent / "photon_runner" / "photon_runner_4Qv.p8",
+        ROOT.parent / "ex_quantum_orchard_" / "ex_quantum_orchard.p8",
+    ]
+
+    def test_photon_3q_uses_authoritative_compact_controller_metrics(self) -> None:
         framework = parse_project(
             (ROOT / "framework" / "qilin_game_framework_3Qv.p8").read_text(
                 encoding="utf-8"
@@ -152,19 +161,52 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
             )
         )["layout"]["controller"]
 
-        for key in ("grid", "depth_index", "qubit_index", "qubit_selector"):
-            self.assertEqual(photon[key], framework[key])
+        for key in ("x", "cell_w", "cell_h", "col_pitch", "row_pitch"):
+            self.assertEqual(photon["grid"][key], framework["grid"][key])
+        self.assertEqual(photon["depth_index"]["x"], framework["depth_index"]["x"])
+        self.assertEqual(photon["qubit_index"], framework["qubit_index"])
+        self.assertEqual(photon["qubit_selector"], framework["qubit_selector"])
+
+    def test_q_and_depth_labels_stay_anchored_to_the_grid(self) -> None:
+        for cartridge in self.CARTRIDGES:
+            with self.subTest(cartridge=cartridge.name):
+                project = parse_project(cartridge.read_text(encoding="utf-8"))
+                controller = project["layout"]["controller"]
+                grid = controller["grid"]
+                num_qubits = project["num_qubits"]
+                circuit_depth = project["circuit_depth"]
+
+                if controller.get("orientation") == "horizontal":
+                    grid_bottom = (
+                        grid["y"]
+                        + (num_qubits - 1) * grid["row_pitch"]
+                        + grid["cell_h"]
+                        - 1
+                    )
+                    self.assertEqual(controller["depth_index"]["y"], grid_bottom + 3)
+                    self.assertEqual(controller["depth_index"]["x"], grid["x"] + 2)
+                    self.assertEqual(controller["qubit_index"]["x"] + 8, grid["x"] - 1)
+                    self.assertEqual(controller["qubit_index"]["y"], grid["y"] + 2)
+                else:
+                    grid_bottom = (
+                        grid["y"]
+                        + (circuit_depth - 1) * grid["row_pitch"]
+                        + grid["cell_h"]
+                        - 1
+                    )
+                    self.assertEqual(controller["qubit_index"]["y"], grid_bottom + 2)
+                    self.assertEqual(
+                        controller["qubit_selector"]["y"],
+                        controller["qubit_index"]["y"] + 6,
+                    )
+                    self.assertEqual(
+                        controller["depth_index"]["y"]
+                        + controller["depth_index"]["text_y"],
+                        grid["y"] + 2,
+                    )
 
     def test_all_maintained_qilin_cartridges_share_top_level_bands(self) -> None:
-        cartridges = [
-            ROOT / "framework" / "qilin_game_framework_4Qv.p8",
-            ROOT / "framework" / "qilin_game_framework_3Qv.p8",
-            ROOT / "framework" / "qilin_game_framework_4Qh.p8",
-            ROOT.parent / "photon_runner" / "photon_runner.p8",
-            ROOT.parent / "photon_runner" / "photon_runner_4Qv.p8",
-            ROOT.parent / "ex_quantum_orchard_" / "ex_quantum_orchard.p8",
-        ]
-        for cartridge in cartridges:
+        for cartridge in self.CARTRIDGES:
             with self.subTest(cartridge=cartridge.name):
                 layout = parse_project(cartridge.read_text(encoding="utf-8"))["layout"]
                 horizontal = layout["controller"].get("orientation") == "horizontal"
