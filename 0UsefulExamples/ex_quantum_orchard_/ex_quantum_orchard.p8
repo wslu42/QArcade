@@ -292,14 +292,14 @@ states={
 -- top-level block.x/y + local element offset
 layout={
   controller={
-    x=0,
-    y=0,
+    x=91,
+    y=78,
     w=37,
-    h=51,
+    h=50,
 
     grid={
       x=1,
-      y=2,
+      y=1,
       cell_w=6,
       cell_h=6,
       col_pitch=8,
@@ -314,12 +314,12 @@ layout={
 
     qubit_index={
       x=1,
-      y=42
+      y=41
     },
 
     qubit_selector={
       x=3,
-      y=48,
+      y=47,
       w=3,
       h=2,
       style="pixel_caret"
@@ -327,49 +327,50 @@ layout={
   },
 
   key_map={
-    x=37,
-    y=0,
+    x=0,
+    y=110,
     w=91,
-    h=19,
+    h=18,
+    color=6,
 
     items={
-      {text="❎",x=2,y=3},
-      {text="🅾️",x=27,y=3},
-      {text="⬆️",x=58,y=3},
-      {text="❎+⬅️/➡️",x=2,y=13},
-      {text="⬇️",x=67,y=13}
+      {text="❎",x=3,y=2},
+      {text="🅾️",x=31,y=2},
+      {text="⬆️",x=65,y=2},
+      {text="❎⬅️/❎➡️",x=3,y=10},
+      {text="⬇️",x=65,y=10}
     },
 
     control_examples={
       color=13,
-      x={x=12,y=3},
-      h={x=37,y=3},
-      cx={control_x=38,target_x=46,y=13},
-      run={text="run",x=68,y=3},
-      clear={text="clr",x=77,y=13}
+      x={x=11,y=1},
+      h={x=39,y=1},
+      cx={control_x=40,target_x=48,y=9},
+      run={text="run",x=75,y=2},
+      clear={text="clr",x=75,y=10}
     }
   },
 
   operation_feedback={
-    x=37,
-    y=19,
+    x=0,
+    y=104,
     w=91,
     h=6
   },
 
   mission={
-    x=37,
-    y=25,
+    x=0,
+    y=78,
     w=91,
     h=26
   },
 
-  -- full response canvas: x=0..127, y=51..127.
+  -- full response canvas: x=0..127, y=0..77.
   response={
     x=0,
-    y=51,
+    y=0,
     w=128,
-    h=77,
+    h=78,
 
     rooms={
       x=2,
@@ -885,13 +886,12 @@ function draw_circuit()
     )
 
     if selected then
-      print(
-        "^",
-        controller_x+qubit_selector.x+
-          visual_col*grid_layout.col_pitch,
-        controller_y+qubit_selector.y,
-        label_color
-      )
+      local selector_x=controller_x+qubit_selector.x+
+        visual_col*grid_layout.col_pitch
+      local selector_y=controller_y+qubit_selector.y
+      pset(selector_x+1,selector_y,label_color)
+      pset(selector_x,selector_y+1,label_color)
+      pset(selector_x+2,selector_y+1,label_color)
     end
   end
 
@@ -1014,7 +1014,7 @@ function draw_prompt_line(text,color)
   )
 end
 
-function draw_status()
+function draw_mission()
   local mission=layout.mission
   local feedback={x=0,y=19,w=mission.w}
 
@@ -1105,7 +1105,7 @@ function draw_key_hint()
       item.text,
       key_x+item.x,
       key_y+item.y,
-      13
+      key_map.color
     )
   end
 
@@ -1192,6 +1192,6 @@ function _draw()
   end
 
   draw_circuit()
-  draw_status()
+  draw_mission()
   draw_rooms()
 end

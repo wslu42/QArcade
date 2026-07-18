@@ -296,14 +296,14 @@ states={
 -- top-level block.x/y + local element offset
 layout={
   controller={
-    x=0,
-    y=0,
+    x=91,
+    y=78,
     w=37,
-    h=51,
+    h=50,
 
     grid={
       x=1,
-      y=2,
+      y=1,
       cell_w=6,
       cell_h=6,
       col_pitch=8,
@@ -318,12 +318,12 @@ layout={
 
     qubit_index={
       x=1,
-      y=42
+      y=41
     },
 
     qubit_selector={
       x=3,
-      y=48,
+      y=47,
       w=3,
       h=2,
       style="pixel_caret"
@@ -331,40 +331,50 @@ layout={
   },
 
   key_map={
-    x=37,
-    y=0,
+    x=0,
+    y=110,
     w=91,
-    h=19,
+    h=18,
+    color=6,
 
     items={
-      {text="❎ x",x=13,y=1},
-      {text="🅾️ h",x=51,y=1},
-      {text="hold ❎+⬅️/➡️ cx",x=9,y=9},
-      {text="⬆️ run",x=13,y=17},
-      {text="⬇️ clr",x=51,y=17}
+      {text="❎",x=3,y=2},
+      {text="🅾️",x=31,y=2},
+      {text="⬆️",x=65,y=2},
+      {text="❎⬅️/❎➡️",x=3,y=10},
+      {text="⬇️",x=65,y=10}
+    },
+
+    control_examples={
+      color=13,
+      x={x=11,y=1},
+      h={x=39,y=1},
+      cx={control_x=40,target_x=48,y=9},
+      run={text="run",x=75,y=2},
+      clear={text="clr",x=75,y=10}
     }
   },
 
   operation_feedback={
-    x=37,
-    y=19,
+    x=0,
+    y=104,
     w=91,
     h=6
   },
 
   mission={
-    x=37,
-    y=25,
+    x=0,
+    y=78,
     w=91,
     h=26
   },
 
-  -- full response canvas: x=0..127, y=51..127.
+  -- full response canvas: x=0..127, y=0..77.
   response={
     x=0,
-    y=51,
+    y=0,
     w=128,
-    h=77,
+    h=78,
 
     legend={
       x=2,
@@ -982,13 +992,12 @@ function draw_circuit()
     )
 
     if selected then
-      print(
-        "^",
-        controller_x+qubit_selector.x+
-          visual_col*grid_layout.col_pitch,
-        controller_y+qubit_selector.y,
-        label_color
-      )
+      local selector_x=controller_x+qubit_selector.x+
+        visual_col*grid_layout.col_pitch
+      local selector_y=controller_y+qubit_selector.y
+      pset(selector_x+1,selector_y,label_color)
+      pset(selector_x,selector_y+1,label_color)
+      pset(selector_x+2,selector_y+1,label_color)
     end
   end
 
@@ -1068,6 +1077,7 @@ function draw_circuit()
     local d=find_gate_depth(grid,cx_control,gate)
 
     if d>0 then
+      local preview_color=5
       local visual_row=circuit_depth-d
       local y=grid_y+visual_row*grid_layout.row_pitch
       local control_x=grid_x+
@@ -1075,9 +1085,9 @@ function draw_circuit()
       local target_x=grid_x+
         (num_qubits-1-cx_target)*grid_layout.col_pitch
 
-      line(control_x+3,y+3,target_x+3,y+3,1)
-      draw_control_dot(control_x,y,1)
-      draw_target_plus(target_x,y,1)
+      line(control_x+3,y+3,target_x+3,y+3,preview_color)
+      draw_control_dot(control_x,y,preview_color)
+      draw_target_plus(target_x,y,preview_color)
     end
   end
 
@@ -1115,7 +1125,7 @@ function draw_prompt_line(text,color)
   )
 end
 
-function draw_status()
+function draw_mission()
   local mission=layout.mission
   local feedback={x=0,y=19,w=mission.w}
   local feedback_x=mission.x+feedback.x
@@ -1228,7 +1238,6 @@ end
 
 function draw_key_hint()
   local key_map=layout.key_map
-
   local key_x=key_map.x
   local key_y=key_map.y
 
@@ -1237,9 +1246,20 @@ function draw_key_hint()
       item.text,
       key_x+item.x,
       key_y+item.y,
-      13
+      key_map.color
     )
   end
+
+  local examples=key_map.control_examples
+  local color=examples.color
+  draw_target_plus(key_x+examples.x.x,key_y+examples.x.y,color)
+  draw_h_gate(key_x+examples.h.x,key_y+examples.h.y,color)
+  print(examples.run.text,key_x+examples.run.x,key_y+examples.run.y,color)
+  print(examples.clear.text,key_x+examples.clear.x,key_y+examples.clear.y,color)
+  local cx=examples.cx
+  line(key_x+cx.control_x+3,key_y+cx.y+3,key_x+cx.target_x+3,key_y+cx.y+3,color)
+  draw_control_dot(key_x+cx.control_x,key_y+cx.y,color)
+  draw_target_plus(key_x+cx.target_x,key_y+cx.y,color)
 end
 
 function _draw()
@@ -1336,6 +1356,6 @@ function _draw()
   end
 
   draw_circuit()
-  draw_status()
+  draw_mission()
   draw_waveguides()
 end

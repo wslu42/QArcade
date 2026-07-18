@@ -291,15 +291,36 @@ states={
 -- coordinate rule:
 -- top-level block.x/y + local element offset
 layout={
-  controller={
+
+  -- full response canvas: x=0..127, y=0..77.
+  response={
     x=0,
     y=0,
+    w=128,
+    h=78,
+
+    rooms={
+      x=3,
+      y=3,
+      cols=4,
+      rows=4,
+      w=29,
+      h=16,
+      col_pitch=31,
+      row_pitch=18
+    }
+  },
+
+
+  controller={
+    x=91,
+    y=78,
     w=37,
-    h=51,
+    h=50,
 
     grid={
       x=1,
-      y=2,
+      y=1,
       cell_w=6,
       cell_h=6,
       col_pitch=8,
@@ -314,75 +335,58 @@ layout={
 
     qubit_index={
       x=1,
-      y=42
+      y=41
     },
 
     qubit_selector={
       x=3,
-      y=48,
+      y=47,
       w=3,
       h=2,
       style="pixel_caret"
     }
   },
 
-  key_map={
-    x=37,
-    y=0,
+  mission={
+    x=0,
+    y=78,
     w=91,
-    h=19,
-    color=6,
-
-    items={
-      {text="❎",x=3,y=3},
-      {text="🅾️",x=31,y=3},
-      {text="⬆️",x=65,y=3},
-      {text="❎⬅️/❎➡️",x=3,y=11},
-      {text="⬇️",x=65,y=11}
-    },
-
-    control_examples={
-      color=13,
-      x={x=11,y=2},
-      h={x=39,y=2},
-      cx={control_x=40,target_x=48,y=10},
-      run={text="run",x=75,y=3},
-      clear={text="clr",x=75,y=11}
-    }
+    h=26
   },
-
   operation_feedback={
-    x=37,
-    y=19,
+    x=0,
+    y=104,
     w=91,
     h=6
   },
 
-  mission={
-    x=37,
-    y=25,
+  key_map={
+    x=0,
+    y=110,
     w=91,
-    h=26
+    h=18,
+    color=6,
+
+    items={
+      {text="❎",x=3,y=2},
+      {text="🅾️",x=31,y=2},
+      {text="⬆️",x=65,y=2},
+      {text="❎⬅️/❎➡️",x=3,y=10},
+      {text="⬇️",x=65,y=10}
+    },
+
+    control_examples={
+      color=13,
+      x={x=11,y=1},
+      h={x=39,y=1},
+      cx={control_x=40,target_x=48,y=9},
+      run={text="run",x=75,y=2},
+      clear={text="clr",x=75,y=10}
+    }
   },
 
-  -- full response canvas: x=0..127, y=51..127.
-  response={
-    x=0,
-    y=51,
-    w=128,
-    h=77,
 
-    rooms={
-      x=3,
-      y=3,
-      cols=4,
-      rows=4,
-      w=29,
-      h=16,
-      col_pitch=31,
-      row_pitch=18
-    }
-  }
+
 }
 
 function blank_grid()
@@ -957,15 +961,16 @@ function draw_circuit()
     local gate="c"..cx_target
     local d=find_gate_depth(grid,cx_control,gate)
     if d>0 then
+      local preview_color=5
       local visual_row=circuit_depth-d
       local y=grid_y+visual_row*grid_layout.row_pitch
       local control_x=grid_x+
         (num_qubits-1-cx_control)*grid_layout.col_pitch
       local target_x=grid_x+
         (num_qubits-1-cx_target)*grid_layout.col_pitch
-      line(control_x+3,y+3,target_x+3,y+3,13)
-      draw_control_dot(control_x,y,13)
-      draw_target_plus(target_x,y,13)
+      line(control_x+3,y+3,target_x+3,y+3,preview_color)
+      draw_control_dot(control_x,y,preview_color)
+      draw_target_plus(target_x,y,preview_color)
     end
   end
 end

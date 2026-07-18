@@ -99,19 +99,21 @@ needed.
 
 Close the command window or press `Ctrl+C` to stop watching.
 
-## Accepted compact controller layout
+## Accepted Response-first layout
 
 The current controller iteration is documented in
 `docs/QILIN_LAYOUT_CONTRACT.md`. This phase established:
 
-- a `37 x 51` vertical 4Q Controller beside a Key Map beginning at `x=37`;
+- a full-width `128 x 78` Response canvas occupying the upper screen;
+- a `37 x 50` vertical 4Q Controller at `(91,78)` in the lower-right;
+- a 91-pixel lower-left column containing Mission, Operation Feedback, and Key Map;
 - four 7-pixel-wide qubit columns with five vertically stacked cells;
 - one-pixel gutters with alternating column colors instead of cell borders;
 - numeric depth labels `5, 4, 3, 2, 1` without flow markers;
 - compact code-drawn H and shared X/CNOT-target glyphs;
 - a layout-sized 3-by-2 pixel qubit selector instead of a font caret;
 - independent `key_map.color` and `control_examples.color` settings;
-- one developer-owned `91 x 26` Mission canvas with no required child schema;
+- one developer-owned `91 x 26` Mission canvas at `(0,78)` with no required child schema;
 - modal input ownership and release handoff for dialogue and overlays;
 - color-1 gates, yellow selection, and red blocked feedback;
 - layout-driven PNG geometry and cartridge-derived grid colors;

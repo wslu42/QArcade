@@ -71,6 +71,13 @@ primary game-specific output surface. Operation Feedback is only for immediate
 controller actions, not mission narrative or scoring. Change the Key Map only
 when the actual controls also change.
 
+The current shared geometry is Response-first: Response occupies `(0,0)` at
+`128 x 78`; the lower band begins at y=78. In the default vertical variant,
+Mission, Operation Feedback, and Key Map form a 91-pixel left column while the
+`37 x 50` Controller occupies `(91,78)`. Renderers and derived cartridges must
+consume these layout values rather than reconstructing the former top-control
+and bottom-Response arrangement.
+
 Exactly one input owner may consume buttons per frame. Use
 `completion > modal (including dialogue) > controller`, return after a
 higher-priority update, and require a release handoff when a modal closes.

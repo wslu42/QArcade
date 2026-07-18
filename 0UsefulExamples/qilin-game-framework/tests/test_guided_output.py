@@ -90,6 +90,7 @@ class GuidedOutputTest(unittest.TestCase):
             self.assertEqual(guides["output_scale"], 8)
             self.assertEqual(guides["effective_native_line_width"], 0.125)
             self.assertEqual(guides["label_scale"], 4)
+            self.assertEqual(guides["label_color_index"], 7)
             self.assertEqual(
                 guides["label_names"]["controller"], "controller"
             )
@@ -104,23 +105,23 @@ class GuidedOutputTest(unittest.TestCase):
             blocks = {block["name"]: block for block in guides["blocks"]}
             self.assertEqual(
                 blocks["controller"],
-                {"name": "controller", "x": 0, "y": 0, "w": 37, "h": 51},
+                {"name": "controller", "x": 91, "y": 78, "w": 37, "h": 50},
             )
             self.assertEqual(
                 blocks["key_map"],
-                {"name": "key_map", "x": 37, "y": 0, "w": 91, "h": 19},
+                {"name": "key_map", "x": 0, "y": 110, "w": 91, "h": 18},
             )
             self.assertEqual(
                 blocks["operation_feedback"],
-                {"name": "operation_feedback", "x": 37, "y": 19, "w": 91, "h": 6},
+                {"name": "operation_feedback", "x": 0, "y": 104, "w": 91, "h": 6},
             )
             self.assertEqual(
                 blocks["mission"],
-                {"name": "mission", "x": 37, "y": 25, "w": 91, "h": 26},
+                {"name": "mission", "x": 0, "y": 78, "w": 91, "h": 26},
             )
             self.assertEqual(
                 blocks["response"],
-                {"name": "response", "x": 0, "y": 51, "w": 128, "h": 77},
+                {"name": "response", "x": 0, "y": 0, "w": 128, "h": 78},
             )
             self.assertNotIn("core", blocks)
             self.assertEqual(guides["mission_left_line_width"], 2)

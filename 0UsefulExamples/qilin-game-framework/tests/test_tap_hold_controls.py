@@ -26,6 +26,7 @@ class TapHoldControlContractTest(unittest.TestCase):
                 definitions = source.count("function find_gate_depth(")
                 if preview_calls > definitions:
                     self.assertEqual(definitions, 1)
+                self.assertIn("local preview_color=5", source)
                 self.assertNotIn("hold z/o", source.lower())
                 self.assertNotIn(
                     "if result_ready and passed then\n    if btnp(5)", source

@@ -36,12 +36,12 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         self.assertEqual(self.project["num_qubits"], 4)
         self.assertEqual(self.project["circuit_depth"], 5)
         self.assertEqual(len(self.project["states"]), 16)
-        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (0, 0))
-        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (37, 0))
+        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (91, 78))
+        self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (0, 110))
         self.assertEqual(layout["key_map"]["color"], 6)
-        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (37, 25))
-        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (37, 19))
-        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 51))
+        self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (0, 78))
+        self.assertEqual((layout["operation_feedback"]["x"], layout["operation_feedback"]["y"]), (0, 104))
+        self.assertEqual((layout["response"]["x"], layout["response"]["y"]), (0, 0))
         self.assertEqual(layout["response"]["rooms"]["cols"], 4)
         self.assertEqual(layout["response"]["rooms"]["rows"], 4)
         self.assertEqual(
@@ -50,7 +50,7 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         )
         self.assertEqual(
             layout["mission"],
-            {"x": 37, "y": 25, "w": 91, "h": 26},
+            {"x": 0, "y": 78, "w": 91, "h": 26},
         )
 
     def test_schema_aliases_and_dimensions(self) -> None:
@@ -60,7 +60,7 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         self.assertEqual((grid["cell_w"], grid["cell_h"]), (7, 7))
         self.assertEqual(layout["controller"]["depth_index"]["text_y"], 1)
         self.assertFalse(layout["controller"]["depth_flow"]["enabled"])
-        self.assertEqual(layout["controller"]["h"], 51)
+        self.assertEqual(layout["controller"]["h"], 50)
         self.assertEqual(
             layout["controller"]["qubit_selector"]["style"], "pixel_caret"
         )
@@ -126,14 +126,15 @@ class HorizontalControllerLayoutTest(unittest.TestCase):
         layout = parse_project(source)["layout"]
         controller = layout["controller"]
         self.assertEqual(controller["orientation"], "horizontal")
-        self.assertEqual((controller["w"], controller["h"]), (50, 51))
-        self.assertEqual((layout["key_map"]["x"], layout["mission"]["x"]), (50, 50))
-        self.assertEqual((layout["key_map"]["y"], layout["key_map"]["h"]), (0, 19))
+        self.assertEqual((controller["x"], controller["y"]), (78, 78))
+        self.assertEqual((controller["w"], controller["h"]), (50, 50))
+        self.assertEqual((layout["key_map"]["x"], layout["mission"]["x"]), (0, 0))
+        self.assertEqual((layout["key_map"]["y"], layout["key_map"]["h"]), (110, 18))
         self.assertEqual(
             (layout["operation_feedback"]["y"], layout["mission"]["y"]),
-            (19, 25),
+            (104, 78),
         )
-        self.assertEqual((layout["response"]["y"], layout["response"]["h"]), (51, 77))
+        self.assertEqual((layout["response"]["y"], layout["response"]["h"]), (0, 78))
         self.assertEqual(controller["depth_index"]["col_pitch"], 9)
         self.assertEqual(controller["qubit_index"]["row_pitch"], 10)
 
@@ -152,27 +153,31 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
             with self.subTest(cartridge=cartridge.name):
                 layout = parse_project(cartridge.read_text(encoding="utf-8"))["layout"]
                 horizontal = layout["controller"].get("orientation") == "horizontal"
-                split_x = 50 if horizontal else 37
-                right_w = 128 - split_x
+                controller_w = 50 if horizontal else 37
+                left_w = 128 - controller_w
                 self.assertEqual(
                     (layout["controller"]["h"], layout["key_map"]["h"]),
-                    (51, 19),
+                    (50, 18),
                 )
                 self.assertEqual(
-                    (layout["key_map"]["x"], layout["key_map"]["w"]),
-                    (split_x, right_w),
+                    (layout["controller"]["x"], layout["controller"]["y"]),
+                    (left_w, 78),
+                )
+                self.assertEqual(
+                    (layout["key_map"]["x"], layout["key_map"]["y"], layout["key_map"]["w"]),
+                    (0, 110, left_w),
                 )
                 self.assertEqual(
                     (layout["operation_feedback"]["y"], layout["mission"]["y"]),
-                    (19, 25),
+                    (104, 78),
                 )
                 self.assertEqual(
                     (layout["mission"]["w"], layout["mission"]["h"]),
-                    (right_w, 26),
+                    (left_w, 26),
                 )
                 self.assertEqual(
                     (layout["response"]["y"], layout["response"]["h"]),
-                    (51, 77),
+                    (0, 78),
                 )
                 for child in ("title", "instruction", "feedback"):
                     self.assertNotIn(child, layout["mission"])

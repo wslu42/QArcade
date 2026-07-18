@@ -12,15 +12,19 @@ framework/qilin_game_framework_4Qv.p8
 `qilin_game_framework_4Qh.p8` is the optional horizontal 4Q variant.
 `reference/qilin.p8` is historical reference material only.
 
-## Current vertical 4Q contract
+## Current vertical 4Q Response-first contract
 
 ```text
-Controller:         (0,0),   37 x 51
-Key Map:            (37,0),  91 x 19
-Operation Feedback: (37,19), 91 x 6
-Mission:            (37,25), 91 x 26
-Response:           (0,51), 128 x 77
+Response:           (0,0),   128 x 78
+Mission:            (0,78),   91 x 26
+Operation Feedback: (0,104),  91 x 6
+Key Map:            (0,110),  91 x 18
+Controller:         (91,78),  37 x 50
 ```
+
+Response is deliberately first in the visual hierarchy and receives the full
+upper screen. The framework controls occupy the lower band: narrative and
+feedback are on the left, while the compact Controller anchors the right.
 
 The Controller contains four `7 x 7` qubit columns and five depths on an
 8-pixel pitch. Columns alternate colors 13 and 6; each qubit label uses its

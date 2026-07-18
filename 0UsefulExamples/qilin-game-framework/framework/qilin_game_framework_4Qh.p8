@@ -293,14 +293,14 @@ states={
 layout={
   controller={
     orientation="horizontal",
-    x=0,
-    y=0,
+    x=78,
+    y=78,
     w=50,
-    h=51,
+    h=50,
 
     grid={
       x=13,
-      y=3,
+      y=2,
       cell_w=8,
       cell_h=8,
       col_pitch=9,
@@ -309,64 +309,71 @@ layout={
 
     depth_index={
       x=15,
-      y=44,
-      col_pitch=9
-    },
-
-    depth_flow={
-      x=20,
-      y=44,
+      y=43,
       col_pitch=9
     },
 
     qubit_index={
       x=4,
-      y=5,
+      y=4,
       row_pitch=10
     },
 
     qubit_selector={
       x=1,
-      y=5,
-      row_pitch=10
+      y=4,
+      row_pitch=10,
+      w=2,
+      h=3,
+      style="pixel_caret"
     }
   },
 
   key_map={
-    x=50,
-    y=0,
+    x=0,
+    y=110,
     w=78,
-    h=19,
+    h=18,
+    color=6,
 
     items={
-      {text="❎ x",x=11,y=1},
-      {text="🅾️ h",x=43,y=1},
-      {text="❎+⬆️/⬇️ cx",x=11,y=9},
-      {text="⬅️ clr",x=11,y=17},
-      {text="➡️ run",x=43,y=17}
+      {text="❎",x=2,y=2},
+      {text="🅾️",x=25,y=2},
+      {text="➡️",x=54,y=2},
+      {text="❎⬆️/❎⬇️",x=2,y=10},
+      {text="⬅️",x=54,y=10}
+    },
+
+    control_examples={
+      color=13,
+      x={x=10,y=1},
+      h={x=33,y=1},
+      cx={control_x=34,target_x=42,y=9},
+      run={text="run",x=64,y=2},
+      clear={text="clr",x=64,y=10}
     }
   },
 
   operation_feedback={
-    x=50,
-    y=19,
+    x=0,
+    y=104,
     w=78,
     h=6
   },
 
   mission={
-    x=50,
-    y=25,
+    x=0,
+    y=78,
     w=78,
     h=26
   },
 
-  -- full response canvas: x=0..127, y=51..127.
+  -- full response canvas: x=0..127, y=0..77.
   response={
     x=0,
-    y=51,
+    y=0,
     w=128,
-    h=77,
+    h=78,
 
     rooms={
       x=2,
@@ -444,10 +451,10 @@ function qubit_busy(grid,q,d)
   return false
 end
 
--- 𝘧ind the first legal time slice from 𝘥1 to 𝘥3.
+-- 𝘧ind the first legal time slice from 𝘥1 to the final depth.
 -- 𝘹/𝘩 occupy one qubit. 𝘤𝘹 occupies both control and target.
 -- 𝘳eturn 0 when no legal depth exists; never shift old gates.
-function append_gate(grid,q,gate)
+function find_gate_depth(grid,q,gate)
   local target=-1
 
   if sub(gate,1,1)=="c" then
@@ -462,12 +469,17 @@ function append_gate(grid,q,gate)
     end
 
     if free then
-      grid[q+1][d]=gate
       return d
     end
   end
 
   return 0
+end
+
+function append_gate(grid,q,gate)
+  local d=find_gate_depth(grid,q,gate)
+  if d>0 then grid[q+1][d]=gate end
+  return d
 end
 
 -- 𝘤lear every operation involving the selected qubit, whether it is
@@ -817,7 +829,6 @@ function draw_circuit_vertical()
   local controller=layout.controller
   local grid_layout=controller.grid
   local depth_index=controller.depth_index
-  local depth_flow=controller.depth_flow
   local qubit_index=controller.qubit_index
   local qubit_selector=controller.qubit_selector
 
@@ -863,19 +874,6 @@ function draw_circuit_vertical()
         label_color
       )
     end
-  end
-
-  -- depth flow indicator
-  local depth_flow_x=controller_x+depth_flow.x
-  local depth_flow_y=controller_y+depth_flow.y
-
-  for visual_row=1,circuit_depth-1 do
-    local marker_y=
-      depth_flow_y+
-      visual_row*grid_layout.row_pitch+
-      depth_flow.gap_dy
-
-    print("^",depth_flow_x,marker_y,6)
   end
 
   -- controller grid + depth index
@@ -1005,15 +1003,6 @@ function draw_circuit()
       controller.x+controller.depth_index.x+
       (d-1)*controller.depth_index.col_pitch
     print(d,label_x,controller.y+controller.depth_index.y,6)
-    if d<circuit_depth then
-      local flow_x=
-        controller.x+controller.depth_flow.x+
-        (d-1)*controller.depth_flow.col_pitch
-      local flow_y=controller.y+controller.depth_flow.y+1
-      pset(flow_x,flow_y,6)
-      pset(flow_x+1,flow_y+1,6)
-      pset(flow_x,flow_y+2,6)
-    end
   end
 
   for d=1,circuit_depth do
@@ -1071,6 +1060,21 @@ function draw_circuit()
       end
     end
   end
+
+  -- preview the cnot that x release will commit.
+  if btn(5) and cx_moved and cx_target!=cx_control then
+    local gate="c"..cx_target
+    local d=find_gate_depth(grid,cx_control,gate)
+    if d>0 then
+      local preview_color=5
+      local x=grid_x+(d-1)*grid_layout.col_pitch
+      local control_y=grid_y+cx_control*grid_layout.row_pitch
+      local target_y=grid_y+cx_target*grid_layout.row_pitch
+      line(x+4,control_y+4,x+4,target_y+4,preview_color)
+      draw_control_dot(x,control_y,preview_color)
+      draw_target_plus(x,target_y,preview_color)
+    end
+  end
 end
 
 function print_centered_in_region(text,x,y,w,color)
@@ -1105,7 +1109,7 @@ function draw_prompt_line(text,color)
   )
 end
 
-function draw_status()
+function draw_mission()
   local mission=layout.mission
   local feedback={x=0,y=19,w=mission.w}
 
@@ -1184,7 +1188,6 @@ end
 
 function draw_key_hint()
   local key_map=layout.key_map
-
   local key_x=key_map.x
   local key_y=key_map.y
 
@@ -1193,9 +1196,20 @@ function draw_key_hint()
       item.text,
       key_x+item.x,
       key_y+item.y,
-      5
+      key_map.color
     )
   end
+
+  local examples=key_map.control_examples
+  local color=examples.color
+  draw_target_plus(key_x+examples.x.x,key_y+examples.x.y,color)
+  draw_h_gate(key_x+examples.h.x,key_y+examples.h.y,color)
+  print(examples.run.text,key_x+examples.run.x,key_y+examples.run.y,color)
+  print(examples.clear.text,key_x+examples.clear.x,key_y+examples.clear.y,color)
+  local cx=examples.cx
+  line(key_x+cx.control_x+3,key_y+cx.y+3,key_x+cx.target_x+3,key_y+cx.y+3,color)
+  draw_control_dot(key_x+cx.control_x,key_y+cx.y,color)
+  draw_target_plus(key_x+cx.target_x,key_y+cx.y,color)
 end
 
 function _draw()
@@ -1240,6 +1254,6 @@ function _draw()
   end
 
   draw_circuit()
-  draw_status()
+  draw_mission()
   draw_rooms()
 end

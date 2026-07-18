@@ -11,6 +11,11 @@ The default authoritative cartridge is `framework/qilin_game_framework_4Qv.p8`.
 Use `framework/qilin_game_framework_4Qh.p8` when the horizontal Controller
 orientation is explicitly selected.
 
+The authoritative screen allocation is Response-first: a `128 x 78` Response
+at the top, with Mission, Operation Feedback, Key Map, and Controller sharing
+the lower band. Do not restore the former Controller-first top region or the
+`y=51` Response arrangement in active variants or derived games.
+
 All active framework variants and future derived games use the framework-owned
 tap/hold control contract: tap X commits X on release; hold X plus the visual
 qubit axis selects a cyclic CNOT target and release commits it; tap O commits

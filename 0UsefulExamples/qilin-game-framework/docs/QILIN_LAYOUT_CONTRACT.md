@@ -27,13 +27,15 @@ output remains authoritative if a static preview differs.
 
 | Block | Origin | Size | Bounds |
 |---|---:|---:|---:|
-| Controller | `(0,0)` | `37 x 51` | `x=0..36, y=0..50` |
-| Key Map | `(37,0)` | `91 x 19` | `x=37..127, y=0..18` |
-| Operation Feedback | `(37,19)` | `91 x 6` | `x=37..127, y=19..24` |
-| Mission | `(37,25)` | `91 x 26` | `x=37..127, y=25..50` |
-| Response | `(0,51)` | `128 x 77` | `x=0..127, y=51..127` |
+| Response | `(0,0)` | `128 x 78` | `x=0..127, y=0..77` |
+| Mission | `(0,78)` | `91 x 26` | `x=0..90, y=78..103` |
+| Operation Feedback | `(0,104)` | `91 x 6` | `x=0..90, y=104..109` |
+| Key Map | `(0,110)` | `91 x 18` | `x=0..90, y=110..127` |
+| Controller | `(91,78)` | `37 x 50` | `x=91..127, y=78..127` |
 
-These five rectangles are the major guided-preview outlines.
+These five rectangles are the major guided-preview outlines. This is the
+Response-first configuration: the game-specific output owns the full upper
+screen, while framework controls share the lower band.
 
 ## Controller
 
@@ -42,7 +44,7 @@ These five rectangles are the major guided-preview outlines.
 ```lua
 grid={
   x=1,
-  y=2,
+  y=1,
   cell_w=6,
   cell_h=6,
   col_pitch=8,
@@ -56,20 +58,20 @@ both directions. Alternating column fills replace permanent cell borders.
 Effective columns:
 
 ```text
-q3 x=1..7
-q2 x=9..15
-q1 x=17..23
-q0 x=25..31
+q3 x=92..98
+q2 x=100..106
+q1 x=108..114
+q0 x=116..122
 ```
 
 Effective rows:
 
 ```text
-5 y=2..8
-4 y=10..16
-3 y=18..24
-2 y=26..32
-1 y=34..40
+5 y=79..85
+4 y=87..93
+3 y=95..101
+2 y=103..109
+1 y=111..117
 ```
 
 The old qubit-wire/time-flow arrow graphics were removed. Sequence is shown
@@ -87,13 +89,13 @@ is drawn; bottom-to-top ordering and the numeric labels communicate sequence.
 ### Qubit labels and selector
 
 ```text
-Qubit Index:    local (1,42)
-Qubit Selector: local (3,48), size 3 x 2, style pixel_caret
+Qubit Index:    local (1,41)
+Qubit Selector: local (3,47), size 3 x 2, style pixel_caret
 ```
 
-The selector is drawn with three pixels and ends at local y=49. Its explicit
+The selector is drawn with three pixels and ends at local y=48. Its explicit
 height replaces the former six-pixel font assumption. The Controller ends at
-y=50, leaving one bottom-padding row before the Response begins at y=51.
+screen y=127, using the full lower-right corner without crossing the screen.
 
 ### Grid drawing and highlights
 
@@ -105,8 +107,8 @@ H uses a compact code-drawn mark.
 ## Key Map
 
 ```text
-origin=(37,0)
-size=91 x 19
+origin=(0,110)
+size=91 x 18
 ```
 
 The Key Map is a top-level block, not a child of Controller. It holds the
@@ -139,7 +141,7 @@ printed `^`. Older text-caret layouts default to `w=4`, `h=6`, and
 ## Operation Feedback
 
 ```text
-origin=(37,19)
+origin=(0,104)
 size=91 x 6
 ```
 
@@ -149,7 +151,7 @@ separate from developer-owned Mission content.
 ## Mission
 
 ```text
-origin=(37,25)
+origin=(0,78)
 size=91 x 26
 ```
 
@@ -167,8 +169,8 @@ be modal so its confirm button does not also place a gate.
 ## Response
 
 ```text
-origin=(0,51)
-size=128 x 77
+origin=(0,0)
+size=128 x 78
 ```
 
 The Response uses a `4 x 4` room grid. Each room is `29 x 16` pixels with a
@@ -187,7 +189,7 @@ sixteen state labels are:
 
 `0UsefulExamples/photon_runner/photon_runner_4Qv.p8` is the tested reference
 for displaying all sixteen states as simultaneous horizontal lanes. A
-`128 x 77` Response with a 4-pixel lane pitch is usable, but is near the
+`128 x 78` Response with a 4-pixel lane pitch is usable, but is near the
 vertical density limit: labels, actors, collectibles, hazards, and collision
 geometry must all be designed for the same pitch.
 
@@ -207,8 +209,8 @@ not a replacement for every textual state reference.
 ### Compact five-depth Controller pattern
 
 All maintained vertical Qilin cartridges now use the authoritative 4Qv
-top-level allocation: a `37 x 51` Controller, 91-pixel right-side region, and
-`128 x 77` Response. Four-qubit variants contain four qubit columns and five
+Response-first allocation: a `128 x 78` upper Response, a 91-pixel lower-left
+region, and a `37 x 50` lower-right Controller. Four-qubit variants contain four qubit columns and five
 circuit depths; 3Q variants preserve the same outer allocation while drawing
 only their applicable qubit columns.
 
@@ -227,8 +229,8 @@ glyph and keeps the endpoint language consistent.
 
 Depth Index shows `5, 4, 3, 2, 1` in color 6. The former Depth Flow Indicator
 is omitted; bottom-to-top row order and the numeric index already communicate
-sequence. This permits five depths within the same 51-pixel top region while
-keeping the qubit labels and selector below the grid.
+sequence. This permits five depths within the 50-pixel lower-right Controller
+while keeping the qubit labels and selector below the grid.
 
 The vertical variants use an explicit 3-by-2 pixel caret. Compactness comes
 from dedicated glyphs, shared symbols, gutters, and selective state
@@ -238,9 +240,9 @@ highlighting rather than from shrinking the CNOT endpoints below legibility.
 
 `framework/qilin_game_framework_4Qh.p8` uses a rotated Controller while
 preserving the same simulator, queue, controls, Mission, and 16-room Response.
-Its Controller is `50 x 51`; Key Map, Operation Feedback, and Mission begin at
-`x=50`, while the shared horizontal bands use heights `19`, `6`, and `26` and
-Response begins at `y=51`. Circuit depths `1>2>3>4` run left-to-right along the bottom, and qubit
+Its Controller is `50 x 50` at `(78,78)`; Mission, Operation Feedback, and Key
+Map occupy the 78-pixel lower-left column at y=`78`, `104`, and `110`.
+Response remains the shared `128 x 78` upper canvas. Circuit depths `1>2>3>4` run left-to-right along the bottom, and qubit
 labels `q0 q1 q2 q3` run top-to-bottom along the left side.
 
 The vertical and horizontal cartridges are separate source variants. Derived

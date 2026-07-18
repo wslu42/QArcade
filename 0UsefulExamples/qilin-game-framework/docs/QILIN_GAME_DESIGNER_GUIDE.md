@@ -14,19 +14,23 @@ You do **not** need to redesign everything from scratch.
 
 ## High-Level Concept
 
-A Qilin-based game has five official top-level layout blocks:
+A Qilin-based game has five official top-level layout blocks, presented in
+Response-first visual order:
 
-1. **Controller**
-2. **Key Map**
+1. **Response**
+2. **Mission**
 3. **Operation Feedback**
-4. **Mission**
-5. **Response**
+4. **Key Map**
+5. **Controller**
 
 The design philosophy is:
 
-- the **Controller** is the stable quantum input tool;
-- the **Mission** explains what the player should do;
-- the **Response** is the main game output space.
+- the **Response** is the primary `128 x 78` game output canvas at the top;
+- the **Mission** explains what the player should do in the lower-left;
+- the **Controller** is the stable quantum input tool in the lower-right.
+
+This hierarchy gives the game consequence more space and makes the quantum
+controls a compact instrument rather than the dominant screen content.
 
 ---
 

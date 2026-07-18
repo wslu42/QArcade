@@ -20,6 +20,7 @@ from render_core import render_source as render_source_without_guides
 
 GUIDED_RENDERER_VERSION = "3.8.0-controller-schema-promotion"
 GUIDE_COLOR_INDEX = 13
+LABEL_COLOR_INDEX = 7
 OUTPUT_LINE_WIDTH = 1
 LABEL_PADDING_X = 3
 LABEL_PADDING_Y = 2
@@ -143,7 +144,8 @@ def _add_output_layout_guides(
     if image.mode != "RGBA":
         raise ValueError("Guide rendering expects an RGBA image")
     draw = ImageDraw.Draw(image)
-    text_color = PICO8_PALETTE[GUIDE_COLOR_INDEX]
+    guide_color = PICO8_PALETTE[GUIDE_COLOR_INDEX]
+    text_color = PICO8_PALETTE[LABEL_COLOR_INDEX]
     for block in blocks:
         box = _draw_output_box(
             draw,
@@ -160,7 +162,7 @@ def _add_output_layout_guides(
         if str(block["name"]) == "mission":
             draw.line(
                 (left, top, left, bottom),
-                fill=text_color,
+                fill=guide_color,
                 width=MISSION_LEFT_LINE_WIDTH,
             )
         label_x = left + LABEL_PADDING_X
@@ -236,6 +238,7 @@ class GuidedRenderSession(render_preview.RenderSession):
             "effective_native_line_width": OUTPUT_LINE_WIDTH / self.scale,
             "native_preview_contains_guides": False,
             "color_index": GUIDE_COLOR_INDEX,
+            "label_color_index": LABEL_COLOR_INDEX,
             "blocks": blocks,
         }
         metadata.update({

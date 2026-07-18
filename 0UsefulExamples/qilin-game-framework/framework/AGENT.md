@@ -85,14 +85,14 @@ matter. The five official top-level blocks are:
 
 | Block | Bounds |
 |---|---|
-| Controller | `x=0..36, y=0..50` |
-| Key Map | `x=37..127, y=0..18` |
-| Operation Feedback | `x=37..127, y=19..24` |
-| Mission | `x=37..127, y=25..50` |
-| Response | `x=0..127, y=51..127` |
+| Response | `x=0..127, y=0..77` |
+| Mission | `x=0..90, y=78..103` |
+| Operation Feedback | `x=0..90, y=104..109` |
+| Key Map | `x=0..90, y=110..127` |
+| Controller | `x=91..127, y=78..127` |
 
 The Controller is compact and highly structured. Response is the main
-creative canvas, with the full 128-pixel width and 74 pixels of height. It
+creative canvas, with the full 128-pixel width and 78 pixels of height. It
 should show a meaningful consequence of measurement instead of repeating
 information already visible in the Controller.
 
