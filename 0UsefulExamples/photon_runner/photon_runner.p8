@@ -298,27 +298,27 @@ layout={
 
     grid={
       x=1,
-      y=3,
-      cell_w=8,
-      cell_h=8,
-      col_pitch=10,
-      row_pitch=9
+      y=1,
+      cell_w=6,
+      cell_h=6,
+      col_pitch=8,
+      row_pitch=8
     },
 
     depth_index={
-      x=31,
-      y=3,
-      text_dy=2
+      x=26,
+      y=2,
+      text_dy=1
     },
 
     qubit_index={
-      x=2,
-      y=40
+      x=1,
+      y=41
     },
 
     qubit_selector={
-      x=4,
-      y=46,
+      x=3,
+      y=47,
       w=3,
       h=2,
       style="pixel_caret"
@@ -702,13 +702,13 @@ function cx_control_for(q,d)
 end
 
 function draw_control_dot(x,y,color)
-  circfill(x+4,y+4,2,color)
+  circfill(x+3,y+3,2,color)
 end
 
 function draw_target_plus(x,y,color)
-  circ(x+4,y+4,2,color)
-  line(x+2,y+4,x+6,y+4,color)
-  line(x+4,y+2,x+4,y+6,color)
+  circ(x+3,y+3,2,color)
+  line(x+1,y+3,x+5,y+3,color)
+  line(x+3,y+1,x+3,y+5,color)
 end
 
 function draw_h_gate(x,y,color)
@@ -999,7 +999,7 @@ function draw_circuit()
       (q==blocked_q or q==blocked_target)
     )
     local label="q"..q
-    local label_color=6
+    local label_color=visual_col%2==0 and 13 or 6
 
     if selected then
       label_color=10
@@ -1052,44 +1052,15 @@ function draw_circuit()
       local incoming=cx_control_for(q,d)
       local is_control=(target>=0)
       local is_target=(incoming>=0)
-      local fresh_target=cx_target_of(fresh_gate)
-
-      local is_fresh_pair=(
-        fresh_timer>0 and
-        d==fresh_d and
-        fresh_target>=0 and
-        (q==fresh_q or q==fresh_target)
-      )
-
-      local is_fresh_single=(
-        fresh_timer>0 and
-        d==fresh_d and
-        q==fresh_q and
-        fresh_target<0
-      )
-
       local symbol_color=1
-      local border_color=1
-
-      if is_fresh_pair or is_fresh_single then
-        symbol_color=13
-        border_color=13
-      end
+      local cell_color=visual_col%2==0 and 13 or 6
 
       rectfill(
         x,
         y,
         x+grid_layout.cell_w,
         y+grid_layout.cell_h,
-        6
-      )
-
-      rect(
-        x,
-        y,
-        x+grid_layout.cell_w,
-        y+grid_layout.cell_h,
-        border_color
+        cell_color
       )
 
       if is_control then
@@ -1097,12 +1068,10 @@ function draw_circuit()
       elseif is_target then
         draw_target_plus(x,y,symbol_color)
       else
-        local shown=gate_label(gate)
-
-        if shown!="-" then
-          local text_x=x+3
-          if #shown>1 then text_x=x+1 end
-          print(shown,text_x,y+2,symbol_color)
+        if gate=="x" then
+          draw_target_plus(x,y,symbol_color)
+        elseif gate=="h" then
+          draw_h_gate(x,y,symbol_color)
         end
       end
 
@@ -1118,19 +1087,9 @@ function draw_circuit()
           (num_qubits-1-control)*grid_layout.col_pitch
         local target_x=grid_x+
           (num_qubits-1-target)*grid_layout.col_pitch
-        local color=1
-
-        if (
-          fresh_timer>0 and
-          d==fresh_d and
-          control==fresh_q
-        ) then
-          color=13
-        end
-
-        line(control_x+4,y+4,target_x+4,y+4,color)
-        draw_control_dot(control_x,y,color)
-        draw_target_plus(target_x,y,color)
+        line(control_x+3,y+3,target_x+3,y+3,1)
+        draw_control_dot(control_x,y,1)
+        draw_target_plus(target_x,y,1)
       end
     end
   end
@@ -1149,7 +1108,7 @@ function draw_circuit()
       local target_x=grid_x+
         (num_qubits-1-cx_target)*grid_layout.col_pitch
 
-      line(control_x+4,y+4,target_x+4,y+4,preview_color)
+      line(control_x+3,y+3,target_x+3,y+3,preview_color)
       draw_control_dot(control_x,y,preview_color)
       draw_target_plus(target_x,y,preview_color)
     end

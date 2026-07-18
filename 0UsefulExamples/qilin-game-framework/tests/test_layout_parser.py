@@ -140,6 +140,21 @@ class HorizontalControllerLayoutTest(unittest.TestCase):
 
 
 class LayoutSourceOfTruthTest(unittest.TestCase):
+    def test_photon_3q_uses_authoritative_compact_controller(self) -> None:
+        framework = parse_project(
+            (ROOT / "framework" / "qilin_game_framework_3Qv.p8").read_text(
+                encoding="utf-8"
+            )
+        )["layout"]["controller"]
+        photon = parse_project(
+            (ROOT.parent / "photon_runner" / "photon_runner.p8").read_text(
+                encoding="utf-8"
+            )
+        )["layout"]["controller"]
+
+        for key in ("grid", "depth_index", "qubit_index", "qubit_selector"):
+            self.assertEqual(photon[key], framework[key])
+
     def test_all_maintained_qilin_cartridges_share_top_level_bands(self) -> None:
         cartridges = [
             ROOT / "framework" / "qilin_game_framework_4Qv.p8",
