@@ -22,6 +22,57 @@ def make_font_header(path: Path) -> None:
 
 
 class GuidedOutputTest(unittest.TestCase):
+    def test_pvp_preview_uses_two_controllers_and_clears_lower_center(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            temp = Path(raw)
+            font = temp / "pico_font.h"
+            scaled_path = temp / "pvp.png"
+            native_path = temp / "pvp_128x128.png"
+            metadata_path = temp / "pvp.json"
+            make_font_header(font)
+
+            command = [
+                sys.executable,
+                str(ROOT / "tools" / "render_preview_guided.py"),
+                str(ROOT / "framework" / "qilin_game_framework_3Qv_pvp.p8"),
+                "-o",
+                str(scaled_path),
+                "--native-output",
+                str(native_path),
+                "--metadata-output",
+                str(metadata_path),
+                "--font-header",
+                str(font),
+                "--cache-file",
+                str(temp / "cache.json"),
+                "--no-font-download",
+            ]
+            subprocess.run(command, check=True, text=True, capture_output=True)
+
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            blocks = {
+                block["name"]: block
+                for block in metadata["layout_guides"]["blocks"]
+            }
+            self.assertEqual(
+                set(blocks),
+                {"controller_left", "controller_p2", "key_map", "response"},
+            )
+            self.assertEqual(
+                blocks["controller_left"],
+                {"name": "controller_left", "x": 0, "y": 94, "w": 29, "h": 34},
+            )
+            self.assertEqual(
+                blocks["controller_p2"],
+                {"name": "controller_p2", "x": 99, "y": 94, "w": 29, "h": 34},
+            )
+            self.assertEqual(
+                blocks["key_map"],
+                {"name": "key_map", "x": 29, "y": 94, "w": 70, "h": 34},
+            )
+            with Image.open(native_path) as native:
+                self.assertEqual(native.getpixel((64, 100))[:3], (0, 0, 0))
+
     def test_guides_exist_only_on_scaled_output(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             temp = Path(raw)
@@ -105,19 +156,19 @@ class GuidedOutputTest(unittest.TestCase):
             blocks = {block["name"]: block for block in guides["blocks"]}
             self.assertEqual(
                 blocks["controller"],
-                {"name": "controller", "x": 91, "y": 78, "w": 37, "h": 50},
+                {"name": "controller", "x": 86, "y": 78, "w": 42, "h": 50},
             )
             self.assertEqual(
                 blocks["key_map"],
-                {"name": "key_map", "x": 0, "y": 110, "w": 91, "h": 18},
+                {"name": "key_map", "x": 0, "y": 110, "w": 86, "h": 18},
             )
             self.assertEqual(
                 blocks["operation_feedback"],
-                {"name": "operation_feedback", "x": 0, "y": 104, "w": 91, "h": 6},
+                {"name": "operation_feedback", "x": 0, "y": 104, "w": 86, "h": 6},
             )
             self.assertEqual(
                 blocks["mission"],
-                {"name": "mission", "x": 0, "y": 78, "w": 91, "h": 26},
+                {"name": "mission", "x": 0, "y": 78, "w": 86, "h": 26},
             )
             self.assertEqual(
                 blocks["response"],

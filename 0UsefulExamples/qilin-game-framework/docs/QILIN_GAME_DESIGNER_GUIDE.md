@@ -29,8 +29,19 @@ The design philosophy is:
 - the **Mission** explains what the player should do in the lower-left;
 - the **Controller** is the stable quantum input tool in the lower-right.
 
+The maintained framework variants share an `86:42` lower-band split: Mission,
+Operation Feedback, and Key Map use the 86-pixel left column, while a
+`42 x 50` Controller shell is anchored at `(86,78)`.
+
 This hierarchy gives the game consequence more space and makes the quantum
 controls a compact instrument rather than the dominant screen content.
+
+The maintained `qilin_game_framework_3Qv_pvp.p8` is a deliberate multiplayer
+specialization rather than a sixth single-player block arrangement. It gives
+Response `128 x 94` pixels, then divides the final 34 rows into P1 Controller
+`29 x 34`, Key Map `70 x 34`, and P2 Controller `29 x 34`. Mission and
+Operation Feedback are not drawn in that shell. See
+[Qilin 3Qv PVP Contract](QILIN_3QV_PVP_CONTRACT.md).
 
 ---
 
@@ -66,6 +77,8 @@ Normally it should remain conceptually stable:
 - qubit/depth interaction stays recognizable;
 - the Key Map stays understandable;
 - the designer does not have to rewrite the quantum input engine for every new game.
+- each level or game restart begins with internal q0 selected, even when q0
+  appears at a different visual edge in another orientation.
 
 ## 1.2 Layout names stay stable
 Use the official names from `QILIN_LAYOUT_CONTRACT.md`.
@@ -111,6 +124,10 @@ Think of the Response as the place where quantum state affects gameplay.
 
 # 3. How to think about the controller
 
+The canonical context-by-context control allocation is
+[`QILIN_RESERVED_INPUT_MATRIX.md`](QILIN_RESERVED_INPUT_MATRIX.md). Use that
+table when assigning Classical actions or modal controls.
+
 The Controller should be treated as a **quantum controller**, not just a circuit composer.
 
 That means the player is not editing a circuit for its own sake.
@@ -143,6 +160,35 @@ for X. UI should therefore use PICO-8 O/X glyphs while a README may clarify
 the common Z/X keyboard keys. Experimental devkit keyboard or mouse input is
 optional only. See the [official PICO-8 Input documentation](https://www.lexaloffle.com/dl/docs/pico-8_manual.html#Input).
 
+For a genuine PVP game, keep separate state and call `btn/btnp(b,0)` for P1
+and `btn/btnp(b,1)` for P2. Suggested QWERTY arrangements belong in player
+documentation or PICO-8 `KEYCONFIG`, not in cartridge logic: the cartridge
+must continue to describe controls using the six portable button glyphs.
+Raw/devkit keyboard input may be an optional fallback, but must not be required
+or replace standard Controller input. Shared dialogue, completion, and handoff
+owners must consume both players' input and wait until both players release
+all standard buttons before gameplay resumes. The canonical details are in
+the [Reserved Input Matrix](QILIN_RESERVED_INPUT_MATRIX.md).
+
+For two players sharing a QWERTY keyboard, the framework-recommended
+`KEYCONFIG` preset is:
+
+| Player | Directions | O | X |
+|---|---|---|---|
+| P1 (`player_index=0`) | WASD | F | G |
+| P2 (`player_index=1`) | Arrow keys | K | L |
+
+The left/right separation reduces hand collisions, and adjacent F/G and K/L
+make the reserved O+X chord practical. This is documentation for host setup,
+not a reason to poll those letters directly in the cartridge.
+
+The maintained PVP cartridge demonstrates the portable implementation:
+independent three-qubit/three-depth grids and pending input state are read
+through player indices 0 and 1. Its compact center Key Map shows P1 button
+symbols alongside short P2 default-keyboard hints, then draws the same X, H,
+and CNOT notation used inside both Controllers. Those artwork hints do not
+override the recommended `KEYCONFIG` preset above.
+
 All button combinations are accepted, but opposite D-pad directions are not
 generally possible on physical controllers. Avoid requiring two simultaneous
 directions. A face button plus one direction is portable and normally uses
@@ -162,16 +208,32 @@ surfaces and keep the CNOT endpoint meanings consistent.
 
 ## 3.2 Modal input and dialogue
 
+### Existing DTB option
+
+The historical cartridge at `reference/qilin.p8` includes Oli414's Dialogue
+Text Box (DTB) library. Agents designing a derived game should know this option
+exists and proactively evaluate it whenever dialogue, tutorials, character
+speech, or story beats would help; a human developer does not need to ask for
+DTB explicitly.
+
+DTB is an optional implementation starting point, not part of the mandatory
+Controller shell and not drop-in code for the current layout. Before using it,
+adapt its fixed screen coordinates and 29-character wrap width to
+`layout.mission`, clip drawing to the Mission rectangle, and expose active and
+release-handoff states through the modal input dispatcher. A simpler custom
+dialogue implementation remains valid when it better fits the game.
+
 Dialogue and overlays must own input while they are active. Each frame has one
 owner, using this priority:
 
 ```text
-completion > modal (including dialogue) > controller
+completion > modal > handoff > O+X mode chord > controller
 ```
 
-This makes contextual button reuse safe. Right can advance dialogue while the
-dialogue is visible, but remains qubit navigation during normal vertical
-Controller play. It does not become a second global action for Right.
+PICO-8 O is the standard dialogue confirm/advance input, exposed by
+`modal_confirm_pressed()`. Right remains Controller navigation during normal
+vertical play; a game may use it for modal navigation, but not as the default
+dialogue advance action.
 
 Route input through one dispatcher and return immediately after updating the
 active completion screen or modal. Do not let dialogue and Controller code
@@ -183,6 +245,37 @@ moving the cursor or participating in X + Right CNOT targeting.
 A dialogue adapter should therefore expose at least an active state and a
 release-handoff state. Its exact implementation is game-owned, but it must not
 alter the framework-owned tap X / hold X / tap O gate controls.
+
+The maintained framework already supplies the shared dispatcher and two
+game-owned extension hooks: extend `modal_input_active()` / `update_modal_input()`
+for dialogue, and implement `request_control_mode_switch()` only when the game
+has both traditional and quantum control modes. Runtime ownership is:
+
+```text
+completion > modal > handoff > O+X mode chord > controller
+```
+
+O+X is latched as soon as both face buttons are held, cancels pending gate
+input, and invokes the switch hook only after both buttons are released. Modal
+input has higher priority, so dialogue can use either face button without
+accidentally switching modes or placing a gate.
+
+### Classical-mode face-button safety
+
+Classical gameplay keeps standalone O and X available for game-specific
+actions; only the O+X chord is framework-reserved. This creates an ambiguity
+if a game performs an irreversible action immediately when the first face
+button is pressed, because the player may press the second button a frame later
+to request a mode switch.
+
+Use one of these chord-safe patterns:
+
+- confirm standalone O/X actions on release; or
+- let press create only a pending, cancellable action.
+
+If O+X is detected in either order, cancel both pending single-button actions
+and switch modes only after both buttons are released. This is the same
+release-confirmed principle used by the Quantum Controller's gate input.
 
 ---
 

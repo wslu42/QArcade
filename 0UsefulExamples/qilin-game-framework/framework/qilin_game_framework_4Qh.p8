@@ -294,38 +294,38 @@ layout={
   controller={
     orientation="horizontal",
     anchor="bottom_right",
-    x=78,
+    x=86,
     y=78,
-    w=50,
+    w=42,
     h=50,
 
     grid={
-      x=13,
-      y=2,
-      cell_w=8,
-      cell_h=8,
-      col_pitch=9,
-      row_pitch=10
+      x=10,
+      y=11,
+      cell_w=6,
+      cell_h=6,
+      col_pitch=8,
+      row_pitch=8
     },
 
     depth_index={
-      x=15,
+      x=12,
       y=43,
-      col_pitch=9
+      col_pitch=8
     },
 
     qubit_index={
-      x=4,
-      y=4,
-      row_pitch=10
+      x=1,
+      y=12,
+      row_pitch=8
     },
 
     qubit_selector={
-      x=1,
-      y=4,
-      row_pitch=10,
-      w=2,
-      h=3,
+      x=3,
+      y=17,
+      row_pitch=8,
+      w=3,
+      h=2,
       style="pixel_caret"
     }
   },
@@ -333,39 +333,39 @@ layout={
   key_map={
     x=0,
     y=110,
-    w=78,
+    w=86,
     h=18,
     color=6,
 
     items={
       {text="❎",x=2,y=2},
-      {text="🅾️",x=25,y=2},
-      {text="➡️",x=54,y=2},
+      {text="🅾️",x=30,y=2},
+      {text="➡️",x=59,y=2},
       {text="❎⬆️/❎⬇️",x=2,y=10},
-      {text="⬅️",x=54,y=10}
+      {text="⬅️",x=59,y=10}
     },
 
     control_examples={
       color=13,
       x={x=10,y=1},
-      h={x=33,y=1},
-      cx={control_x=34,target_x=42,y=9},
-      run={text="run",x=64,y=2},
-      clear={text="clr",x=64,y=10}
+      h={x=39,y=1},
+      cx={control_x=39,target_x=47,y=9},
+      run={text="run",x=69,y=2},
+      clear={text="clr",x=69,y=10}
     }
   },
 
   operation_feedback={
     x=0,
     y=104,
-    w=78,
+    w=86,
     h=6
   },
 
   mission={
     x=0,
     y=78,
-    w=78,
+    w=86,
     h=26
   },
 
@@ -548,7 +548,7 @@ end
 -- mission text is supplied by each level below.
 
 -- target counts must add up to 16.
--- state strings are q2 q1 q0.
+-- state strings are q3 q2 q1 q0.
 levels={
   {
     name="1 address",
@@ -585,7 +585,7 @@ function load_level(index)
   level=levels[level_index]
   grid=blank_grid()
   counts=blank_counts()
-  cursor_q=2
+  cursor_q=0
   fresh_q=-1
   fresh_d=0
   fresh_gate=""
@@ -606,6 +606,8 @@ function load_level(index)
   cx_target=-1
   cx_moved=false
   h_q=-1
+  input_handoff=false
+  mode_chord=false
 end
 
 function measure_circuit()
@@ -679,13 +681,13 @@ function cx_control_for(q,d)
 end
 
 function draw_control_dot(x,y,color)
-  circfill(x+4,y+4,1,color)
+  circfill(x+3,y+3,2,color)
 end
 
 function draw_target_plus(x,y,color)
-  circ(x+4,y+4,2,color)
-  line(x+2,y+4,x+6,y+4,color)
-  line(x+4,y+2,x+4,y+6,color)
+  circ(x+3,y+3,2,color)
+  line(x+1,y+3,x+5,y+3,color)
+  line(x+3,y+1,x+3,y+5,color)
 end
 
 function draw_h_gate(x,y,color)
@@ -729,6 +731,85 @@ function try_add_gate(q,gate)
   return false
 end
 
+function cancel_controller_input()
+  cx_control=-1
+  cx_target=-1
+  cx_moved=false
+  h_q=-1
+end
+
+function standard_buttons_up()
+  for b=0,5 do
+    if btn(b) then return false end
+  end
+  return true
+end
+
+function begin_input_handoff()
+  cancel_controller_input()
+  input_handoff=true
+end
+
+function update_input_handoff()
+  cancel_controller_input()
+  if standard_buttons_up() then
+    input_handoff=false
+    x_was_down=false
+    z_was_down=false
+    up_was_down=false
+    down_was_down=false
+  end
+end
+
+-- game-owned modal hook. extend this with dialogue or overlays.
+function modal_confirm_pressed()
+  return btnp(4)
+end
+
+function modal_input_active()
+  return result_ready and passed
+end
+
+function update_modal_input()
+  if btnp(1) then
+    advance_level()
+    begin_input_handoff()
+  elseif modal_confirm_pressed() then
+    edit_circuit()
+    begin_input_handoff()
+  end
+end
+
+-- game-owned hook for a future traditional/quantum mode switch.
+function request_control_mode_switch()
+end
+
+function update_mode_chord()
+  if btn(4) and btn(5) then
+    mode_chord=true
+    cancel_controller_input()
+  end
+
+  if mode_chord then
+    cancel_controller_input()
+    if not btn(4) and not btn(5) then
+      mode_chord=false
+      request_control_mode_switch()
+      begin_input_handoff()
+    end
+  end
+end
+
+function active_input_owner()
+  if game_complete then return "completion" end
+  if modal_input_active() then return "modal" end
+  if input_handoff then return "handoff" end
+  if mode_chord or (btn(4) and btn(5)) then
+    return "mode_chord"
+  end
+  return "controller"
+end
+
 function _init()
   game_complete=false
   load_level(1)
@@ -738,20 +819,23 @@ function _update()
   if (fresh_timer>0) fresh_timer-=1
   if (blocked_timer>0) blocked_timer-=1
 
-  if game_complete then
-    if btnp(4) then
+  local owner=active_input_owner()
+
+  if owner=="completion" then
+    if modal_confirm_pressed() then
       game_complete=false
       load_level(1)
+      begin_input_handoff()
     end
     return
-  end
-
-  if result_ready and passed then
-    if btnp(1) then
-      advance_level()
-    elseif btnp(4) then
-      edit_circuit()
-    end
+  elseif owner=="modal" then
+    update_modal_input()
+    return
+  elseif owner=="handoff" then
+    update_input_handoff()
+    return
+  elseif owner=="mode_chord" then
+    update_mode_chord()
     return
   end
 
@@ -776,17 +860,17 @@ function _update()
 
   if x_down then
     if up_pressed then
-      cx_target=(cx_target-1)%num_qubits
+      cx_target=(cx_target+1)%num_qubits
       cx_moved=true
     elseif down_pressed then
-      cx_target=(cx_target+1)%num_qubits
+      cx_target=(cx_target-1)%num_qubits
       cx_moved=true
     end
   else
     if up_pressed then
-      cursor_q=mid(0,cursor_q-1,num_qubits-1)
-    elseif down_pressed then
       cursor_q=mid(0,cursor_q+1,num_qubits-1)
+    elseif down_pressed then
+      cursor_q=mid(0,cursor_q-1,num_qubits-1)
     end
   end
 
@@ -970,26 +1054,27 @@ end
 function draw_circuit()
   local controller=layout.controller
   local grid_layout=controller.grid
-  local border_color=1
   local grid_x=controller.x+grid_layout.x
   local grid_y=controller.y+grid_layout.y
 
-  -- qubits run top-to-bottom as q0, q1, q2, q3.
-  for q=0,num_qubits-1 do
-    local y=grid_y+q*grid_layout.row_pitch
+  -- qubits run top-to-bottom as q3, q2, q1, q0.
+  for visual_row=0,num_qubits-1 do
+    local q=num_qubits-1-visual_row
+    local y=grid_y+visual_row*grid_layout.row_pitch
     local selected=(q==cursor_q)
     local blocked=(
       blocked_timer>0 and
       (q==blocked_q or q==blocked_target)
     )
-    local color=selected and 10 or 6
+    local color=visual_row%2==0 and 13 or 6
+    if selected then color=10 end
     if blocked then color=8 end
 
     print(
       "q"..q,
       controller.x+controller.qubit_index.x,
       controller.y+controller.qubit_index.y+
-        q*controller.qubit_index.row_pitch,
+        visual_row*controller.qubit_index.row_pitch,
       color
     )
 
@@ -997,10 +1082,10 @@ function draw_circuit()
       local selector_x=controller.x+controller.qubit_selector.x
       local selector_y=
         controller.y+controller.qubit_selector.y+
-        q*controller.qubit_selector.row_pitch+1
-      pset(selector_x,selector_y,color)
-      pset(selector_x+1,selector_y+1,color)
-      pset(selector_x,selector_y+2,color)
+        visual_row*controller.qubit_selector.row_pitch
+      pset(selector_x+1,selector_y,color)
+      pset(selector_x,selector_y+1,color)
+      pset(selector_x+2,selector_y+1,color)
     end
   end
 
@@ -1015,27 +1100,10 @@ function draw_circuit()
   for d=1,circuit_depth do
     local x=grid_x+(d-1)*grid_layout.col_pitch
 
-    -- connect each cx control/target pair before drawing its cells.
-    for control=0,num_qubits-1 do
-      local gate=grid[control+1][d]
-      local target=cx_target_of(gate)
-      if target>=0 then
-        local color=1
-        if fresh_timer>0 and d==fresh_d and control==fresh_q then
-          color=13
-        end
-        line(
-          x+4,
-          grid_y+control*grid_layout.row_pitch+4,
-          x+4,
-          grid_y+target*grid_layout.row_pitch+4,
-          color
-        )
-      end
-    end
-
-    for q=0,num_qubits-1 do
-      local y=grid_y+q*grid_layout.row_pitch
+    for visual_row=0,num_qubits-1 do
+      local q=num_qubits-1-visual_row
+      local y=grid_y+visual_row*grid_layout.row_pitch
+      local visual_col=visual_row
       local gate=grid[q+1][d]
       local target=cx_target_of(gate)
       local incoming=cx_control_for(q,d)
@@ -1044,26 +1112,46 @@ function draw_circuit()
         fresh_timer>0 and d==fresh_d and
         (q==fresh_q or q==fresh_target)
       )
-      local color=fresh and 13 or border_color
+      local symbol_color=fresh and 13 or 1
+      local cell_color=visual_col%2==0 and 13 or 6
 
       rectfill(
         x,
         y,
         x+grid_layout.cell_w,
         y+grid_layout.cell_h,
-        6
+        cell_color
       )
-      rect(x,y,x+grid_layout.cell_w,y+grid_layout.cell_h,color)
 
       if target>=0 then
-        draw_control_dot(x,y,color)
+        draw_control_dot(x,y,symbol_color)
       elseif incoming>=0 then
-        draw_target_plus(x,y,color)
+        draw_target_plus(x,y,symbol_color)
       else
-        local shown=gate_label(gate)
-        if shown!="-" then
-          print(shown,x+3,y+2,color)
+        if gate=="x" then
+          draw_target_plus(x,y,symbol_color)
+        elseif gate=="h" then
+          draw_h_gate(x,y,symbol_color)
         end
+      end
+    end
+
+    -- connect committed cnots across qubit rows.
+    for control=0,num_qubits-1 do
+      local gate=grid[control+1][d]
+      local target=cx_target_of(gate)
+      if target>=0 then
+        local color=1
+        if fresh_timer>0 and d==fresh_d and control==fresh_q then
+          color=13
+        end
+        local control_y=grid_y+
+          (num_qubits-1-control)*grid_layout.row_pitch
+        local target_y=grid_y+
+          (num_qubits-1-target)*grid_layout.row_pitch
+        line(x+3,control_y+3,x+3,target_y+3,color)
+        draw_control_dot(x,control_y,color)
+        draw_target_plus(x,target_y,color)
       end
     end
   end
@@ -1075,9 +1163,11 @@ function draw_circuit()
     if d>0 then
       local preview_color=7
       local x=grid_x+(d-1)*grid_layout.col_pitch
-      local control_y=grid_y+cx_control*grid_layout.row_pitch
-      local target_y=grid_y+cx_target*grid_layout.row_pitch
-      line(x+4,control_y+4,x+4,target_y+4,preview_color)
+      local control_y=grid_y+
+        (num_qubits-1-cx_control)*grid_layout.row_pitch
+      local target_y=grid_y+
+        (num_qubits-1-cx_target)*grid_layout.row_pitch
+      line(x+3,control_y+3,x+3,target_y+3,preview_color)
       draw_control_dot(x,control_y,preview_color)
       draw_target_plus(x,target_y,preview_color)
     end

@@ -23,10 +23,30 @@ axis, Up for Run, and Down for Clear. Horizontal layouts rotate those
 directions. Future derived games inherit this contract unless a task explicitly
 requires a different control system.
 
+See [`docs/QILIN_RESERVED_INPUT_MATRIX.md`](docs/QILIN_RESERVED_INPUT_MATRIX.md)
+for the canonical table covering completion, dialogue, O+X mode switching,
+Quantum Controller, Classical gameplay, and handoff contexts.
+
+Controller initialization always selects internal `q0` (`cursor_q=0`),
+regardless of whether q0 is drawn as the rightmost column or bottom row.
+
 Input is modal when dialogue or an overlay is active. Exactly one owner handles
-buttons per frame, using `completion > modal (including dialogue) > controller`.
+buttons per frame, using
+`completion > modal > handoff > O+X mode chord > controller`.
 Closing a modal requires a release handoff before Controller input resumes, so
 one press cannot both close dialogue and move or edit the circuit.
+PICO-8 O (`btnp(4)`) is the standard dialogue confirm/advance button through
+the shared `modal_confirm_pressed()` helper; Right is not the default advance
+action.
+
+The framework variants implement the expanded runtime dispatcher
+`completion > modal > handoff > O+X mode chord > controller`. O+X is reserved
+for switching between future traditional and quantum control modes. The base
+framework safely consumes the chord and calls an empty game-owned switch hook;
+it never converts the chord into H, X, or CNOT.
+Standalone Classical-mode O/X actions should likewise be release-confirmed or
+pending and cancellable, so forming O+X can suppress both without committing an
+irreversible game action.
 
 ### Original Qilin reference
 
@@ -64,6 +84,9 @@ qilin-game-framework/
 
 ## One-click Windows preview
 
+The framework directory also contains the maintained multiplayer
+specialization `qilin_game_framework_3Qv_pvp.p8`; see the PVP section below.
+
 On Windows, no agent is needed to render a PNG.
 
 ### Render once
@@ -93,9 +116,12 @@ WATCH_PREVIEW.bat
 ```
 
 This opens `preview_viewer.html` and keeps the renderer in memory. Each time
-`framework/qilin_game_framework_4Qv.p8` is saved, the PNG is regenerated. The
+`framework/qilin_game_framework_3Qv_pvp.p8` is saved, the PNG is regenerated. The
 browser viewer checks for the new PNG automatically, so no manual reopen is
 needed.
+
+The one-click render and watch scripts currently track the 3Qv PVP development
+cartridge. This preview target does not change the default 4Qv source of truth.
 
 Close the command window or press `Ctrl+C` to stop watching.
 
@@ -105,15 +131,17 @@ The current controller iteration is documented in
 `docs/QILIN_LAYOUT_CONTRACT.md`. This phase established:
 
 - a full-width `128 x 78` Response canvas occupying the upper screen;
-- a `37 x 50` vertical 4Q Controller at `(91,78)` in the lower-right;
-- a 91-pixel lower-left column containing Mission, Operation Feedback, and Key Map;
+- a shared `42 x 50` Controller shell at `(86,78)` in the lower-right;
+- an 86-pixel lower-left column containing Mission, Operation Feedback, and Key Map;
+- 4Qv, 3Qv, and 4Qh variants that share the shell and Key Map slots while
+  preserving orientation-specific Qubit/Depth label placement;
 - four 7-pixel-wide qubit columns with five vertically stacked cells;
 - one-pixel gutters with alternating column colors instead of cell borders;
 - numeric depth labels `5, 4, 3, 2, 1` without flow markers;
 - compact code-drawn H and shared X/CNOT-target glyphs;
 - a layout-sized 3-by-2 pixel qubit selector instead of a font caret;
 - independent `key_map.color` and `control_examples.color` settings;
-- one developer-owned `91 x 26` Mission canvas at `(0,78)` with no required child schema;
+- one developer-owned `86 x 26` Mission canvas at `(0,78)` with no required child schema;
 - modal input ownership and release handoff for dialogue and overlays;
 - color-1 gates, yellow selection, and red blocked feedback;
 - layout-driven PNG geometry and cartridge-derived grid colors;
@@ -122,6 +150,18 @@ The current controller iteration is documented in
   changing qubit count or circuit depth cannot leave detached labels.
 - an explicit `bottom_right` Controller content anchor, so smaller qubit/depth
   variants grow inward from the same lower-right alignment.
+
+## Two-player 3Qv specialization
+
+`framework/qilin_game_framework_3Qv_pvp.p8` provides two independent
+three-qubit, three-depth Controllers. Its `128 x 94` Response sits above a
+34-pixel control band composed of a `29 x 34` P1 Controller, `70 x 34` stacked
+Key Map, and `29 x 34` P2 Controller. P1 mirrors the Depth Index to the left;
+P2 keeps it on the right. Each player uses a separate PICO-8 player index and
+separate pending Controller state.
+
+See [`docs/QILIN_3QV_PVP_CONTRACT.md`](docs/QILIN_3QV_PVP_CONTRACT.md) for the
+complete geometry, input, Key Map, handoff, and preview rules.
 
 ## Command-line preview loop
 

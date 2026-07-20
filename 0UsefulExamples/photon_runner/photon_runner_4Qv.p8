@@ -297,13 +297,13 @@ states={
 layout={
   controller={
     anchor="bottom_right",
-    x=91,
+    x=86,
     y=78,
-    w=37,
+    w=42,
     h=50,
 
     grid={
-      x=1,
+      x=5,
       y=1,
       cell_w=6,
       cell_h=6,
@@ -312,18 +312,18 @@ layout={
     },
 
     depth_index={
-      x=33,
+      x=37,
       y=2,
-      text_dy=1
+      text_dy=0
     },
 
     qubit_index={
-      x=1,
+      x=5,
       y=41
     },
 
     qubit_selector={
-      x=3,
+      x=7,
       y=47,
       w=3,
       h=2,
@@ -334,39 +334,39 @@ layout={
   key_map={
     x=0,
     y=110,
-    w=91,
+    w=86,
     h=18,
     color=6,
 
     items={
-      {text="❎",x=3,y=2},
-      {text="🅾️",x=31,y=2},
-      {text="⬆️",x=65,y=2},
-      {text="❎⬅️/❎➡️",x=3,y=10},
-      {text="⬇️",x=65,y=10}
+      {text="❎",x=2,y=2},
+      {text="🅾️",x=30,y=2},
+      {text="⬆️",x=59,y=2},
+      {text="❎⬅️/❎➡️",x=2,y=10},
+      {text="⬇️",x=59,y=10}
     },
 
     control_examples={
       color=13,
-      x={x=11,y=1},
+      x={x=10,y=1},
       h={x=39,y=1},
-      cx={control_x=40,target_x=48,y=9},
-      run={text="run",x=75,y=2},
-      clear={text="clr",x=75,y=10}
+      cx={control_x=39,target_x=47,y=9},
+      run={text="run",x=69,y=2},
+      clear={text="clr",x=69,y=10}
     }
   },
 
   operation_feedback={
     x=0,
     y=104,
-    w=91,
+    w=86,
     h=6
   },
 
   mission={
     x=0,
     y=78,
-    w=91,
+    w=86,
     h=26
   },
 
@@ -604,6 +604,8 @@ function reset_input_state()
   cx_target=-1
   cx_moved=false
   h_q=-1
+  input_handoff=false
+  mode_chord=false
 end
 
 function active_photon_count()
@@ -727,6 +729,75 @@ function try_add_gate(q,gate)
   return false
 end
 
+function cancel_controller_input()
+  cx_control=-1
+  cx_target=-1
+  cx_moved=false
+  h_q=-1
+end
+
+function standard_buttons_up()
+  for b=0,5 do
+    if btn(b) then return false end
+  end
+  return true
+end
+
+function begin_input_handoff()
+  cancel_controller_input()
+  input_handoff=true
+end
+
+function update_input_handoff()
+  cancel_controller_input()
+  if standard_buttons_up() then
+    input_handoff=false
+    x_was_down=false
+    z_was_down=false
+    left_was_down=false
+    right_was_down=false
+  end
+end
+
+function modal_confirm_pressed()
+  return btnp(4)
+end
+
+function modal_input_active()
+  return false
+end
+
+function update_modal_input()
+end
+
+function request_control_mode_switch()
+end
+
+function update_mode_chord()
+  if btn(4) and btn(5) then
+    mode_chord=true
+    cancel_controller_input()
+  end
+  if mode_chord then
+    cancel_controller_input()
+    if not btn(4) and not btn(5) then
+      mode_chord=false
+      request_control_mode_switch()
+      begin_input_handoff()
+    end
+  end
+end
+
+function active_input_owner()
+  if game_complete or game_over then return "completion" end
+  if modal_input_active() then return "modal" end
+  if input_handoff then return "handoff" end
+  if mode_chord or (btn(4) and btn(5)) then
+    return "mode_chord"
+  end
+  return "controller"
+end
+
 function lane_y(index)
   return layout.response.y+2+(index-1)*4
 end
@@ -755,7 +826,7 @@ function spawn_wave(index)
 end
 
 function restart_game()
-  cursor_q=3
+  cursor_q=0
   counts=blank_counts()
   photons={ ["0000"]=true }
   score=0
@@ -872,8 +943,22 @@ function _update()
   if (signal_timer>0) signal_timer-=1
   if (projection_timer>0) projection_timer-=1
 
-  if game_complete or game_over then
-    if btnp(4) then restart_game() end
+  local owner=active_input_owner()
+
+  if owner=="completion" then
+    if modal_confirm_pressed() then
+      restart_game()
+      begin_input_handoff()
+    end
+    return
+  elseif owner=="modal" then
+    update_modal_input()
+    return
+  elseif owner=="handoff" then
+    update_input_handoff()
+    return
+  elseif owner=="mode_chord" then
+    update_mode_chord()
     return
   end
 

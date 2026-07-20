@@ -298,15 +298,17 @@ def _draw_target_plus(
 
 
 def parse_grid_colors(source: str) -> tuple[int, int]:
-    """Read the grid colors from the cartridge's real draw_circuit code."""
+    """Read grid colors from the canonical or reusable Controller draw path."""
     function_match = re.search(
-        r"\bfunction\s+draw_circuit\s*\(\s*\)(.*?)"
-        r"\nend\s*\n\s*function\s+print_centered_in_region\b",
+        r"\bfunction\s+(?:draw_circuit\s*\(\s*\)|"
+        r"draw_controller\s*\(\s*controller\s*"
+        r"(?:,\s*player_id\s*)?\))(.*?)"
+        r"\nend\s*\n\s*function\s+(?:draw_circuits|print_centered_in_region)\b",
         source,
         re.DOTALL,
     )
     if function_match is None:
-        raise PreviewError("Could not find the draw_circuit function.")
+        raise PreviewError("Could not find the Controller draw function.")
     draw_circuit = function_match.group(1)
 
     background_match = re.search(
@@ -380,7 +382,7 @@ def render_project(
     cursor_visual_q = state.cursor_visual_q
     if cursor_visual_q is None:
         internal_cursor = parse_scalar(source, "cursor_q", num_qubits - 1)
-        cursor_visual_q = internal_cursor + 1 if horizontal_controller else num_qubits - internal_cursor
+        cursor_visual_q = num_qubits - internal_cursor
     if not 1 <= cursor_visual_q <= num_qubits:
         raise PreviewError(
             f"Cursor q{cursor_visual_q} is outside q1..q{num_qubits}."
@@ -394,11 +396,15 @@ def render_project(
     key_x = int(key_map["x"])
     key_y = int(key_map["y"])
     key_color = int(key_map.get("color", 13 if compact_controller else 5))
-    for item in key_map["items"]:
+    for item_index, item in enumerate(key_map["items"]):
+        item_y = item.get(
+            "y",
+            item_index * int(key_map.get("row_pitch", 0)) + 2,
+        )
         canvas.text(
             str(item["text"]),
             key_x + int(item["x"]),
-            key_y + int(item["y"]),
+            key_y + int(item_y),
             key_color,
         )
     control_examples = key_map.get("control_examples")
@@ -467,11 +473,11 @@ def render_project(
     # Qubit Index and Qubit Selector
     for visual_col in range(num_qubits):
         visual_q = visual_col + 1
-        internal_q = visual_col if horizontal_controller else num_qubits - 1 - visual_col
+        internal_q = num_qubits - 1 - visual_col
         column_x = visual_col * int(grid["col_pitch"])
         color = 10 if visual_q == cursor_visual_q else (
             (13 if visual_col % 2 == 0 else 6)
-            if compact_controller and not horizontal_controller
+            if compact_controller
             else 6
         )
         label_x = controller_x + int(controller["qubit_index"]["x"])
@@ -493,11 +499,10 @@ def render_project(
                     controller_y
                     + int(controller["qubit_selector"]["y"])
                     + visual_col * int(controller["qubit_selector"].get("row_pitch", grid["row_pitch"]))
-                    + 1
                 )
-                canvas.rectfill(selector_x, selector_y, selector_x, selector_y, color)
-                canvas.rectfill(selector_x + 1, selector_y + 1, selector_x + 1, selector_y + 1, color)
-                canvas.rectfill(selector_x, selector_y + 2, selector_x, selector_y + 2, color)
+                canvas.rectfill(selector_x + 1, selector_y, selector_x + 1, selector_y, color)
+                canvas.rectfill(selector_x, selector_y + 1, selector_x, selector_y + 1, color)
+                canvas.rectfill(selector_x + 2, selector_y + 1, selector_x + 2, selector_y + 1, color)
             else:
                 selector = controller["qubit_selector"]
                 selector_x = controller_x + int(selector["x"]) + column_x
@@ -595,7 +600,7 @@ def render_project(
             bottom = y + int(grid["cell_h"]) - 1
             cell_color = (
                 13 if visual_col % 2 == 0 else 6
-            ) if compact_controller and not horizontal_controller else grid_background_color
+            ) if compact_controller else grid_background_color
             canvas.rectfill(x, y, right, bottom, cell_color)
             if not compact_controller:
                 canvas.rect(x, y, right, bottom, grid_border_color)
@@ -624,7 +629,7 @@ def render_project(
                 text_x = x + int(grid["single_gate_text_x"])
                 canvas.text(gate_type, text_x, y + int(grid["gate_text_y"]), 7)
 
-        if compact_controller and not horizontal_controller:
+        if compact_controller:
             for gate in state.gates:
                 if (
                     gate.gate_type != "cx"
@@ -634,35 +639,45 @@ def render_project(
                     continue
                 control_col = gate.visual_q - 1
                 target_col = gate.target_visual_q - 1
-                center_y = grid_y + visual_row * int(grid["row_pitch"]) + int(grid["cell_h"]) // 2
-                control_x = grid_x + control_col * int(grid["col_pitch"]) + int(grid["cell_w"]) // 2
-                target_x = grid_x + target_col * int(grid["col_pitch"]) + int(grid["cell_w"]) // 2
-                canvas.line(control_x, center_y, target_x, center_y, 1)
-                canvas.circfill(control_x, center_y, 2, 1)
-                target_cell_x = grid_x + target_col * int(grid["col_pitch"])
-                target_cell_y = grid_y + visual_row * int(grid["row_pitch"])
+                if horizontal_controller:
+                    center_x = grid_x + visual_row * int(grid["col_pitch"]) + int(grid["cell_w"]) // 2
+                    control_y = grid_y + control_col * int(grid["row_pitch"]) + int(grid["cell_h"]) // 2
+                    target_y = grid_y + target_col * int(grid["row_pitch"]) + int(grid["cell_h"]) // 2
+                    canvas.line(center_x, control_y, center_x, target_y, 1)
+                    canvas.circfill(center_x, control_y, 2, 1)
+                    target_cell_x = grid_x + visual_row * int(grid["col_pitch"])
+                    target_cell_y = grid_y + target_col * int(grid["row_pitch"])
+                else:
+                    center_y = grid_y + visual_row * int(grid["row_pitch"]) + int(grid["cell_h"]) // 2
+                    control_x = grid_x + control_col * int(grid["col_pitch"]) + int(grid["cell_w"]) // 2
+                    target_x = grid_x + target_col * int(grid["col_pitch"]) + int(grid["cell_w"]) // 2
+                    canvas.line(control_x, center_y, target_x, center_y, 1)
+                    canvas.circfill(control_x, center_y, 2, 1)
+                    target_cell_x = grid_x + target_col * int(grid["col_pitch"])
+                    target_cell_y = grid_y + visual_row * int(grid["row_pitch"])
                 _draw_target_plus(canvas, target_cell_x, target_cell_y, grid, 1)
 
-    # Mission
-    mission = layout["mission"]
-    title = mission.get("title", {"x": 0, "y": 0, "w": mission["w"]})
-    instruction = mission.get(
-        "instruction", {"x": 0, "y": 10, "w": mission["w"]}
-    )
-    canvas.centered_text(
-        str(level["name"]),
-        int(mission["x"]) + int(title["x"]),
-        int(mission["y"]) + int(title["y"]),
-        int(title["w"]),
-        10,
-    )
-    canvas.centered_text(
-        str(level["hint"]),
-        int(mission["x"]) + int(instruction["x"]),
-        int(mission["y"]) + int(instruction["y"]),
-        int(instruction["w"]),
-        6,
-    )
+    # PVP gives this entire vertical range to Response; no Mission is drawn.
+    if "controller_left" not in layout:
+        mission = layout["mission"]
+        title = mission.get("title", {"x": 0, "y": 0, "w": mission["w"]})
+        instruction = mission.get(
+            "instruction", {"x": 0, "y": 10, "w": mission["w"]}
+        )
+        canvas.centered_text(
+            str(level["name"]),
+            int(mission["x"]) + int(title["x"]),
+            int(mission["y"]) + int(title["y"]),
+            int(title["w"]),
+            10,
+        )
+        canvas.centered_text(
+            str(level["hint"]),
+            int(mission["x"]) + int(instruction["x"]),
+            int(mission["y"]) + int(instruction["y"]),
+            int(instruction["w"]),
+            6,
+        )
 
     # Response: 4 x 4 rooms for the sixteen four-qubit basis states.
     response = layout["response"]
@@ -689,6 +704,104 @@ def render_project(
         else:
             canvas.rectfill(x + 5, y + room_h - 5, x + 5, y + room_h - 5, 5)
             canvas.text("-", x + 10, y + room_h - 7, 5)
+
+    # The PVP prototype declares a second Controller and intentionally removes
+    # Mission, Feedback, and Key Map from the rendered lower band. Both sides
+    # currently share circuit state, so reconstruct the left instance from the
+    # canonical right-controller pixels using its declared geometry.
+    controller_left = layout.get("controller_left")
+    if controller_left:
+        right_snapshot = canvas.image.crop(
+            (
+                int(controller["x"]),
+                int(controller["y"]),
+                int(controller["x"]) + int(controller["w"]),
+                int(controller["y"]) + int(controller["h"]),
+            )
+        )
+        canvas.rectfill(0, int(controller_left["y"]), SCREEN_W - 1, SCREEN_H - 1, 0)
+        canvas.image.paste(right_snapshot, (int(controller["x"]), int(controller["y"])))
+
+        right_grid_x = int(controller["grid"]["x"])
+        left_grid_x = int(controller_left["grid"]["x"])
+        grid_envelope_w = (
+            (num_qubits - 1) * int(controller["grid"]["col_pitch"])
+            + int(controller["grid"]["cell_w"])
+            + 1
+        )
+        grid_and_qubits = right_snapshot.crop(
+            (right_grid_x, 0, right_grid_x + grid_envelope_w, int(controller["h"]))
+        )
+        canvas.image.paste(
+            grid_and_qubits,
+            (int(controller_left["x"]) + left_grid_x, int(controller_left["y"])),
+        )
+
+        right_depth_x = int(controller["depth_index"]["x"])
+        left_depth_x = int(controller_left["depth_index"]["x"])
+        depth_labels = right_snapshot.crop(
+            (right_depth_x, 0, right_depth_x + 4, int(controller["h"]))
+        )
+        canvas.image.paste(
+            depth_labels,
+            (int(controller_left["x"]) + left_depth_x, int(controller_left["y"])),
+        )
+
+        stacked_key_map = layout["key_map"]
+        key_x = int(stacked_key_map["x"])
+        key_y = int(stacked_key_map["y"])
+        action_color = int(stacked_key_map["action_color"])
+        for item in stacked_key_map["items"]:
+            row_y = key_y + int(item["y"])
+            canvas.text(
+                str(item["text"]),
+                key_x + int(item["x"]),
+                row_y,
+                int(stacked_key_map["color"]),
+            )
+            action = str(item["action"])
+            if action == "x":
+                _draw_target_plus(
+                    canvas,
+                    key_x + int(item["symbol_x"]),
+                    key_y + int(item["symbol_y"]),
+                    grid,
+                    action_color,
+                )
+            elif action == "h":
+                symbol_x = key_x + int(item["symbol_x"])
+                symbol_y = key_y + int(item["symbol_y"])
+                center_x = symbol_x + int(grid["cell_w"]) // 2
+                center_y = symbol_y + int(grid["cell_h"]) // 2
+                canvas.line(center_x - 1, center_y - 1, center_x - 1, center_y + 1, action_color)
+                canvas.line(center_x + 1, center_y - 1, center_x + 1, center_y + 1, action_color)
+                canvas.line(center_x - 1, center_y, center_x + 1, center_y, action_color)
+            elif action == "cx":
+                control_x = key_x + int(item["control_x"])
+                target_x = key_x + int(item["target_x"])
+                symbol_y = key_y + int(item["symbol_y"])
+                center_y = symbol_y + int(grid["cell_h"]) // 2
+                canvas.line(
+                    control_x + int(grid["cell_w"]) // 2,
+                    center_y,
+                    target_x + int(grid["cell_w"]) // 2,
+                    center_y,
+                    action_color,
+                )
+                canvas.circfill(
+                    control_x + int(grid["cell_w"]) // 2,
+                    center_y,
+                    2,
+                    action_color,
+                )
+                _draw_target_plus(canvas, target_x, symbol_y, grid, action_color)
+            else:
+                canvas.text(
+                    action,
+                    key_x + int(item["label_x"]),
+                    row_y,
+                    action_color,
+                )
 
     # Layout guides are drawn last so their 1-pixel boundaries remain visible.
 

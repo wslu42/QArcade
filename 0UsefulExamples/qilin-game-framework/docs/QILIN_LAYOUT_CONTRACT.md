@@ -23,15 +23,15 @@ output remains authoritative if a static preview differs.
 - The preview normalizer may expand a parent that is too small for its
   children. It never shrinks an explicitly larger parent.
 
-## Top-level blocks
+## Single-player top-level blocks
 
 | Block | Origin | Size | Bounds |
 |---|---:|---:|---:|
 | Response | `(0,0)` | `128 x 78` | `x=0..127, y=0..77` |
-| Mission | `(0,78)` | `91 x 26` | `x=0..90, y=78..103` |
-| Operation Feedback | `(0,104)` | `91 x 6` | `x=0..90, y=104..109` |
-| Key Map | `(0,110)` | `91 x 18` | `x=0..90, y=110..127` |
-| Controller | `(91,78)` | `37 x 50` | `x=91..127, y=78..127` |
+| Mission | `(0,78)` | `86 x 26` | `x=0..85, y=78..103` |
+| Operation Feedback | `(0,104)` | `86 x 6` | `x=0..85, y=104..109` |
+| Key Map | `(0,110)` | `86 x 18` | `x=0..85, y=110..127` |
+| Controller | `(86,78)` | `42 x 50` | `x=86..127, y=78..127` |
 
 These five rectangles are the major guided-preview outlines. This is the
 Response-first configuration: the game-specific output owns the full upper
@@ -47,7 +47,7 @@ variant changes `num_qubits`, `circuit_depth`, cell dimensions, or pitch. Their
 coordinates must therefore be recalculated from the grid bounds; copying label
 coordinates from a differently sized grid is invalid.
 
-Every maintained Controller declares `anchor="bottom_right"`. This applies to
+Every maintained single-player Controller declares `anchor="bottom_right"`. This applies to
 the complete Controller content group, not the grid alone: vertical layouts
 reserve the right edge for Depth Index and the bottom edge for Qubit Index plus
 Qubit Selector. Fewer qubit columns move the grid and its Q labels to the right;
@@ -60,8 +60,8 @@ dimensions):
 grid_bottom = grid.y + (circuit_depth - 1) * row_pitch + cell_h - 1
 qubit_index.y = grid_bottom + 2
 qubit_selector.y = qubit_index.y + 6
-depth_index.y + text_y = grid.y + 2
-depth_index.x + 4 = controller.w
+depth_index.y + text_y = grid.y + 1
+depth_index.x + 4 = controller.w - 1
 qubit_index.x = grid.x
 qubit_selector.x = grid.x + 2
 ```
@@ -75,22 +75,24 @@ For the horizontal Controller:
 
 ```text
 grid_bottom = grid.y + (num_qubits - 1) * row_pitch + cell_h - 1
-depth_index.y = grid_bottom + 3
+depth_index.y = grid_bottom + 2
 depth_index.x = grid.x + 2
 qubit_index.x + 8 = grid.x - 1
-qubit_index.y = grid.y + 2
+qubit_index.y = grid.y + 1
+qubit_selector.x = qubit_index.x + 2
+qubit_selector.y = qubit_index.y + 5
 grid_right = controller.w - 2
 ```
 
-These equations preserve the accepted one-pixel Qubit Index gap and two-pixel
-Depth Index gap. `tests/test_layout_parser.py` checks these invariants across
+These equations preserve the accepted one-pixel Qubit Index and Depth Index
+gaps. `tests/test_layout_parser.py` checks these invariants across
 every maintained framework and derived cartridge.
 
 ### Grid
 
 ```lua
 grid={
-  x=1,
+  x=5,
   y=1,
   cell_w=6,
   cell_h=6,
@@ -105,10 +107,10 @@ both directions. Alternating column fills replace permanent cell borders.
 Effective columns:
 
 ```text
-q3 x=92..98
-q2 x=100..106
-q1 x=108..114
-q0 x=116..122
+q3 x=91..97
+q2 x=99..105
+q1 x=107..113
+q0 x=115..121
 ```
 
 Effective rows:
@@ -127,7 +129,7 @@ by the compact bottom-to-top depth ordering and the adjacent numeric labels.
 ### Depth labels
 
 ```text
-Depth Index: local (33,2), text offset y=1
+Depth Index: local (37,2), text offset y=0
 ```
 
 Depth labels are the single digits `5, 4, 3, 2, 1`. No Depth Flow Indicator
@@ -136,8 +138,8 @@ is drawn; bottom-to-top ordering and the numeric labels communicate sequence.
 ### Qubit labels and selector
 
 ```text
-Qubit Index:    local (1,41)
-Qubit Selector: local (3,47), size 3 x 2, style pixel_caret
+Qubit Index:    local (5,41)
+Qubit Selector: local (7,47), size 3 x 2, style pixel_caret
 ```
 
 The selector is drawn with three pixels and ends at local y=48. Its explicit
@@ -155,7 +157,7 @@ H uses a compact code-drawn mark.
 
 ```text
 origin=(0,110)
-size=91 x 18
+size=86 x 18
 ```
 
 The Key Map is a top-level block, not a child of Controller. It holds the
@@ -179,6 +181,22 @@ gate symbols and the `run` / `clr` labels share `control_examples.color`.
 The button color is configured by `key_map.color`; it is independent from
 `control_examples.color`.
 
+All three framework variants share the same Key Map function slots inside the
+86-pixel block. Only the directional button text rotates with orientation:
+
+```text
+button items:  (2,2), (30,2), (59,2), (2,10), (59,10)
+X example:     (10,1)
+H example:     (39,1)
+CX endpoints:  (39,9) -> (47,9)
+Run label:     (69,2)
+Clear label:   (69,10)
+```
+
+Vertical variants show Left/Right for qubit/CNOT selection and Up/Down for
+Run/Clear. The horizontal variant shows Up/Down for qubit/CNOT selection and
+Right/Left for Run/Clear. Slot geometry remains identical.
+
 The compact 4Q vertical controller uses a custom `pixel_caret` qubit selector.
 Its `w=3` and `h=2` are explicit layout dimensions; parent-bound normalization
 uses that declared height instead of assuming the six-pixel font height of a
@@ -189,7 +207,7 @@ printed `^`. Older text-caret layouts default to `w=4`, `h=6`, and
 
 ```text
 origin=(0,104)
-size=91 x 6
+size=86 x 6
 ```
 
 This line reports successful gate placement or a blocked action. It is
@@ -199,7 +217,7 @@ separate from developer-owned Mission content.
 
 ```text
 origin=(0,78)
-size=91 x 26
+size=86 x 26
 ```
 
 Mission is one developer-owned canvas. The layout contract intentionally has
@@ -255,20 +273,19 @@ not a replacement for every textual state reference.
 
 ### Compact five-depth Controller pattern
 
-All maintained vertical Qilin cartridges now use the authoritative 4Qv
-Response-first allocation: a `128 x 78` upper Response, a 91-pixel lower-left
-region, and a `37 x 50` lower-right Controller. The default 4Qv and 3Qv
+All maintained single-player Qilin variants use the authoritative Response-first shell:
+a `128 x 78` upper Response, an 86-pixel lower-left region, and a `42 x 50`
+lower-right Controller. The default 4Qv and 3Qv
 framework cartridges use five circuit depths. Derived cartridges may use a
 shorter bottom-anchored stack, and the horizontal 4Qh variant uses four depths.
 3Q variants preserve the same outer allocation while drawing only their
 applicable qubit columns.
 
-The compact vertical pattern is bottom-anchored. For example, a four-depth
-3Q cartridge in the same `37 x 50` Controller uses `grid.y=9` and
-`depth_index.y=10`, while its Qubit Index remains at `y=41`. Its three-column
-grid begins at `x=8`, with Depth Index at `x=33`; this right-aligns the same
-content envelope used by 4Qv. Together these offsets keep the labels attached
-without creating unused space below or to the right.
+The compact vertical pattern is bottom-right anchored. The five-depth 3Q
+framework cartridge keeps `grid.y=1`, `depth_index.y=2`, and Qubit Index
+`y=41`, matching 4Qv vertically. Its three-column grid begins at `x=13`, with
+Depth Index at `x=37`; 4Qv begins at `x=5`. The one-column difference is one
+8-pixel pitch, so both variants share the same right and bottom content edges.
 
 Its grid uses inclusive `cell_w=6` and `cell_h=6` offsets, producing visible
 `7 x 7` cells on an 8-pixel column and row pitch. One-pixel gutters replace
@@ -296,10 +313,11 @@ highlighting rather than from shrinking the CNOT endpoints below legibility.
 
 `framework/qilin_game_framework_4Qh.p8` uses a rotated Controller while
 preserving the same simulator, queue, controls, Mission, and 16-room Response.
-Its Controller is `50 x 50` at `(78,78)`; Mission, Operation Feedback, and Key
-Map occupy the 78-pixel lower-left column at y=`78`, `104`, and `110`.
+Its Controller uses the shared `42 x 50` shell at `(86,78)`; Mission,
+Operation Feedback, and Key Map occupy the 86-pixel lower-left column at
+y=`78`, `104`, and `110`.
 Response remains the shared `128 x 78` upper canvas. Circuit depths `1>2>3>4` run left-to-right along the bottom, and qubit
-labels `q0 q1 q2 q3` run top-to-bottom along the left side.
+labels `q3 q2 q1 q0` run top-to-bottom along the left side.
 
 The vertical and horizontal cartridges are separate source variants. Derived
 games should copy one variant and keep its orientation stable.
@@ -308,11 +326,47 @@ The horizontal directional axis rotates with the Controller: tap X adds X,
 hold X plus Up/Down selects a CNOT target, tap O adds H, Up/Down selects a
 qubit row while X is not held, Left clears, and Right runs.
 
+## Two-player 3Qv specialization
+
+`framework/qilin_game_framework_3Qv_pvp.p8` is the maintained PVP exception to
+the five-block single-player shell. It expands Response to `128 x 94` and uses
+the remaining 34-pixel band as three edge-to-edge blocks:
+
+| Block | Origin | Size | Bounds |
+|---|---:|---:|---:|
+| P1 Controller | `(0,94)` | `29 x 34` | `x=0..28, y=94..127` |
+| Key Map | `(29,94)` | `70 x 34` | `x=29..98, y=94..127` |
+| P2 Controller | `(99,94)` | `29 x 34` | `x=99..127, y=94..127` |
+
+Both Controllers contain three qubits and three depths, with visible `7 x 7`
+cells on an 8-pixel pitch. P1 declares `anchor="bottom_left"` and places Depth
+Index at the far left. P2 declares `anchor="bottom_right"` and places Depth
+Index at the far right. Qubit Index and Qubit Selector remain below both
+grids. The mirror changes label placement only; q0 remains q0 and both cursors
+initialize to it.
+
+The center Key Map stacks three rows: Run/Clear, X/H, then CNOT. It reuses the
+Controller's X, H, control-dot, connector, and target-plus drawing functions.
+Mission and Operation Feedback declarations are inherited compatibility data
+and are not drawn by the PVP `_draw()` path.
+
+Full PVP geometry, input-state isolation, keyboard-hint policy, and preview
+requirements are defined in
+[`QILIN_3QV_PVP_CONTRACT.md`](QILIN_3QV_PVP_CONTRACT.md).
+
 ## Controller input contract
+
+The canonical context-by-context reservation table is
+[`QILIN_RESERVED_INPUT_MATRIX.md`](QILIN_RESERVED_INPUT_MATRIX.md). The
+sections below explain the Controller implementation behind that table.
 
 ### Current implemented mappings
 
 All active framework cartridges use the release-confirmed tap/hold model.
+Every level load, restart, and new-game initialization selects internal
+`q0` (`cursor_q=0`). Orientation changes only where q0 is drawn: it is the
+rightmost column in vertical layouts and the bottom row in 4Qh. Do not derive
+the initial cursor from `num_qubits-1` or from a visual column/row index.
 
 Vertical 4Q:
 
@@ -352,13 +406,14 @@ renderer-facing layout together.
 Every frame must have exactly one input owner. The required priority is:
 
 ```text
-completion > modal (including dialogue) > controller
+completion > modal > handoff > O+X mode chord > controller
 ```
 
 The highest active owner consumes the frame's buttons and returns before a
-lower-priority owner updates. A button may therefore be reused contextually:
-for example, Right may advance dialogue while dialogue owns input, then resume
-qubit navigation after dialogue closes. Right is not a global dialogue button.
+lower-priority owner updates. PICO-8 O (`btnp(4)`) is the standard dialogue
+confirm/advance input and is exposed through `modal_confirm_pressed()`. Right
+may be used for game-owned modal navigation, but is not the default dialogue
+advance action.
 
 Closing an overlay requires a release handoff. The controller must not regain
 input until the button that closed or advanced the modal has been released;
@@ -372,7 +427,11 @@ same buttons:
 ```lua
 function active_input_owner()
   if game_complete then return "completion" end
-  if dialogue.active then return "modal" end
+  if modal_input_active() then return "modal" end
+  if input_handoff then return "handoff" end
+  if mode_chord or (btn(4) and btn(5)) then
+    return "mode_chord"
+  end
   return "controller"
 end
 
@@ -382,7 +441,13 @@ function _update()
     update_completion()
     return
   elseif owner=="modal" then
-    update_dialogue()
+    update_modal_input()
+    return
+  elseif owner=="handoff" then
+    update_input_handoff()
+    return
+  elseif owner=="mode_chord" then
+    update_mode_chord()
     return
   end
   update_controller()
@@ -391,6 +456,35 @@ end
 
 Modal integration must preserve the framework's release-confirmed X tap/hold
 state machine. Do not change the gate mapping to work around an input conflict.
+
+### Implemented dispatcher and reserved mode chord
+
+The maintained 3Qv, 4Qv, 4Qh, and 3Qv PVP variants implement this runtime order:
+
+```text
+completion > modal > handoff > O+X mode chord > controller
+```
+
+`modal_input_active()` and `update_modal_input()` are the game-owned dialogue
+integration points. `begin_input_handoff()` cancels pending H/X/CNOT state;
+the handoff owner consumes frames until all six standard PICO-8 buttons are
+released. This protects transitions triggered by face buttons or directions.
+In PVP, the owner checks both player indices and handoff does not finish until
+all six standard buttons are up for both players.
+
+O+X is reserved for switching between a game's traditional controls and the
+Quantum Controller. The chord latches whenever both face buttons are held,
+cancels pending gate state, waits until both buttons are released, and then
+calls `request_control_mode_switch()`. The base hook is intentionally empty so
+framework demos remain in Quantum Controller mode while still proving that
+the reserved chord cannot place a gate. Modal ownership outranks the chord, so
+dialogue input cannot switch modes accidentally.
+
+Standalone O and X remain game-owned in Classical mode, but their actions must
+be chord-safe. Confirm them on release, or keep press-time effects pending and
+cancellable. Detecting O+X in either order cancels both pending single-button
+actions before the mode-switch hook runs; an irreversible Classical action
+must not commit on the first face-button press.
 
 Regardless of input style, CNOT control remains a filled circle, its target a
 circled plus, and its committed connector uses color 1. The scheduling model

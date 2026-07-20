@@ -6,10 +6,11 @@ call :ensure_env
 if errorlevel 1 exit /b 1
 
 if not exist "previews" mkdir "previews"
+set "QILIN_PREVIEW_SOURCE=framework\qilin_game_framework_3Qv_pvp.p8"
 
-echo Rendering Qilin preview with layout guide lines...
+echo Rendering %QILIN_PREVIEW_SOURCE% with layout guide lines...
 ".venv\Scripts\python.exe" tools\render_preview_guided.py ^
-  framework\qilin_game_framework_4Qv.p8 ^
+  "%QILIN_PREVIEW_SOURCE%" ^
   -o previews\current.png ^
   --native-output previews\current_128x128.png ^
   --metadata-output previews\current.json

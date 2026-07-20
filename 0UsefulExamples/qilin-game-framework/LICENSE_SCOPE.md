@@ -15,6 +15,7 @@ components are intended to be covered by root `LICENSE-CODE` (Apache-2.0):
 framework/qilin_game_framework_4Qv.p8
 framework/qilin_game_framework_4Qh.p8
 framework/qilin_game_framework_3Qv.p8
+framework/qilin_game_framework_3Qv_pvp.p8
 framework/AGENT.md
 tools/**
 tests/**

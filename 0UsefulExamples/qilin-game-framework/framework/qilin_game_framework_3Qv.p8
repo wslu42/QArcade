@@ -288,13 +288,13 @@ states={"000","001","010","011","100","101","110","111"}
 layout={
   controller={
     anchor="bottom_right",
-    x=91,
+    x=86,
     y=78,
-    w=37,
+    w=42,
     h=50,
 
     grid={
-      x=8,
+      x=13,
       y=1,
       cell_w=6,
       cell_h=6,
@@ -303,18 +303,18 @@ layout={
     },
 
     depth_index={
-      x=33,
+      x=37,
       y=2,
-      text_dy=1
+      text_dy=0
     },
 
     qubit_index={
-      x=8,
+      x=13,
       y=41
     },
 
     qubit_selector={
-      x=10,
+      x=15,
       y=47,
       w=3,
       h=2,
@@ -325,39 +325,39 @@ layout={
   key_map={
     x=0,
     y=110,
-    w=91,
+    w=86,
     h=18,
     color=6,
 
     items={
-      {text="❎",x=3,y=2},
-      {text="🅾️",x=31,y=2},
-      {text="⬆️",x=65,y=2},
-      {text="❎⬅️/❎➡️",x=3,y=10},
-      {text="⬇️",x=65,y=10}
+      {text="❎",x=2,y=2},
+      {text="🅾️",x=30,y=2},
+      {text="⬆️",x=59,y=2},
+      {text="❎⬅️/❎➡️",x=2,y=10},
+      {text="⬇️",x=59,y=10}
     },
 
     control_examples={
       color=13,
-      x={x=11,y=1},
+      x={x=10,y=1},
       h={x=39,y=1},
-      cx={control_x=40,target_x=48,y=9},
-      run={text="run",x=75,y=2},
-      clear={text="clr",x=75,y=10}
+      cx={control_x=39,target_x=47,y=9},
+      run={text="run",x=69,y=2},
+      clear={text="clr",x=69,y=10}
     }
   },
 
   operation_feedback={
     x=0,
     y=104,
-    w=91,
+    w=86,
     h=6
   },
 
   mission={
     x=0,
     y=78,
-    w=91,
+    w=86,
     h=26
   },
 
@@ -600,7 +600,7 @@ function load_level(index)
   level=levels[level_index]
   grid=blank_grid()
   counts=blank_counts()
-  cursor_q=2
+  cursor_q=0
   fresh_q=-1
   fresh_d=0
   fresh_gate=""
@@ -621,6 +621,8 @@ function load_level(index)
   cx_target=-1
   cx_moved=false
   h_q=-1
+  input_handoff=false
+  mode_chord=false
 end
 
 function append_gate(grid,q,gate)
@@ -750,6 +752,85 @@ function try_add_gate(q,gate)
   return false
 end
 
+function cancel_controller_input()
+  cx_control=-1
+  cx_target=-1
+  cx_moved=false
+  h_q=-1
+end
+
+function standard_buttons_up()
+  for b=0,5 do
+    if btn(b) then return false end
+  end
+  return true
+end
+
+function begin_input_handoff()
+  cancel_controller_input()
+  input_handoff=true
+end
+
+function update_input_handoff()
+  cancel_controller_input()
+  if standard_buttons_up() then
+    input_handoff=false
+    x_was_down=false
+    z_was_down=false
+    left_was_down=false
+    right_was_down=false
+  end
+end
+
+-- game-owned modal hook. extend this with dialogue or overlays.
+function modal_confirm_pressed()
+  return btnp(4)
+end
+
+function modal_input_active()
+  return result_ready and passed
+end
+
+function update_modal_input()
+  if btnp(2) then
+    advance_level()
+    begin_input_handoff()
+  elseif modal_confirm_pressed() then
+    edit_circuit()
+    begin_input_handoff()
+  end
+end
+
+-- game-owned hook for a future traditional/quantum mode switch.
+function request_control_mode_switch()
+end
+
+function update_mode_chord()
+  if btn(4) and btn(5) then
+    mode_chord=true
+    cancel_controller_input()
+  end
+
+  if mode_chord then
+    cancel_controller_input()
+    if not btn(4) and not btn(5) then
+      mode_chord=false
+      request_control_mode_switch()
+      begin_input_handoff()
+    end
+  end
+end
+
+function active_input_owner()
+  if game_complete then return "completion" end
+  if modal_input_active() then return "modal" end
+  if input_handoff then return "handoff" end
+  if mode_chord or (btn(4) and btn(5)) then
+    return "mode_chord"
+  end
+  return "controller"
+end
+
 function _init()
   game_complete=false
   load_level(1)
@@ -759,20 +840,23 @@ function _update()
   if (fresh_timer>0) fresh_timer-=1
   if (blocked_timer>0) blocked_timer-=1
 
-  if game_complete then
-    if btnp(4) then
+  local owner=active_input_owner()
+
+  if owner=="completion" then
+    if modal_confirm_pressed() then
       game_complete=false
       load_level(1)
+      begin_input_handoff()
     end
     return
-  end
-
-  if result_ready and passed then
-    if btnp(2) then
-      advance_level()
-    elseif btnp(4) then
-      edit_circuit()
-    end
+  elseif owner=="modal" then
+    update_modal_input()
+    return
+  elseif owner=="handoff" then
+    update_input_handoff()
+    return
+  elseif owner=="mode_chord" then
+    update_mode_chord()
     return
   end
 

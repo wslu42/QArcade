@@ -276,48 +276,23 @@ function simulate (qc, get, shots)
   end
 end
 --------- router engine ---------
-num_qubits=4
-circuit_depth=5
+num_qubits=3
+circuit_depth=3
 shots=16
-states={
-  "0000","0001","0010","0011",
-  "0100","0101","0110","0111",
-  "1000","1001","1010","1011",
-  "1100","1101","1110","1111"
-}
+states={"000","001","010","011","100","101","110","111"}
 
 -- centralized layout contract
 --
 -- coordinate rule:
 -- top-level block.x/y + local element offset
 layout={
-
-  -- full response canvas: x=0..127, y=0..77.
-  response={
+  controller_left={
+    anchor="bottom_left",
+    player="p1",
     x=0,
-    y=0,
-    w=128,
-    h=78,
-
-    rooms={
-      x=3,
-      y=3,
-      cols=4,
-      rows=4,
-      w=29,
-      h=16,
-      col_pitch=31,
-      row_pitch=18
-    }
-  },
-
-
-  controller={
-    anchor="bottom_right",
-    x=86,
-    y=78,
-    w=42,
-    h=50,
+    y=94,
+    w=29,
+    h=34,
 
     grid={
       x=5,
@@ -328,24 +303,102 @@ layout={
       row_pitch=8
     },
 
+    -- mirror the depth-label side only; retain qubit order.
     depth_index={
-      x=37,
+      x=1,
       y=2,
       text_dy=0
     },
 
     qubit_index={
       x=5,
-      y=41
+      y=25
     },
 
     qubit_selector={
       x=7,
-      y=47,
+      y=31,
       w=3,
       h=2,
       style="pixel_caret"
     }
+  },
+
+  -- player-two controller remains anchored to the bottom right.
+  controller={
+    anchor="bottom_right",
+    player="p2",
+    x=99,
+    y=94,
+    w=29,
+    h=34,
+
+    grid={
+      x=1,
+      y=1,
+      cell_w=6,
+      cell_h=6,
+      col_pitch=8,
+      row_pitch=8
+    },
+
+    depth_index={
+      x=25,
+      y=2,
+      text_dy=0
+    },
+
+    qubit_index={
+      x=1,
+      y=25
+    },
+
+    qubit_selector={
+      x=3,
+      y=31,
+      w=3,
+      h=2,
+      style="pixel_caret"
+    }
+  },
+
+  key_map={
+    x=29,
+    y=94,
+    w=70,
+    h=34,
+    color=6,
+    action_color=13,
+
+    items={
+      {
+        text="⬆️/e",action="run",
+        x=2,y=2,label_x=19
+      },
+      {
+        text="⬇️/d",action="clr",
+        x=39,y=2,label_x=56
+      },
+      {
+        text="❎/a",action="x",
+        x=2,y=13,symbol_x=19,symbol_y=12
+      },
+      {
+        text="🅾️/sf",action="h",
+        x=39,y=13,symbol_x=56,symbol_y=12
+      },
+      {
+        text="❎⬅️/❎➡️",action="cx",
+        x=2,y=26,control_x=46,target_x=54,symbol_y=25
+      }
+    }
+  },
+
+  operation_feedback={
+    x=0,
+    y=104,
+    w=86,
+    h=6
   },
 
   mission={
@@ -354,40 +407,50 @@ layout={
     w=86,
     h=26
   },
-  operation_feedback={
-    x=0,
-    y=104,
-    w=86,
-    h=6
-  },
 
-  key_map={
+  -- full response canvas: x=0..127, y=0..93.
+  response={
     x=0,
-    y=110,
-    w=86,
-    h=18,
-    color=6,
+    y=0,
+    w=128,
+    h=94,
 
-    items={
-      {text="❎",x=2,y=2},
-      {text="🅾️",x=30,y=2},
-      {text="⬆️",x=59,y=2},
-      {text="❎⬅️/❎➡️",x=2,y=10},
-      {text="⬇️",x=59,y=10}
+    legend={
+      x=2,
+      y=20,
+      w=128,
+      h=6,
+
+      target={
+        box_x=3,
+        text_x=10
+      },
+
+      measured={
+        box_x=53,
+        text_x=60
+      }
     },
 
-    control_examples={
-      color=13,
-      x={x=10,y=1},
-      h={x=39,y=1},
-      cx={control_x=39,target_x=47,y=9},
-      run={text="run",x=69,y=2},
-      clear={text="clr",x=69,y=10}
+    canvas={
+      x=4,
+      y=30,
+      w=126,
+      h=17,
+
+      base_y=16,
+      first_state_x=0,
+      state_pitch=16
+    },
+
+    state_index={
+      x=4,
+      y=51,
+      w=127,
+      h=6,
+      state_pitch=16
     }
-  },
-
-
-
+  }
 }
 
 function blank_grid()
@@ -547,35 +610,35 @@ end
 -- mission text is supplied by each level below.
 
 -- target counts must add up to 16.
--- state strings are q3 q2 q1 q0.
+-- state strings are q2 q1 q0.
 levels={
   {
     name="1 address",
-    target={ ["0001"]=16 },
+    target={ ["001"]=16 },
     pass=16,
-    hint="x on q0",
+    hint="x on q3",
     lesson="x flips one bit"
   },
   {
     name="2 split",
-    target={ ["0000"]=8,["0001"]=8 },
+    target={ ["000"]=8,["001"]=8 },
     pass=11,
-    hint="h on q0",
+    hint="h on q3",
     lesson="h gives two outcomes"
   },
   {
     name="3 linked pair",
-    target={ ["0000"]=8,["0011"]=8 },
+    target={ ["000"]=8,["011"]=8 },
     pass=11,
-    hint="h q1, cx q1>q0",
+    hint="h q2, cx 2>3",
     lesson="cx links bits"
   },
   {
     name="4 three-link",
-    target={ ["0000"]=8,["1111"]=8 },
+    target={ ["000"]=8,["111"]=8 },
     pass=11,
-    hint="h q3, chain to q0",
-    lesson="one bit links four"
+    hint="h q1, cx 1>2,1>3",
+    lesson="one bit links all"
   }
 }
 --------- quantum router game ---------
@@ -607,6 +670,85 @@ function load_level(index)
   h_q=-1
   input_handoff=false
   mode_chord=false
+  reset_player_states()
+end
+
+function capture_player_state()
+  return {
+    grid=grid,
+    cursor_q=cursor_q,
+    fresh_q=fresh_q,
+    fresh_d=fresh_d,
+    fresh_gate=fresh_gate,
+    fresh_timer=fresh_timer,
+    blocked_q=blocked_q,
+    blocked_target=blocked_target,
+    blocked_text=blocked_text,
+    blocked_timer=blocked_timer,
+    x_was_down=x_was_down,
+    z_was_down=z_was_down,
+    left_was_down=left_was_down,
+    right_was_down=right_was_down,
+    cx_control=cx_control,
+    cx_target=cx_target,
+    cx_moved=cx_moved,
+    h_q=h_q
+  }
+end
+
+function activate_player_state(index)
+  local state=player_states[index]
+  grid=state.grid
+  cursor_q=state.cursor_q
+  fresh_q=state.fresh_q
+  fresh_d=state.fresh_d
+  fresh_gate=state.fresh_gate
+  fresh_timer=state.fresh_timer
+  blocked_q=state.blocked_q
+  blocked_target=state.blocked_target
+  blocked_text=state.blocked_text
+  blocked_timer=state.blocked_timer
+  x_was_down=state.x_was_down
+  z_was_down=state.z_was_down
+  left_was_down=state.left_was_down
+  right_was_down=state.right_was_down
+  cx_control=state.cx_control
+  cx_target=state.cx_target
+  cx_moved=state.cx_moved
+  h_q=state.h_q
+end
+
+function save_player_state(index)
+  player_states[index]=capture_player_state()
+end
+
+function reset_player_ui()
+  grid=blank_grid()
+  cursor_q=0
+  fresh_q=-1
+  fresh_d=0
+  fresh_gate=""
+  fresh_timer=0
+  blocked_q=-1
+  blocked_target=-1
+  blocked_text=""
+  blocked_timer=0
+  x_was_down=false
+  z_was_down=false
+  left_was_down=false
+  right_was_down=false
+  cx_control=-1
+  cx_target=-1
+  cx_moved=false
+  h_q=-1
+end
+
+function reset_player_states()
+  player_states={}
+  player_states[1]=capture_player_state()
+  reset_player_ui()
+  player_states[2]=capture_player_state()
+  activate_player_state(1)
 end
 
 function append_gate(grid,q,gate)
@@ -638,20 +780,20 @@ end
 
 function cx_target_right(q)
   if q==0 then
-    return num_qubits-1
+    return 2
   end
   return q-1
 end
 
 function cx_target_left(q)
-  if q==num_qubits-1 then
+  if q==2 then
     return 0
   end
   return q+1
 end
 
 function visual_q(q)
-  return q
+  return num_qubits-q
 end
 
 function gate_label(gate)
@@ -744,25 +886,42 @@ function cancel_controller_input()
 end
 
 function standard_buttons_up()
-  for b=0,5 do
-    if btn(b) then return false end
+  for player_id=0,1 do
+    for b=0,5 do
+      if btn(b,player_id) then return false end
+    end
   end
   return true
 end
 
 function begin_input_handoff()
-  cancel_controller_input()
+  for index=1,2 do
+    activate_player_state(index)
+    cancel_controller_input()
+    save_player_state(index)
+  end
+  activate_player_state(1)
   input_handoff=true
 end
 
 function update_input_handoff()
-  cancel_controller_input()
+  for index=1,2 do
+    activate_player_state(index)
+    cancel_controller_input()
+    save_player_state(index)
+  end
+  activate_player_state(1)
   if standard_buttons_up() then
     input_handoff=false
-    x_was_down=false
-    z_was_down=false
-    left_was_down=false
-    right_was_down=false
+    for index=1,2 do
+      activate_player_state(index)
+      x_was_down=false
+      z_was_down=false
+      left_was_down=false
+      right_was_down=false
+      save_player_state(index)
+    end
+    activate_player_state(1)
   end
 end
 
@@ -789,15 +948,24 @@ end
 function request_control_mode_switch()
 end
 
+function any_mode_chord_down()
+  for player_id=0,1 do
+    if btn(4,player_id) and btn(5,player_id) then
+      return true
+    end
+  end
+  return false
+end
+
 function update_mode_chord()
-  if btn(4) and btn(5) then
+  if any_mode_chord_down() then
     mode_chord=true
-    cancel_controller_input()
+    begin_input_handoff()
+    input_handoff=false
   end
 
   if mode_chord then
-    cancel_controller_input()
-    if not btn(4) and not btn(5) then
+    if standard_buttons_up() then
       mode_chord=false
       request_control_mode_switch()
       begin_input_handoff()
@@ -809,7 +977,7 @@ function active_input_owner()
   if game_complete then return "completion" end
   if modal_input_active() then return "modal" end
   if input_handoff then return "handoff" end
-  if mode_chord or (btn(4) and btn(5)) then
+  if mode_chord or any_mode_chord_down() then
     return "mode_chord"
   end
   return "controller"
@@ -821,8 +989,7 @@ function _init()
 end
 
 function _update()
-  if (fresh_timer>0) fresh_timer-=1
-  if (blocked_timer>0) blocked_timer-=1
+  activate_player_state(1)
 
   local owner=active_input_owner()
 
@@ -844,10 +1011,16 @@ function _update()
     return
   end
 
-  local x_down=btn(5)
-  local z_down=btn(4)
-  local left_down=btn(0)
-  local right_down=btn(1)
+  for player_id=0,1 do
+  local state_index=player_id+1
+  activate_player_state(state_index)
+  if (fresh_timer>0) fresh_timer-=1
+  if (blocked_timer>0) blocked_timer-=1
+
+  local x_down=btn(5,player_id)
+  local z_down=btn(4,player_id)
+  local left_down=btn(0,player_id)
+  local right_down=btn(1,player_id)
   local x_pressed=x_down and not x_was_down
   local x_released=x_was_down and not x_down
   local z_pressed=z_down and not z_was_down
@@ -902,9 +1075,9 @@ function _update()
     h_q=-1
   end
 
-  if btnp(2) and not x_down then
+  if btnp(2,player_id) and not x_down then
     measure_circuit()
-  elseif btnp(3) and not x_down then
+  elseif btnp(3,player_id) and not x_down then
     clear_qubit_gates(grid,cursor_q)
     fresh_timer=0
     blocked_timer=0
@@ -915,14 +1088,16 @@ function _update()
   z_was_down=z_down
   left_was_down=left_down
   right_was_down=right_down
+  save_player_state(state_index)
+  end
+  activate_player_state(1)
 end
 
 -- 𝘳otated composer:
 -- qubits are columns; d1 begins at the bottom and depth grows upward.
 -- 𝘵he selected qubit column is highlighted because depth now fills
 -- automatically, matching the original 𝘲ilin gate queue.
-function draw_circuit()
-  local controller=layout.controller
+function draw_controller(controller,player_id)
   local grid_layout=controller.grid
   local depth_index=controller.depth_index
   local qubit_index=controller.qubit_index
@@ -962,8 +1137,7 @@ function draw_circuit()
     )
 
     if selected then
-      local selector_x=
-        controller_x+qubit_selector.x+
+      local selector_x=controller_x+qubit_selector.x+
         visual_col*grid_layout.col_pitch
       local selector_y=controller_y+qubit_selector.y
       pset(selector_x+1,selector_y,label_color)
@@ -1041,8 +1215,7 @@ function draw_circuit()
     end
   end
 
-  -- preview the cnot that x release will commit.
-  if btn(5) and cx_moved and cx_target!=cx_control then
+  if btn(5,player_id) and cx_moved and cx_target!=cx_control then
     local gate="c"..cx_target
     local d=find_gate_depth(grid,cx_control,gate)
     if d>0 then
@@ -1060,6 +1233,14 @@ function draw_circuit()
   end
 end
 
+function draw_circuits()
+  activate_player_state(1)
+  draw_controller(layout.controller_left,0)
+  activate_player_state(2)
+  draw_controller(layout.controller,1)
+  activate_player_state(1)
+end
+
 function print_centered_in_region(text,x,y,w,color)
   local text_x=x+flr((w-#text*4)/2)
   if text_x<x then text_x=x end
@@ -1070,69 +1251,139 @@ function print_centered(text,y,color)
   print_centered_in_region(text,0,y,128,color)
 end
 
-function mission_print_centered(text,y,color)
+function draw_prompt_line(text,color)
   local mission=layout.mission
+  local title={x=0,y=0,w=mission.w}
+  local instruction={x=0,y=10,w=mission.w}
+
+  print_centered_in_region(
+    level.name,
+    mission.x+title.x,
+    mission.y+title.y,
+    title.w,
+    10
+  )
+
   print_centered_in_region(
     text,
-    mission.x,
-    mission.y+y,
-    mission.w,
+    mission.x+instruction.x,
+    mission.y+instruction.y,
+    instruction.w,
     color
   )
 end
 
--- developer-owned mission canvas. replace this function with dialogue,
--- progress, icons, or other game-specific mission content.
 function draw_mission()
   local mission=layout.mission
-  clip(mission.x,mission.y,mission.w,mission.h)
-  mission_print_centered(level.name,0,10)
+  local feedback={x=0,y=19,w=mission.w}
+
+  local feedback_x=mission.x+feedback.x
+  local feedback_y=mission.y+feedback.y
 
   if result_ready and passed then
-    mission_print_centered(level.lesson,10,11)
-    mission_print_centered("score "..score.."/16 up next",19,11)
+    draw_prompt_line(level.lesson,11)
+
+    print_centered_in_region(
+      "score "..score.."/16 up next",
+      feedback_x,
+      feedback_y,
+      feedback.w,
+      11
+    )
   elseif result_ready then
-    mission_print_centered(level.hint,10,6)
-    mission_print_centered("score "..score.."/16 retry",19,8)
+    draw_prompt_line(level.hint,6)
+
+    print_centered_in_region(
+      "score "..score.."/16 retry",
+      feedback_x,
+      feedback_y,
+      feedback.w,
+      8
+    )
   else
-    mission_print_centered(level.hint,10,6)
-  end
-  clip()
-end
-
-function draw_room(x,y,state,wanted,count,w,h)
-  local edge=wanted and 8 or 5
-  local fill=count>0 and 1 or 0
-
-  rectfill(x,y,x+w-1,y+h-1,fill)
-  rect(x,y,x+w-1,y+h-1,edge)
-  print(state,x+flr((w-16)/2),y+2,6)
-
-  if count>0 then
-    circfill(x+5,y+h-5,2,11)
-    print(count,x+10,y+h-7,11)
-  else
-    pset(x+5,y+h-5,5)
-    print("-",x+10,y+h-7,5)
+    draw_prompt_line(level.hint,6)
   end
 end
 
-function draw_rooms()
+function draw_histogram()
   local response=layout.response
-  local rooms=response.rooms
+  local legend=response.legend
+  local canvas=response.canvas
+  local state_index=response.state_index
+
+  local legend_x=response.x+legend.x
+  local legend_y=response.y+legend.y
+  local canvas_x=response.x+canvas.x
+  local canvas_y=response.y+canvas.y
+  local state_x=response.x+state_index.x
+  local state_y=response.y+state_index.y
+
+  local base_y=canvas_y+canvas.base_y
+  local unit_h=1
+
+  rect(
+    legend_x+legend.target.box_x,
+    legend_y,
+    legend_x+legend.target.box_x+4,
+    legend_y+4,
+    8
+  )
+
+  print(
+    "target",
+    legend_x+legend.target.text_x,
+    legend_y,
+    6
+  )
+
+  rectfill(
+    legend_x+legend.measured.box_x,
+    legend_y,
+    legend_x+legend.measured.box_x+4,
+    legend_y+4,
+    11
+  )
+
+  print(
+    "measured",
+    legend_x+legend.measured.text_x,
+    legend_y,
+    6
+  )
 
   for i=1,#states do
     local state=states[i]
-    local col=(i-1)%rooms.cols
-    local row=flr((i-1)/rooms.cols)
-    draw_room(
-      response.x+rooms.x+col*rooms.col_pitch,
-      response.y+rooms.y+row*rooms.row_pitch,
+
+    local x=
+      canvas_x+
+      canvas.first_state_x+
+      (i-1)*canvas.state_pitch
+
+    local target_h=(level.target[state] or 0)*unit_h
+    local count_h=(counts[state] or 0)*unit_h
+
+    line(x+4,base_y-16,x+4,base_y,1)
+
+    if target_h>0 then
+      rect(x,base_y-target_h,x+8,base_y,8)
+    end
+
+    if count_h>0 then
+      rectfill(
+        x+2,
+        base_y-count_h+1,
+        x+6,
+        base_y-1,
+        11
+      )
+    end
+
+    print(
       state,
-      (level.target[state] or 0)>0,
-      counts[state] or 0,
-      rooms.w,
-      rooms.h
+      state_x+
+        (i-1)*state_index.state_pitch-1,
+      state_y,
+      6
     )
   end
 end
@@ -1147,44 +1398,45 @@ end
 
 function draw_key_hint()
   local key_map=layout.key_map
-
   local key_x=key_map.x
   local key_y=key_map.y
+  local action_color=key_map.action_color
 
   for item in all(key_map.items) do
-    print(
-      item.text,
-      key_x+item.x,
-      key_y+item.y,
-      key_map.color
-    )
+    print(item.text,key_x+item.x,key_y+item.y,key_map.color)
+
+    if item.action=="x" then
+      draw_target_plus(
+        key_x+item.symbol_x,
+        key_y+item.symbol_y,
+        action_color
+      )
+    elseif item.action=="h" then
+      draw_h_gate(
+        key_x+item.symbol_x,
+        key_y+item.symbol_y,
+        action_color
+      )
+    elseif item.action=="cx" then
+      local control_x=key_x+item.control_x
+      local target_x=key_x+item.target_x
+      local symbol_y=key_y+item.symbol_y
+      line(
+        control_x+3,symbol_y+3,
+        target_x+3,symbol_y+3,
+        action_color
+      )
+      draw_control_dot(control_x,symbol_y,action_color)
+      draw_target_plus(target_x,symbol_y,action_color)
+    else
+      print(
+        item.action,
+        key_x+item.label_x,
+        key_y+item.y,
+        action_color
+      )
+    end
   end
-
-  local examples=key_map.control_examples
-  local color=examples.color
-  draw_target_plus(key_x+examples.x.x,key_y+examples.x.y,color)
-  draw_h_gate(key_x+examples.h.x,key_y+examples.h.y,color)
-
-  print(
-    examples.run.text,
-    key_x+examples.run.x,
-    key_y+examples.run.y,
-    color
-  )
-  print(
-    examples.clear.text,
-    key_x+examples.clear.x,
-    key_y+examples.clear.y,
-    color
-  )
-
-  local cx=examples.cx
-  line(
-    key_x+cx.control_x+3,key_y+cx.y+3,
-    key_x+cx.target_x+3,key_y+cx.y+3,color
-  )
-  draw_control_dot(key_x+cx.control_x,key_y+cx.y,color)
-  draw_target_plus(key_x+cx.target_x,key_y+cx.y,color)
 end
 
 function _draw()
@@ -1194,55 +1446,9 @@ function _draw()
   end
 
   cls(0)
+
+  -- reserve the lower band for two controllers and the stacked key map.
+  draw_circuits()
   draw_key_hint()
-
-  local op_feedback=layout.operation_feedback
-  local op_feedback_x=op_feedback.x
-  local op_feedback_y=op_feedback.y
-
-  if btn(5) and cx_control>=0 then
-    local text="x q"..visual_q(cx_control).." on release"
-    if cx_moved and cx_target==cx_control then
-      text="cx cancel on release"
-    elseif cx_moved then
-      text="cx q"..visual_q(cx_control)..
-        ">q"..visual_q(cx_target).." on release"
-    end
-    print_centered_in_region(text,op_feedback_x,op_feedback_y,op_feedback.w,13)
-  elseif btn(4) and h_q>=0 then
-    print_centered_in_region(
-      "h q"..visual_q(h_q).." on release",
-      op_feedback_x,op_feedback_y,op_feedback.w,13
-    )
-  elseif blocked_timer>0 then
-    print_centered_in_region(blocked_text,op_feedback_x,op_feedback_y,op_feedback.w,8)
-  elseif fresh_timer>0 then
-    local target=cx_target_of(fresh_gate)
-
-    if target>=0 then
-      print_centered_in_region(
-        "cx q"..visual_q(fresh_q)..
-        ">q"..visual_q(target)..
-        " d"..fresh_d,
-        op_feedback_x,
-        op_feedback_y,
-        op_feedback.w,
-        13
-      )
-    else
-      print_centered_in_region(
-        gate_label(fresh_gate)..
-        " > q"..visual_q(fresh_q)..
-        " d"..fresh_d,
-        op_feedback_x,
-        op_feedback_y,
-        op_feedback.w,
-        13
-      )
-    end
-  end
-
-  draw_circuit()
-  draw_mission()
-  draw_rooms()
+  draw_histogram()
 end

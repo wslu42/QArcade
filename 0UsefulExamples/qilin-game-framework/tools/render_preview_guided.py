@@ -29,6 +29,8 @@ MISSION_LEFT_LINE_WIDTH = 2
 
 DISPLAY_NAMES = {
     "controller": "controller",
+    "controller_left": "controller p1",
+    "controller_p2": "controller p2",
     "key_map": "key map",
     "operation_feedback": "feedback",
     "mission": "mission",
@@ -38,6 +40,40 @@ DISPLAY_NAMES = {
 
 def _layout_blocks(layout: dict[str, Any]) -> list[dict[str, int | str]]:
     controller = layout["controller"]
+    controller_left = layout.get("controller_left")
+    if controller_left:
+        response = layout["response"]
+        key_map = layout["key_map"]
+        return [
+            {
+                "name": "controller_left",
+                "x": int(controller_left["x"]),
+                "y": int(controller_left["y"]),
+                "w": int(controller_left["w"]),
+                "h": int(controller_left["h"]),
+            },
+            {
+                "name": "controller_p2",
+                "x": int(controller["x"]),
+                "y": int(controller["y"]),
+                "w": int(controller["w"]),
+                "h": int(controller["h"]),
+            },
+            {
+                "name": "key_map",
+                "x": int(key_map["x"]),
+                "y": int(key_map["y"]),
+                "w": int(key_map["w"]),
+                "h": int(key_map["h"]),
+            },
+            {
+                "name": "response",
+                "x": int(response["x"]),
+                "y": int(response["y"]),
+                "w": int(response["w"]),
+                "h": int(response["h"]),
+            },
+        ]
     key_map = layout["key_map"]
     operation_feedback = layout["operation_feedback"]
     mission = layout["mission"]

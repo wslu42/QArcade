@@ -36,7 +36,7 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         self.assertEqual(self.project["num_qubits"], 4)
         self.assertEqual(self.project["circuit_depth"], 5)
         self.assertEqual(len(self.project["states"]), 16)
-        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (91, 78))
+        self.assertEqual((layout["controller"]["x"], layout["controller"]["y"]), (86, 78))
         self.assertEqual((layout["key_map"]["x"], layout["key_map"]["y"]), (0, 110))
         self.assertEqual(layout["key_map"]["color"], 6)
         self.assertEqual((layout["mission"]["x"], layout["mission"]["y"]), (0, 78))
@@ -50,7 +50,7 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         )
         self.assertEqual(
             layout["mission"],
-            {"x": 0, "y": 78, "w": 91, "h": 26},
+            {"x": 0, "y": 78, "w": 86, "h": 26},
         )
 
     def test_schema_aliases_and_dimensions(self) -> None:
@@ -58,7 +58,7 @@ class CurrentFrameworkNormalizationTest(unittest.TestCase):
         grid = layout["controller"]["grid"]
         self.assertEqual(grid["source_cell_extent_mode"], "inclusive_offset")
         self.assertEqual((grid["cell_w"], grid["cell_h"]), (7, 7))
-        self.assertEqual(layout["controller"]["depth_index"]["text_y"], 1)
+        self.assertEqual(layout["controller"]["depth_index"]["text_y"], 0)
         self.assertFalse(layout["controller"]["depth_flow"]["enabled"])
         self.assertEqual(layout["controller"]["h"], 50)
         self.assertEqual(
@@ -126,8 +126,8 @@ class HorizontalControllerLayoutTest(unittest.TestCase):
         layout = parse_project(source)["layout"]
         controller = layout["controller"]
         self.assertEqual(controller["orientation"], "horizontal")
-        self.assertEqual((controller["x"], controller["y"]), (78, 78))
-        self.assertEqual((controller["w"], controller["h"]), (50, 50))
+        self.assertEqual((controller["x"], controller["y"]), (86, 78))
+        self.assertEqual((controller["w"], controller["h"]), (42, 50))
         self.assertEqual((layout["key_map"]["x"], layout["mission"]["x"]), (0, 0))
         self.assertEqual((layout["key_map"]["y"], layout["key_map"]["h"]), (110, 18))
         self.assertEqual(
@@ -135,37 +135,60 @@ class HorizontalControllerLayoutTest(unittest.TestCase):
             (104, 78),
         )
         self.assertEqual((layout["response"]["y"], layout["response"]["h"]), (0, 78))
-        self.assertEqual(controller["depth_index"]["col_pitch"], 9)
-        self.assertEqual(controller["qubit_index"]["row_pitch"], 10)
+        self.assertEqual((layout["key_map"]["w"], layout["mission"]["w"]), (86, 86))
+        self.assertEqual((controller["grid"]["cell_w"], controller["grid"]["cell_h"]), (7, 7))
+        self.assertEqual(controller["depth_index"]["col_pitch"], 8)
+        self.assertEqual(controller["qubit_index"]["row_pitch"], 8)
 
 
 class LayoutSourceOfTruthTest(unittest.TestCase):
-    CARTRIDGES = [
+    FRAMEWORK_CARTRIDGES = [
         ROOT / "framework" / "qilin_game_framework_4Qv.p8",
         ROOT / "framework" / "qilin_game_framework_3Qv.p8",
         ROOT / "framework" / "qilin_game_framework_4Qh.p8",
+    ]
+    CARTRIDGES = [
+        *FRAMEWORK_CARTRIDGES,
         ROOT.parent / "photon_runner" / "photon_runner.p8",
         ROOT.parent / "photon_runner" / "photon_runner_4Qv.p8",
         ROOT.parent / "ex_quantum_orchard_" / "ex_quantum_orchard.p8",
     ]
 
-    def test_photon_3q_uses_authoritative_compact_controller_metrics(self) -> None:
-        framework = parse_project(
-            (ROOT / "framework" / "qilin_game_framework_3Qv.p8").read_text(
-                encoding="utf-8"
+    def test_framework_variants_share_shell_and_key_slots(self) -> None:
+        layouts = [
+            parse_project(path.read_text(encoding="utf-8"))["layout"]
+            for path in self.FRAMEWORK_CARTRIDGES
+        ]
+        for layout in layouts:
+            self.assertEqual(
+                (layout["controller"]["x"], layout["controller"]["y"]),
+                (86, 78),
             )
-        )["layout"]["controller"]
-        photon = parse_project(
-            (ROOT.parent / "photon_runner" / "photon_runner.p8").read_text(
-                encoding="utf-8"
+            self.assertEqual(
+                (layout["controller"]["w"], layout["controller"]["h"]),
+                (42, 50),
             )
-        )["layout"]["controller"]
+            self.assertEqual(
+                (layout["mission"]["w"], layout["operation_feedback"]["w"], layout["key_map"]["w"]),
+                (86, 86, 86),
+            )
 
-        for key in ("x", "cell_w", "cell_h", "col_pitch", "row_pitch"):
-            self.assertEqual(photon["grid"][key], framework["grid"][key])
-        self.assertEqual(photon["depth_index"]["x"], framework["depth_index"]["x"])
-        self.assertEqual(photon["qubit_index"], framework["qubit_index"])
-        self.assertEqual(photon["qubit_selector"], framework["qubit_selector"])
+        expected_item_positions = [(2, 2), (30, 2), (59, 2), (2, 10), (59, 10)]
+        expected_examples = {
+            "x": {"x": 10, "y": 1},
+            "h": {"x": 39, "y": 1},
+            "cx": {"control_x": 39, "target_x": 47, "y": 9},
+            "run": {"text": "run", "x": 69, "y": 2},
+            "clear": {"text": "clr", "x": 69, "y": 10},
+        }
+        for layout in layouts:
+            self.assertEqual(
+                [(item["x"], item["y"]) for item in layout["key_map"]["items"]],
+                expected_item_positions,
+            )
+            examples = dict(layout["key_map"]["control_examples"])
+            examples.pop("color")
+            self.assertEqual(examples, expected_examples)
 
     def test_q_and_depth_labels_stay_anchored_to_the_grid(self) -> None:
         for cartridge in self.CARTRIDGES:
@@ -184,17 +207,25 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
                         + grid["cell_h"]
                         - 1
                     )
-                    self.assertEqual(controller["depth_index"]["y"], grid_bottom + 3)
+                    self.assertEqual(controller["depth_index"]["y"], grid_bottom + 2)
                     self.assertEqual(controller["depth_index"]["x"], grid["x"] + 2)
-                    self.assertEqual(controller["qubit_index"]["x"] + 8, grid["x"] - 1)
-                    self.assertEqual(controller["qubit_index"]["y"], grid["y"] + 2)
                     grid_right = (
                         grid["x"]
                         + (circuit_depth - 1) * grid["col_pitch"]
                         + grid["cell_w"]
                         - 1
                     )
+                    self.assertEqual(controller["qubit_index"]["x"] + 8, grid["x"] - 1)
                     self.assertEqual(grid_right, controller["w"] - 2)
+                    self.assertEqual(controller["qubit_index"]["y"], grid["y"] + 1)
+                    self.assertEqual(
+                        controller["qubit_selector"]["x"],
+                        controller["qubit_index"]["x"] + 2,
+                    )
+                    self.assertEqual(
+                        controller["qubit_selector"]["y"],
+                        controller["qubit_index"]["y"] + 5,
+                    )
                 else:
                     grid_bottom = (
                         grid["y"]
@@ -210,11 +241,12 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
                     self.assertEqual(
                         controller["depth_index"]["y"]
                         + controller["depth_index"]["text_y"],
-                        grid["y"] + 2,
+                        grid["y"] + 1,
                     )
+                    right_margin = 1 if controller["w"] == 42 else 0
                     self.assertEqual(
                         controller["depth_index"]["x"] + 4,
-                        controller["w"],
+                        controller["w"] - right_margin,
                     )
                     self.assertEqual(controller["qubit_index"]["x"], grid["x"])
                     self.assertEqual(
@@ -226,7 +258,7 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
             with self.subTest(cartridge=cartridge.name):
                 layout = parse_project(cartridge.read_text(encoding="utf-8"))["layout"]
                 horizontal = layout["controller"].get("orientation") == "horizontal"
-                controller_w = 50 if horizontal else 37
+                controller_w = layout["controller"]["w"]
                 left_w = 128 - controller_w
                 self.assertEqual(
                     (layout["controller"]["h"], layout["key_map"]["h"]),
@@ -254,6 +286,38 @@ class LayoutSourceOfTruthTest(unittest.TestCase):
                 )
                 for child in ("title", "instruction", "feedback"):
                     self.assertNotIn(child, layout["mission"])
+
+
+class PvpFrameworkContractTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        source = (
+            ROOT / "framework" / "qilin_game_framework_3Qv_pvp.p8"
+        ).read_text(encoding="utf-8")
+        cls.project = parse_project(source)
+        cls.contract = (
+            ROOT / "docs" / "QILIN_3QV_PVP_CONTRACT.md"
+        ).read_text(encoding="utf-8")
+
+    def test_pvp_shell_is_documented_and_edge_aligned(self) -> None:
+        layout = self.project["layout"]
+        self.assertEqual(self.project["num_qubits"], 3)
+        self.assertEqual(self.project["circuit_depth"], 3)
+        self.assertEqual(
+            (layout["response"]["x"], layout["response"]["y"],
+             layout["response"]["w"], layout["response"]["h"]),
+            (0, 0, 128, 94),
+        )
+        self.assertEqual(
+            (layout["controller_left"]["x"], layout["controller_left"]["w"],
+             layout["key_map"]["x"], layout["key_map"]["w"],
+             layout["controller"]["x"], layout["controller"]["w"]),
+            (0, 29, 29, 70, 99, 29),
+        )
+        self.assertEqual(layout["controller_left"]["anchor"], "bottom_left")
+        self.assertEqual(layout["controller"]["anchor"], "bottom_right")
+        for required in ("128 x 94", "29 x 34", "70 x 34", "P1", "P2"):
+            self.assertIn(required, self.contract)
 
 
 if __name__ == "__main__":

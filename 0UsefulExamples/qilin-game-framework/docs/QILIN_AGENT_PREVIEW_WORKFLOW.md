@@ -34,6 +34,7 @@ Before changing this framework, read:
 - `docs/QILIN_LAYOUT_CONTRACT.md`
 - `docs/QILIN_AGENT_PREVIEW_WORKFLOW.md`
 - `docs/QILIN_GAME_DESIGNER_GUIDE.md`
+- `docs/QILIN_3QV_PVP_CONTRACT.md` for PVP work
 
 The authoritative cartridge is:
 
@@ -71,18 +72,29 @@ primary game-specific output surface. Operation Feedback is only for immediate
 controller actions, not mission narrative or scoring. Change the Key Map only
 when the actual controls also change.
 
-The current shared geometry is Response-first: Response occupies `(0,0)` at
-`128 x 78`; the lower band begins at y=78. In the default vertical variant,
-Mission, Operation Feedback, and Key Map form a 91-pixel left column while the
-`37 x 50` Controller occupies `(91,78)`. Renderers and derived cartridges must
+Every active cartridge initializes and resets the Controller cursor to
+internal `q0` with `cursor_q=0`. The renderer must map that internal index to
+the orientation-specific visual position rather than choosing a visual slot.
+
+The current shared single-player geometry is Response-first: Response occupies `(0,0)` at
+`128 x 78`; the lower band begins at y=78. Single-player framework variants share an
+86-pixel left column for Mission, Operation Feedback, and Key Map while the
+`42 x 50` Controller occupies `(86,78)`. Renderers and derived cartridges must
 consume these layout values rather than reconstructing the former top-control
 and bottom-Response arrangement.
 
+The maintained PVP specialization deliberately uses a different shell:
+Response is `128 x 94`, followed by P1 Controller `29 x 34`, stacked Key Map
+`70 x 34`, and P2 Controller `29 x 34`. The renderer must parse both
+Controller tables and must not draw the inherited Mission/Operation Feedback
+metadata over the expanded Response. See `QILIN_3QV_PVP_CONTRACT.md`.
+
 Exactly one input owner may consume buttons per frame. Use
-`completion > modal (including dialogue) > controller`, return after a
+`completion > modal > handoff > O+X mode chord > controller`, return after a
 higher-priority update, and require a release handoff when a modal closes.
-Right-to-advance is contextual to dialogue ownership and must not leak into
-Controller navigation or X + Right CNOT targeting.
+O is the standard dialogue confirm/advance input through
+`modal_confirm_pressed()`. Right may support game-owned modal navigation but
+is not the default advance action and must not leak into Controller input.
 
 ## Derived-game cleanup and handoff contract
 
@@ -308,6 +320,10 @@ major layout blocks used in framework discussion:
 - Mission
 - Response
 
+For `qilin_game_framework_3Qv_pvp.p8`, the guided blocks are instead
+Controller P1, Key Map, Controller P2, and Response. Mission and Operation
+Feedback are intentionally absent from the PVP drawing path.
+
 These guide lines are part of the preview workflow so a designer can review
 block boundaries visually while iterating on layout.
 
@@ -475,7 +491,9 @@ Every preview generation should validate the following when practical.
   qubit/depth change may leave either label group visually detached.
 - Controller content with `anchor="bottom_right"` remains right- and
   bottom-aligned when its qubit count or circuit depth is reduced.
-- Mission appears in the expected position.
+- In PVP, P1's documented `bottom_left` mirror and P2's `bottom_right` anchor
+  occupy exactly 29 pixels each, with the 70-pixel Key Map between them.
+- Mission appears in the expected position for cartridges that draw Mission.
 - Response remains a rectangular region.
 - child clusters remain within their parent bounds where applicable.
 
@@ -484,6 +502,8 @@ Every preview generation should validate the following when practical.
 - Depth labels are visible.
 - Key Map items are visible.
 - Mission canvas content is visible and clipped to Mission bounds.
+- For PVP, the three stacked Key Map rows are visible and Mission/Operation
+  Feedback are not drawn.
 - Response legend is visible.
 - Response Canvas is visible.
 - State Index is visible if enabled.
@@ -602,11 +622,15 @@ tools/watch_preview.py   watch-mode convenience entry point
 tools/release.py         explicit release packaging only
 ```
 
-The active framework cartridge is:
+The default authoritative framework cartridge is:
 
 ```text
 framework/qilin_game_framework_4Qv.p8
 ```
+
+The one-click batch scripts currently preview
+`framework/qilin_game_framework_3Qv_pvp.p8` during PVP layout development.
+That operational target is separate from source-of-truth ownership.
 
 Do not use `reference/qilin.p8` as the preview source unless explicitly
 reviewing the original game.

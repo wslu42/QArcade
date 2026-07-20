@@ -58,12 +58,49 @@ historical reference behavior only.
 
 Dialogue, completion screens, and other overlays must use modal input
 ownership. Exactly one system consumes buttons per frame, with priority
-`completion > modal (including dialogue) > controller`; higher-priority update
+`completion > modal > handoff > O+X mode chord > controller`; higher-priority update
 branches return before Controller input runs. When a modal closes, wait for its
 trigger button to be released before returning ownership to the Controller;
 this required transition is the release handoff.
-Contextual reuse such as Right-to-advance is valid only while the modal owns
-input and must not change the release-confirmed gate mapping.
+PICO-8 O (`btnp(4)`) is the standard dialogue confirm/advance input through
+`modal_confirm_pressed()`. Right may be game-owned modal navigation, but is not
+the default advance action and must not change the Controller mapping.
+
+O+X is the reserved traditional/quantum control-mode chord: both buttons must be released
+before `request_control_mode_switch()` runs, and the dispatcher cancels any
+pending H, X, or CNOT first. Derived games implement that game-owned hook only
+when they actually provide a second control mode.
+
+Classical-mode O and X are otherwise game-owned, but must follow the same
+chord-safe principle as the release-confirmed gate model. Confirm a standalone
+O/X action on release, or keep its press-time effect pending and cancellable.
+If the second face button forms O+X, cancel both pending single-button actions;
+do not commit an irreversible action on the first button press.
+
+PVP variants keep separate Controller state per player and read the portable
+six-button API with `btn/btnp(button,0)` for P1 and
+`btn/btnp(button,1)` for P2. Do not hard-code a recommended QWERTY layout into
+cartridge logic; players remap those buttons with PICO-8 `KEYCONFIG`. Treat
+raw/devkit keyboard input as an optional fallback only. Shared modal handoff
+must wait until both players release every standard button.
+The recommended shared-keyboard `KEYCONFIG` preset is
+P1=`WASD + F(O)/G(X)` and P2=`Arrows + K(O)/L(X)`. Present it only as host
+setup guidance; cartridge code continues to poll player-indexed buttons.
+
+The maintained `qilin_game_framework_3Qv_pvp.p8` specialization uses a taller
+`128 x 94` Response above a `29 + 70 + 29` pixel control band. P1 is a
+bottom-left mirror with Depth Index on the far left; P2 is bottom-right with
+Depth Index on the far right. Both Controllers are `29 x 34`, three-qubit,
+three-depth devices, and the center `70 x 34` Key Map stacks Run/Clear, X/H,
+and CNOT across three rows. See `../docs/QILIN_3QV_PVP_CONTRACT.md` before
+changing its geometry or input ownership.
+
+For game dialogue, agents should proactively consider the Oli414 Dialogue
+Text Box (DTB) preserved in `../reference/qilin.p8`, even when the human
+developer does not mention DTB. Treat it as adaptable reference code rather
+than a drop-in component: replace its fixed coordinates and 29-character wrap
+width with Mission-relative values, clip it to Mission, and route its input
+through the modal owner plus release handoff.
 
 Game-owned behavior includes:
 
@@ -81,22 +118,22 @@ with a garden in which eight flowers represent the eight measured states.
 ## Layout lessons
 
 The screen is exactly `128 x 128`, so text length and single-pixel geometry
-matter. The five official top-level blocks are:
+matter. The five official single-player top-level blocks are:
 
 | Block | Bounds |
 |---|---|
 | Response | `x=0..127, y=0..77` |
-| Mission | `x=0..90, y=78..103` |
-| Operation Feedback | `x=0..90, y=104..109` |
-| Key Map | `x=0..90, y=110..127` |
-| Controller | `x=91..127, y=78..127` |
+| Mission | `x=0..85, y=78..103` |
+| Operation Feedback | `x=0..85, y=104..109` |
+| Key Map | `x=0..85, y=110..127` |
+| Controller | `x=86..127, y=78..127` |
 
 The Controller is compact and highly structured. Response is the main
 creative canvas, with the full 128-pixel width and 78 pixels of height. It
 should show a meaningful consequence of measurement instead of repeating
 information already visible in the Controller.
 
-Maintained Controllers declare `anchor="bottom_right"`. This anchors the
+Maintained single-player Controllers declare `anchor="bottom_right"`. This anchors the
 complete Grid and label envelope to the Controller's lower-right corner:
 fewer qubit columns move the Grid, Qubit Index, and Qubit Selector right;
 fewer circuit depths move the Grid and Depth Index down. Qubit and depth
@@ -104,7 +141,14 @@ labels are structural grid extensions, so their fixed adjacency must be
 recalculated and tested whenever qubit count, circuit depth, cell size, or
 pitch changes.
 
-Mission is a single developer-owned `91 x 26` canvas with no required title,
+The PVP P1 Controller is the deliberate exception: it declares
+`anchor="bottom_left"` so the two Controller shells mirror one another. This
+does not change the single-player anchor contract.
+
+Every active cartridge initializes and resets the Controller cursor to
+internal `q0` (`cursor_q=0`), independent of its visual orientation.
+
+Mission is a single developer-owned `86 x 26` canvas with no required title,
 instruction, or feedback children. Replace `draw_mission()` with game-specific
 text, dialogue, icons, or progress, and keep drawing clipped to Mission bounds.
 

@@ -48,6 +48,11 @@ The process remains alive and retains:
 
 The source file is polled every 150 ms by default, configurable with `--poll-interval`.
 
+The command above shows the default 4Qv source explicitly. At the current PVP
+layout-development checkpoint, `WATCH_PREVIEW.bat` and `RENDER_PNG.bat` instead
+pass `framework/qilin_game_framework_3Qv_pvp.p8`; changing the batch target
+does not change the default source-of-truth designation.
+
 ### 4. Preview and release are separate
 
 Fast preview:
@@ -91,8 +96,9 @@ python -m unittest discover -s tests -v
 ```
 
 The tests cover arithmetic parsing, compact 4Q/3Q layout normalization,
-cross-cartridge bottom-right Controller anchoring and Q/D label adjacency,
-default gate examples, cache skipping, guided output, colors, and release
+single-player bottom-right Controller anchoring and Q/D label adjacency,
+the PVP bottom-left/bottom-right two-Controller shell, default gate examples,
+cache skipping, guided output, colors, multiplayer input state, and release
 separation.
 
 ## Local benchmark
