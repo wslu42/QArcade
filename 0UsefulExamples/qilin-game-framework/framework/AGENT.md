@@ -201,6 +201,17 @@ PICO-8 is authoritative.
 
 Preview-only fields or behavior should never be added to a cartridge.
 
+### Human-owned native PICO-8 verification
+
+Native PICO-8 gameplay verification is performed by the human developer.
+Agents should not search for, launch, or treat access to a local `pico8.exe`
+as a completion requirement unless the developer explicitly asks them to do
+so. The agent owns source review, static preview generation where supported,
+automated tests, and a concise native-test checklist. The developer runs that
+checklist in PICO-8 and reports behavioral or visual findings for the next
+iteration. Native PICO-8 remains authoritative when it differs from a static
+preview.
+
 ## Recommended workflow for future agents
 
 1. Read `AGENTS.md`, the framework README, layout contract, designer guide,
@@ -217,7 +228,8 @@ Preview-only fields or behavior should never be added to a cartridge.
 10. Render and inspect initial, edited, and measured preview states.
 11. Run `python -m unittest discover -s tests -v`.
 12. Validate game-specific invariants, including target totals and text width.
-13. Verify custom behavior and visuals in native PICO-8.
+13. Give the developer a focused native PICO-8 checklist; the developer runs
+    it and reports results.
 14. Write a player-facing README describing the premise, objective, controls,
     and basic quantum mechanic.
 
