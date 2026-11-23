@@ -26,14 +26,39 @@ NPC position.
 `p2_is_npc=true` is the default cartridge setting. In this mode:
 
 - P1 uses the quantum Controller and threshold-based multi-paddle defense.
-- P2 uses one classical paddle with unrestricted vertical movement.
+- P2 uses one classical paddle with unrestricted horizontal movement.
 - The NPC follows the incoming ball at a limited speed and returns toward the
   center while the ball travels away.
-- P2's lower-right Controller is replaced by an `NPC / CLASSIC / AUTO Y`
+- P2's lower-right Controller is replaced by an `NPC / CLASSIC / AUTO X`
   status panel.
 
 Set `p2_is_npc=false` in the cartridge to restore the human-vs-human quantum
 PVP path.
+
+## Rotated court
+
+The Pong court is rotated clockwise inside the `128 x 94` Response. P1
+defends the top edge and P2/NPC defends the bottom edge. The ball primarily
+travels vertically, while the eight state lanes run from left to right. Both
+paddles are horizontal, and the court leaves dedicated space inside its top
+and bottom edges for their full collision shapes.
+
+## Layout variants
+
+- `ex_qpong_pvp.p8` keeps the two Controllers in the lower control band.
+- `ex_qpong_pvp_vertical.p8` gives the entire left `91 x 128` region to the
+  Response. P1's quantum Controller occupies the upper-right corner, the P2
+  classical NPC status panel occupies the lower-right corner, and the widened
+  `37`-pixel Key Map fills the space
+  between them with
+  Run, Clear, X, H, CNOT-left, and CNOT-right on separate lines. The two CNOT
+  rows use opposite control/target diagrams matching their target direction.
+  P1 uses the quantum Controller while P2 remains a classical NPC. The NPC
+  samples the incoming ball position only after a reaction delay and can move
+  only one complete state lane at a time, such as `000` to `001`. Each lane
+  change has a long cooldown, and reversing direction adds another pause,
+  giving the paddle visible latency and heavy inertia. State bar labels appear
+  once near each paddle without overlapping its collision area.
 
 ## Controls
 
@@ -67,7 +92,7 @@ active.
 
 ## Lane-order modes
 
-The cartridge now separates quantum state identity from its vertical Pong
+The cartridge separates quantum state identity from its horizontal Pong
 position. Set `lane_mode` near the top of the cartridge to select a mapping.
 
 Binary / X-friendly is the default:
@@ -89,6 +114,12 @@ so selected H-generated pairs become adjacent defensive paddles. Changing the
 mode only remaps states to screen positions; it does not change the circuit,
 expected counts, threshold, or collision rules. The HUD shows `bin>=5` or
 `gry>=5` for the active mapping.
+
+The rotated court labels each left-to-right lane with compact `q2 q1 q0` bar
+notation. A bright three-pixel vertical bar represents `1`; a dim baseline
+pixel represents `0`. One empty pixel separates neighboring bits, so each
+three-bit state occupies five pixels. Full binary strings remain visible in
+the start menu examples.
 
 ## Credits and provenance
 

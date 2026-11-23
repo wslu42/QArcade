@@ -13,6 +13,12 @@ The default authoritative cartridge is `framework/qilin_game_framework_4Qv.p8`.
 Use `framework/qilin_game_framework_4Qh.p8` when the horizontal Controller
 orientation is explicitly selected.
 
+All repository `.p8` files are headerless plain source. They begin directly
+with Lua code and must not contain the PICO-8 envelope
+`pico-8 cartridge // http://www.pico-8.com`, any `version N` line, or
+`__lua__`. Strip this envelope when importing, copying, or deriving cartridges,
+including historical references, and audit the result before handoff.
+
 The authoritative single-player screen allocation is Response-first: a `128 x 78` Response
 at the top, with Mission, Operation Feedback, Key Map, and Controller sharing
 the lower band. Do not restore the former Controller-first top region or the

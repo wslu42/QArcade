@@ -212,6 +212,17 @@ checklist in PICO-8 and reports behavioral or visual findings for the next
 iteration. Native PICO-8 remains authoritative when it differs from a static
 preview.
 
+### PICO-8 cartridge formatting
+
+Every `.p8` file maintained in this repository is headerless. Omit the full
+PICO-8 envelope: `pico-8 cartridge // http://www.pico-8.com`, any `version N`
+line, and `__lua__`. Those lines can cause parsing issues when source is pasted
+into the web runner, so the file must begin directly with code content.
+
+When importing, copying, or deriving a cartridge, strip that envelope even
+from historical or upstream sources. Before handoff, audit every `.p8`; do not
+assume the version is always 32.
+
 ## Recommended workflow for future agents
 
 1. Read `AGENTS.md`, the framework README, layout contract, designer guide,

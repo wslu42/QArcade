@@ -1,6 +1,3 @@
-pico-8 cartridge // http://www.pico-8.com
-version 32
-__lua__
 function _init()
     t1 = 20
     td = t1

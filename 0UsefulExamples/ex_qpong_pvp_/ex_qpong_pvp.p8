@@ -1,6 +1,3 @@
-pico-8 cartridge // http://www.pico-8.com
-version 32
-__lua__
 --------- microqiskit ---------
 -- math.p8
 math = {}
@@ -1244,7 +1241,7 @@ function draw_circuits()
     rect(99,94,127,127,5)
     print("npc",107,101,8)
     print("classic",101,111,6)
-    print("auto y",102,120,6)
+    print("auto x",102,120,6)
   else
     activate_player_state(2)
     draw_controller(layout.controller,1)
@@ -1265,29 +1262,34 @@ end
 --------- quantum pong ---------
 p2_is_npc=true
 win_score=5
-court_top=7
+court_left=28
+court_right=99
+court_top=9
 court_bottom=93
-paddle_h=9
-paddle_x={5,120}
+paddle_w=7
+paddle_t=4
+p1_paddle_y=12
+p2_paddle_y=86
 npc_speed=0.72
+ball_speed_scale=0.5
 
-function lane_y(lane)
-  return 13+lane*10
+function lane_x(lane)
+  return 32+lane*9
 end
 
 function init_pong()
   p1_score=0
   p2_score=0
   winner=0
-  npc_y=48-flr(paddle_h/2)
-  new_round(rnd(1)<0.5 and 1 or 2)
+  npc_x=63-flr(paddle_w/2)
+  new_round(2)
 end
 
 function new_round(toward_player)
   ball={
-    x=63,y=48,
-    dx=toward_player==1 and -0.65 or 0.65,
-    dy=rnd(0.8)-0.4,
+    x=63,y=51,
+    dx=rnd(0.8)-0.4,
+    dy=toward_player==1 and -0.65 or 0.65,
     size=2
   }
   serve_timer=45
@@ -1300,9 +1302,9 @@ function paddle_overlap(index)
     local state=order[i]
     if valid_paddles[state] then
       local lane=i-1
-      local py=lane_y(lane)-flr(paddle_h/2)
+      local px=lane_x(lane)-flr(paddle_w/2)
       local overlaps=
-        ball.y+ball.size>=py and ball.y<=py+paddle_h
+        ball.x+ball.size>=px and ball.x<=px+paddle_w
       if overlaps then
         activate_player_state(1)
         return true,lane
@@ -1314,12 +1316,14 @@ function paddle_overlap(index)
 end
 
 function bounce_from_paddle(index,lane)
-  local center=lane_y(lane)
-  local ball_center=ball.y+ball.size/2
-  ball.dy=mid(-1.25,ball.dy+(ball_center-center)*0.07,1.25)
-  local speed=min(1.55,abs(ball.dx)+0.055)
-  ball.dx=index==1 and speed or -speed
-  ball.x=index==1 and paddle_x[1]+3 or paddle_x[2]-3
+  local center=lane_x(lane)
+  local ball_center=ball.x+ball.size/2
+  ball.dx=mid(-1.25,ball.dx+(ball_center-center)*0.07,1.25)
+  local speed=min(1.55,abs(ball.dy)+0.055)
+  ball.dy=index==1 and speed or -speed
+  ball.y=index==1 and
+    p1_paddle_y+paddle_t+1 or
+    p2_paddle_y-ball.size-1
 end
 
 function player_run_status(index)
@@ -1331,14 +1335,14 @@ end
 
 function draw_valid_paddles(index)
   activate_player_state(index)
-  local x=paddle_x[index]
   local color=index==1 and 12 or 8
+  local y=index==1 and p1_paddle_y or p2_paddle_y
   local order=active_lane_order()
   for i=1,#order do
     local state=order[i]
     if valid_paddles[state] then
-      local y=lane_y(i-1)-flr(paddle_h/2)
-      rectfill(x-1,y,x+3,y+paddle_h,color)
+      local x=lane_x(i-1)-flr(paddle_w/2)
+      rectfill(x,y,x+paddle_w,y+paddle_t,color)
     end
   end
   activate_player_state(1)
@@ -1355,30 +1359,30 @@ end
 
 function update_npc()
   if not p2_is_npc then return end
-  local target=48-flr(paddle_h/2)
-  if ball.dx>0 then
-    target=ball.y+ball.size/2-paddle_h/2
+  local target=63-flr(paddle_w/2)
+  if ball.dy>0 then
+    target=ball.x+ball.size/2-paddle_w/2
   end
-  if npc_y<target then
-    npc_y=min(npc_y+npc_speed,target)
-  elseif npc_y>target then
-    npc_y=max(npc_y-npc_speed,target)
+  if npc_x<target then
+    npc_x=min(npc_x+npc_speed,target)
+  elseif npc_x>target then
+    npc_x=max(npc_x-npc_speed,target)
   end
-  npc_y=mid(court_top,npc_y,court_bottom-paddle_h)
+  npc_x=mid(court_left+2,npc_x,court_right-paddle_w-1)
 end
 
 function npc_paddle_overlap()
-  return ball.y+ball.size>=npc_y and
-    ball.y<=npc_y+paddle_h
+  return ball.x+ball.size>=npc_x and
+    ball.x<=npc_x+paddle_w
 end
 
 function bounce_from_npc()
-  local center=npc_y+paddle_h/2
-  local ball_center=ball.y+ball.size/2
-  ball.dy=mid(-1.25,ball.dy+(ball_center-center)*0.07,1.25)
-  local speed=min(1.55,abs(ball.dx)+0.055)
-  ball.dx=-speed
-  ball.x=paddle_x[2]-3
+  local center=npc_x+paddle_w/2
+  local ball_center=ball.x+ball.size/2
+  ball.dx=mid(-1.25,ball.dx+(ball_center-center)*0.07,1.25)
+  local speed=min(1.55,abs(ball.dy)+0.055)
+  ball.dy=-speed
+  ball.y=p2_paddle_y-ball.size-1
 end
 
 function score_point(index)
@@ -1401,23 +1405,23 @@ function update_pong()
     return
   end
 
-  local old_x=ball.x
-  ball.x+=ball.dx
-  ball.y+=ball.dy
+  local old_y=ball.y
+  ball.x+=ball.dx*ball_speed_scale
+  ball.y+=ball.dy*ball_speed_scale
 
-  if ball.y<=court_top then
-    ball.y=court_top
-    ball.dy=abs(ball.dy)
-  elseif ball.y+ball.size>=court_bottom then
-    ball.y=court_bottom-ball.size
-    ball.dy=-abs(ball.dy)
+  if ball.x<=court_left+1 then
+    ball.x=court_left+1
+    ball.dx=abs(ball.dx)
+  elseif ball.x+ball.size>=court_right-1 then
+    ball.x=court_right-ball.size-1
+    ball.dx=-abs(ball.dx)
   end
 
-  if ball.dx<0 and old_x>paddle_x[1] and
-    ball.x<=paddle_x[1]+2 then
+  if ball.dy<0 and old_y>p1_paddle_y+paddle_t and
+    ball.y<=p1_paddle_y+paddle_t then
     try_paddle_bounce(1)
-  elseif ball.dx>0 and old_x<paddle_x[2] and
-    ball.x+ball.size>=paddle_x[2] then
+  elseif ball.dy>0 and old_y+ball.size<p2_paddle_y and
+    ball.y+ball.size>=p2_paddle_y then
     if p2_is_npc then
       if npc_paddle_overlap() then bounce_from_npc() end
     else
@@ -1425,9 +1429,9 @@ function update_pong()
     end
   end
 
-  if ball.x+ball.size<0 then
+  if ball.y+ball.size<court_top then
     score_point(2)
-  elseif ball.x>127 then
+  elseif ball.y>court_bottom then
     score_point(1)
   end
 end
@@ -1435,31 +1439,31 @@ end
 function draw_pong()
   clip(0,0,128,94)
   cls(0)
-  rect(0,court_top,127,court_bottom,5)
+  rect(court_left,court_top,court_right,court_bottom,11)
 
   local order=active_lane_order()
   for lane=0,7 do
-    local y=lane_y(lane)
-    if lane<7 then line(11,y+5,116,y+5,1) end
-    print(order[lane+1],58,y-2,5)
+    local x=lane_x(lane)
+    if lane<7 then line(x+4,18,x+4,84,1) end
+    draw_state_glyph(order[lane+1],x-2,44)
   end
 
-  for y=court_top+2,court_bottom-2,6 do
-    pset(63,y,6)
+  for x=court_left+2,court_right-2,6 do
+    pset(x,51,6)
   end
 
   draw_valid_paddles(1)
   if p2_is_npc then
     rectfill(
-      paddle_x[2]-1,npc_y,
-      paddle_x[2]+3,npc_y+paddle_h,8
+      npc_x,p2_paddle_y,
+      npc_x+paddle_w,p2_paddle_y+paddle_t,8
     )
   else
     draw_valid_paddles(2)
   end
   rectfill(ball.x,ball.y,ball.x+ball.size,ball.y+ball.size,7)
-  print("p1 "..p1_score,13,1,12)
-  print(p2_score..(p2_is_npc and " npc" or " p2"),91,1,8)
+  print("p1 "..p1_score,4,1,12)
+  print(p2_score..(p2_is_npc and " npc" or " p2"),98,1,8)
   local mode_label=lane_mode=="gray" and "gry" or "bin"
   print(mode_label..">="..valid_threshold,51,1,6)
   if player_run_status(1) then print("invalid",29,1,8) end
@@ -1468,6 +1472,19 @@ function draw_pong()
   end
   if serve_timer>0 then print_centered("ready",44,10) end
   clip()
+end
+
+-- photon_runner-style q2 q1 q0 glyph: a tall bright bar is 1;
+-- a short dim baseline mark is 0. three bits occupy five pixels.
+function draw_state_glyph(state,x,y)
+  for bit=1,#state do
+    local px=x+(bit-1)*2
+    if sub(state,bit,bit)=="1" then
+      line(px,y-1,px,y+1,13)
+    else
+      pset(px,y+1,5)
+    end
+  end
 end
 
 function draw_mode_menu()
