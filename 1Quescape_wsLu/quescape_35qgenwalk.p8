@@ -1,6 +1,3 @@
-pico-8 cartridge // http://www.pico-8.com
-version 32
-__lua__
 function _init()
     x0,y0=68,68
     x,y = x0,y0

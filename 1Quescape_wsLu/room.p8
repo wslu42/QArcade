@@ -1,6 +1,3 @@
-pico-8 cartridge // http://www.pico-8.com
-version 32
-__lua__
 function _init()
  x=30
  y=30
